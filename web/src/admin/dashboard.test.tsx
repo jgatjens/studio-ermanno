@@ -43,7 +43,7 @@ test('one failed next status does not claim an empty or complete next appointmen
   vi.mocked(apiRequest).mockImplementation(async path=>{if(path==='/appointments/context')return {timezone:'UTC',currency:'EUR'};if(path.includes('status=CONFIRMED'))throw Error('offline');return page});mount();await screen.findByText('Could not load the next appointment.',{}, {timeout:3000});expect(screen.queryByText('No upcoming appointments today.')).not.toBeInTheDocument();expect(screen.getByText('Stock levels look good.')).toBeInTheDocument()
 })
 test('shell parent navigation, More, focus and single logout preserve protected layout',async()=>{
-  mount('/admin/more');expect(screen.getByRole('link',{name:'More'})).toHaveClass('active');expect(screen.getByRole('main')).toHaveFocus();fireEvent.click(screen.getByRole('link',{name:'Services'}));await screen.findByText('No services yet.');expect(screen.getByRole('link',{name:'More'})).toHaveClass('active');expect(screen.getByRole('link',{name:'More'})).toHaveAttribute('aria-current','page');expect(screen.getAllByRole('button',{name:'Logout'})).toHaveLength(1)
+  mount('/admin/more');expect(screen.getByRole('link',{name:'More'})).toHaveClass('active');expect(screen.getByRole('main')).toHaveFocus();fireEvent.click(screen.getAllByRole('link',{name:'Services'}).find(link => link.closest('main'))!);await screen.findByText('No services yet.');expect(screen.getByRole('link',{name:'More'})).toHaveClass('active');expect(screen.getByRole('link',{name:'More'})).toHaveAttribute('aria-current','page');expect(screen.getAllByRole('button',{name:'Logout'})).toHaveLength(1)
 })
 test('clock refreshes after local midnight and cleans up timers',async()=>{
   vi.useFakeTimers();vi.setSystemTime(new Date('2026-10-04T21:59:30Z'));const view=mount();await act(async()=>{await vi.advanceTimersByTimeAsync(1)});expect(screen.getByText(/2026-10-04 · 23:59/)).toBeInTheDocument();await act(async()=>{await vi.advanceTimersByTimeAsync(60_000)});expect(screen.getByText(/2026-10-05 · 00:00/)).toBeInTheDocument();view.unmount();const calls=vi.mocked(apiRequest).mock.calls.length;await act(async()=>{await vi.advanceTimersByTimeAsync(60_000)});expect(vi.mocked(apiRequest).mock.calls).toHaveLength(calls)
@@ -53,7 +53,7 @@ test('manual refresh refetches the schedule as well as independent summaries',as
 })
 
 test('actor-scoped context cache survives child route navigation',async()=>{
-  mount('/admin');await screen.findByText('No appointments today.');fireEvent.click(screen.getByRole('link',{name:'More'}));fireEvent.click(screen.getByRole('link',{name:'Dashboard'}));await screen.findByText('No appointments today.');expect(vi.mocked(apiRequest).mock.calls.filter(([p])=>p==='/appointments/context')).toHaveLength(1)
+  mount('/admin');await screen.findByText('No appointments today.');fireEvent.click(screen.getByRole('link',{name:'More'}));fireEvent.click(screen.getAllByRole('link',{name:'Dashboard'})[0]);await screen.findByText('No appointments today.');expect(vi.mocked(apiRequest).mock.calls.filter(([p])=>p==='/appointments/context')).toHaveLength(1)
 })
 test('changed actor does not retain the prior dashboard cache or Owner controls',async()=>{
   vi.mocked(apiRequest).mockImplementation(async path=>path==='/appointments/context'?{timezone:'UTC',currency:'EUR'}:path.startsWith('/products?')?{...page,items:[{id:'old',name:'Previous actor product',current_stock:'1',minimum_stock:'2'}],total:1}:page)

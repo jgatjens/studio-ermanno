@@ -138,3 +138,31 @@ test('backend outage does not grant access and can be retried', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
   expect(await screen.findByText('Owner access')).toBeInTheDocument()
 })
+
+test('login fields support password managers and required validation', async () => {
+  mount('/login'); await screen.findByRole('heading', { name: 'Admin login' })
+  expect(screen.getByLabelText('Email')).toBeRequired()
+  expect(screen.getByLabelText('Email')).toHaveAttribute('autocomplete', 'username')
+  expect(screen.getByLabelText('Password')).toBeRequired()
+  expect(screen.getByLabelText('Password')).toHaveAttribute('autocomplete', 'current-password')
+  expect(screen.queryByText('Sign up')).not.toBeInTheDocument()
+  expect(screen.queryByText('Forgot your password?')).not.toBeInTheDocument()
+})
+
+test('pending login disables controls and prevents duplicate form submission', async () => {
+  let finish!: (value: unknown) => void
+  auth.signInWithPassword.mockReturnValue(new Promise(resolve => { finish = resolve }))
+  mount('/login'); await screen.findByRole('heading', { name: 'Admin login' })
+  fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'owner@example.test' } })
+  fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'test-password' } })
+  const form = screen.getByRole('button', { name: 'Login' }).closest('form')!
+  fireEvent.submit(form)
+  expect(screen.getByRole('button', { name: 'Signing in…' })).toBeDisabled()
+  expect(screen.getByLabelText('Email')).toBeDisabled()
+  expect(screen.getByLabelText('Password')).toBeDisabled()
+  fireEvent.submit(form)
+  expect(auth.signInWithPassword).toHaveBeenCalledTimes(1)
+  await act(async () => finish({ data: { session: null }, error: new Error('invalid') }))
+  expect(await screen.findByRole('alert')).toHaveTextContent('Check your email and password')
+  expect(screen.getByRole('button', { name: 'Login' })).toBeEnabled()
+})

@@ -4,6 +4,8 @@ This folder contains the current planning documentation for the MVP.
 
 ## Documents
 
+- `plans/admin-redesign-implementation.md` — staged shadcn admin redesign; login-02 first, preserving authentication and role boundaries
+
 - `deployment-runbook.md` — exact provider settings, user setup, migration/release commands and rollback procedure
 - `phase-12-verification.md` — local deployment preparation evidence and remaining live checks
 - `plans/phase-12-implementation.md` — final MVP deployment plan: hosting, environment configuration, migrations, Auth/CORS, logging, release checks and rollback
