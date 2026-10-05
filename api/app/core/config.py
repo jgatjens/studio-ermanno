@@ -1,8 +1,9 @@
 from uuid import UUID
+import os
 from functools import lru_cache
 from typing import Literal, Optional
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
-from pydantic import AnyHttpUrl, SecretStr, Field, field_validator, model_validator
+from pydantic import AnyHttpUrl, SecretStr, Field, ValidationError, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import make_url
 
@@ -88,4 +89,11 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    selected_file = os.environ.get("APP_ENV_FILE")
+    if selected_file is not None and not os.path.isfile(selected_file):
+        raise RuntimeError("APP_ENV_FILE must name an existing configuration file")
+    try:
+        return Settings(_env_file=selected_file if selected_file is not None else ".env")
+    except ValidationError:
+        # Pydantic errors can include raw input values, including connection URLs.
+        raise RuntimeError("Invalid application configuration; review environment settings") from None

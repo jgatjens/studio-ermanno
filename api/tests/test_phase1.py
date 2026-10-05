@@ -230,5 +230,8 @@ def test_seed_command_is_repeatable_and_preserves_edits(database, monkeypatch):
 
 def test_seed_refuses_production(session):
     with pytest.raises(ValueError, match="development"):
-        seed_development(session, Settings(_env_file=None, app_env="production"))
+        seed_development(session, Settings(_env_file=None, app_env="production",
+            database_url="postgresql://user:password@db.example.test/database?sslmode=require",
+            frontend_origin="https://business.pages.dev", supabase_url="https://project.supabase.co",
+            public_business_id=BUSINESS_ID))
     assert session.scalar(select(func.count()).select_from(Business)) == 0

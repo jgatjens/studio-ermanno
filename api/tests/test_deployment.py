@@ -75,3 +75,43 @@ def test_unknown_routes_and_health_logging():
         assert json.loads(logged.call_args.args[0])["route"] == "/health"
         assert client.get("/private-unknown-path").status_code == 404
         assert json.loads(logged.call_args.args[0])["route"] == "unmatched"
+
+
+def test_startup_configuration_error_does_not_expose_secret():
+    from app.core import config
+    with pytest.raises(ValidationError) as error:
+        production_settings(database_url="postgresql://user:private-password@db.test/database")
+    config.get_settings.cache_clear()
+    try:
+        with patch.object(config, "Settings", side_effect=error.value), pytest.raises(RuntimeError) as failure:
+            config.get_settings()
+        assert "private-password" not in str(failure.value)
+        assert failure.value.__suppress_context__ is True
+    finally:
+        config.get_settings.cache_clear()
+
+
+def test_explicit_environment_file_preserves_development_file(tmp_path, monkeypatch):
+    from app.core.config import get_settings
+    selected = tmp_path / ".env.production"
+    selected.write_text("APP_ENV=test\nFRONTEND_ORIGIN=https://selected.example.test\n")
+    monkeypatch.delenv("APP_ENV", raising=False)
+    monkeypatch.delenv("FRONTEND_ORIGIN", raising=False)
+    monkeypatch.setenv("APP_ENV_FILE", str(selected))
+    get_settings.cache_clear()
+    try:
+        assert str(get_settings().frontend_origin) == "https://selected.example.test/"
+        assert get_settings().app_env == "test"
+    finally:
+        get_settings.cache_clear()
+
+
+def test_missing_selected_environment_file_does_not_fall_back(tmp_path, monkeypatch):
+    from app.core.config import get_settings
+    monkeypatch.setenv("APP_ENV_FILE", str(tmp_path / "missing.env"))
+    get_settings.cache_clear()
+    try:
+        with pytest.raises(RuntimeError, match="existing configuration file"):
+            get_settings()
+    finally:
+        get_settings.cache_clear()
