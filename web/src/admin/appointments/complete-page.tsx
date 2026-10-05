@@ -160,157 +160,169 @@ function CompletionForm({ appointment, context }: { appointment: Appointment; co
     mutation.mutate(body)
   }
   return (
-    <section className="space-y-4 break-words">
+    <section className="appointment-complete-workspace break-words">
       <Link to={`/admin/appointments/${appointment.id}`}>Back to appointment</Link>
-      <h1>Complete appointment</h1>
-      <p>
-        {appointment.client.first_name} {appointment.client.last_name} ·{' '}
-        {displayTime(appointment.scheduled_start, context.timezone)} ({context.timezone})
-      </p>
-      <h2>Confirm services and totals</h2>
-      <ul>
-        {appointment.services.map((service) => (
-          <li key={service.service_id}>
-            {service.name} · {service.duration_minutes} minutes · {service.price}
-          </li>
-        ))}
-      </ul>
-      <p>
-        Final: {appointment.final_duration_minutes} minutes · {appointment.final_price}{' '}
-        {context.currency}
-      </p>
-      <p>
-        Completion preserves these snapshots and totals. Correct services or totals before entering
-        completion details.
-      </p>
-      <Link to={`/admin/appointments/${appointment.id}/edit`}>Edit services or totals first</Link>
-      <p>
-        Completing this appointment deducts all USED and SOLD quantities from stock atomically.
-        Insufficient stock keeps your draft available for correction.
-      </p>
-      <fieldset className="space-y-3" disabled={mutation.isPending}>
-        <legend>Products used or sold</legend>
-        <label>
-          Search products
-          <input
-            className={field}
-            maxLength={200}
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </label>
-        {products.isPending || search.trim() !== q ? (
-          <p role="status">Loading products…</p>
-        ) : products.isError ? (
-          <div role="alert">
-            <p>{products.error.message}</p>
-            <button type="button" className={button} onClick={() => void products.refetch()}>
-              Retry products
-            </button>
-          </div>
-        ) : (
-          <>
-            <ul className="space-y-2">
-              {products.data.items.map((product) => (
-                <li key={product.id}>
-                  <button type="button" className={button} onClick={() => add(product)}>
-                    Add {product.name}
-                    {product.brand ? ` (${product.brand})` : ''}
-                  </button>
-                </li>
-              ))}
-            </ul>
-            {!products.data.total && <p>No matching active products.</p>}
-            <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
-                className={button}
-                disabled={!offset}
-                onClick={() => setOffset(Math.max(0, offset - 25))}
-              >
-                Previous products
-              </button>
-              <button
-                type="button"
-                className={button}
-                disabled={offset + 25 >= products.data.total}
-                onClick={() => setOffset(offset + 25)}
-              >
-                Next products
+      <div className="appointment-complete-heading">
+        <div>
+          <h1>Complete appointment</h1>
+          <p className="appointment-complete-subtitle">
+            {appointment.client.first_name} {appointment.client.last_name} ·{' '}
+            {displayTime(appointment.scheduled_start, context.timezone)} ({context.timezone})
+          </p>
+        </div>
+        <span className="appointment-complete-badge">Completion</span>
+      </div>
+      <section className="appointment-complete-card">
+        <h2>Confirm services and totals</h2>
+        <ul className="appointment-complete-services">
+          {appointment.services.map((service) => (
+            <li key={service.service_id}>
+              {service.name} · {service.duration_minutes} minutes · {service.price}
+            </li>
+          ))}
+        </ul>
+        <p className="appointment-complete-total">
+          Final: {appointment.final_duration_minutes} minutes · {appointment.final_price}{' '}
+          {context.currency}
+        </p>
+        <p className="appointment-complete-help">
+          Completion preserves these snapshots and totals. Correct services or totals before
+          entering completion details.
+        </p>
+        <Link
+          className="appointment-complete-edit"
+          to={`/admin/appointments/${appointment.id}/edit`}
+        >
+          Edit services or totals first
+        </Link>
+        <p className="appointment-complete-stock-note">
+          Completing this appointment deducts all USED and SOLD quantities from stock atomically.
+          Insufficient stock keeps your draft available for correction.
+        </p>
+        <fieldset className="space-y-3" disabled={mutation.isPending}>
+          <legend>Products used or sold</legend>
+          <label>
+            Search products
+            <input
+              className={field}
+              maxLength={200}
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </label>
+          {products.isPending || search.trim() !== q ? (
+            <p role="status">Loading products…</p>
+          ) : products.isError ? (
+            <div role="alert">
+              <p>{products.error.message}</p>
+              <button type="button" className={button} onClick={() => void products.refetch()}>
+                Retry products
               </button>
             </div>
-          </>
-        )}
-        {selected.length === 0 && <p>No products recorded.</p>}
-        {selected.map((row, index) => (
-          <div className="space-y-2 rounded border p-3" key={index}>
-            <p>{row.product.name}</p>
-            <label>
-              Usage for {row.product.name} {index + 1}
-              <select
-                className={field}
-                value={row.usage_type}
-                onChange={(event) => {
+          ) : (
+            <>
+              <ul className="space-y-2">
+                {products.data.items.map((product) => (
+                  <li key={product.id}>
+                    <button type="button" className={button} onClick={() => add(product)}>
+                      Add {product.name}
+                      {product.brand ? ` (${product.brand})` : ''}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              {!products.data.total && <p>No matching active products.</p>}
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  className={button}
+                  disabled={!offset}
+                  onClick={() => setOffset(Math.max(0, offset - 25))}
+                >
+                  Previous products
+                </button>
+                <button
+                  type="button"
+                  className={button}
+                  disabled={offset + 25 >= products.data.total}
+                  onClick={() => setOffset(offset + 25)}
+                >
+                  Next products
+                </button>
+              </div>
+            </>
+          )}
+          {selected.length === 0 && <p>No products recorded.</p>}
+          {selected.map((row, index) => (
+            <div className="space-y-2 rounded border p-3" key={index}>
+              <p>{row.product.name}</p>
+              <label>
+                Usage for {row.product.name} {index + 1}
+                <select
+                  className={field}
+                  value={row.usage_type}
+                  onChange={(event) => {
+                    edited()
+                    setSelected(
+                      selected.map((item, i) =>
+                        i === index
+                          ? { ...item, usage_type: event.target.value as 'USED' | 'SOLD' }
+                          : item,
+                      ),
+                    )
+                  }}
+                >
+                  <option>USED</option>
+                  <option>SOLD</option>
+                </select>
+              </label>
+              <label>
+                Quantity for {row.product.name} {index + 1}
+                <input
+                  className={field}
+                  inputMode="decimal"
+                  value={row.quantity}
+                  onChange={(event) => {
+                    edited()
+                    setSelected(
+                      selected.map((item, i) =>
+                        i === index ? { ...item, quantity: event.target.value } : item,
+                      ),
+                    )
+                  }}
+                />
+              </label>
+              <button
+                type="button"
+                className={button}
+                onClick={() => {
                   edited()
-                  setSelected(
-                    selected.map((item, i) =>
-                      i === index
-                        ? { ...item, usage_type: event.target.value as 'USED' | 'SOLD' }
-                        : item,
-                    ),
-                  )
+                  setSelected(selected.filter((_, i) => i !== index))
                 }}
               >
-                <option>USED</option>
-                <option>SOLD</option>
-              </select>
-            </label>
-            <label>
-              Quantity for {row.product.name} {index + 1}
-              <input
-                className={field}
-                inputMode="decimal"
-                value={row.quantity}
-                onChange={(event) => {
-                  edited()
-                  setSelected(
-                    selected.map((item, i) =>
-                      i === index ? { ...item, quantity: event.target.value } : item,
-                    ),
-                  )
-                }}
-              />
-            </label>
-            <button
-              type="button"
-              className={button}
-              onClick={() => {
+                Remove {row.product.name} {index + 1}
+              </button>
+            </div>
+          ))}
+          <label>
+            Visit notes
+            <textarea
+              className={field}
+              maxLength={10000}
+              value={notes}
+              onChange={(event) => {
                 edited()
-                setSelected(selected.filter((_, i) => i !== index))
+                setNotes(event.target.value)
               }}
-            >
-              Remove {row.product.name} {index + 1}
-            </button>
-          </div>
-        ))}
-        <label>
-          Visit notes
-          <textarea
-            className={field}
-            maxLength={10000}
-            value={notes}
-            onChange={(event) => {
-              edited()
-              setNotes(event.target.value)
-            }}
-          />
-        </label>
-        <button type="button" className={button} onClick={prepare}>
-          Review completion
-        </button>
-      </fieldset>
+            />
+          </label>
+          <button type="button" className={button} onClick={prepare}>
+            Review completion
+          </button>
+        </fieldset>
+      </section>
       {review && (
-        <div role="group" aria-label="Review completion" className="space-y-3">
+        <div role="group" aria-label="Review completion" className="appointment-complete-review">
           <p>Complete this appointment with the services and totals shown above?</p>
           <ul>
             {selected.map((row, index) => (
@@ -326,10 +338,14 @@ function CompletionForm({ appointment, context }: { appointment: Appointment; co
           </button>
         </div>
       )}
-      {notice && <p role="alert">{notice}</p>}
+      {notice && (
+        <p className="appointment-complete-alert" role="alert">
+          {notice}
+        </p>
+      )}
       {mutation.isPending && <p role="status">Completing appointment…</p>}
       {mutation.isError && (
-        <div role="alert">
+        <div className="appointment-complete-alert" role="alert">
           <p>{mutation.error.message}</p>
           <p>
             Your draft is retained. If the request failed after saving, retrying the same details is

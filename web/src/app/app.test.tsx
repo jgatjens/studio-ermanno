@@ -54,3 +54,9 @@ test('unknown admin paths retain authentication protection', () => {
   )
   expect(screen.getByRole('heading', { name: 'Admin login' })).toBeInTheDocument()
 })
+
+test('temporarily disabled gallery redirects home and is absent from navigation', () => {
+  render(<MemoryRouter initialEntries={['/gallery']}><App /></MemoryRouter>)
+  expect(screen.getByRole('heading', { name: 'Capelli. Cura. Identità.' })).toBeInTheDocument()
+  expect(screen.queryByRole('link', { name: 'Gallery' })).not.toBeInTheDocument()
+})

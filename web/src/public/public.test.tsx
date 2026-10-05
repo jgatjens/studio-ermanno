@@ -73,7 +73,7 @@ test('business failure retries independently while live services and hero remain
     ),
   )
 })
-test('catalog paginates, renders public information and currency safely', async () => {
+test('Italian service catalog renders duration and description and paginates', async () => {
   vi.mocked(apiRequest).mockImplementation(async (path) =>
     path === '/public/business'
       ? { ...business, currency: 'invalid' }
@@ -85,8 +85,9 @@ test('catalog paginates, renders public information and currency safely', async 
   )
   mount(<PublicCatalog resource="services" />, '/services')
   await screen.findByText('Cut')
-  expect(screen.getByText('12.50 invalid')).toBeInTheDocument()
-  fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+  expect(screen.getByText('30 min')).toBeInTheDocument()
+  expect(screen.getByText('Simple cut')).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Successivi' }))
   await waitFor(() =>
     expect(apiRequest).toHaveBeenCalledWith(
       '/public/services?limit=12&offset=12',
@@ -175,7 +176,7 @@ test('public requests abort on unmount and stale results cannot replace the next
     path === '/public/business' ? business : page,
   )
   mount(<PublicCatalog resource="products" />, '/products')
-  await screen.findByText(/No products are currently published/)
+  await screen.findByText('Il catalogo è in preparazione.')
   resolveOld({ ...page, items: [{ name: 'Stale cut', price: '10' }] })
   expect(screen.queryByText('Stale cut')).not.toBeInTheDocument()
 })
@@ -221,4 +222,16 @@ test('homepage product collection uses Italian navigation and the published cata
   expect(screen.getByRole('link', { name: 'Esplora i prodotti' })).toHaveAttribute('href', '/products')
   expect(screen.getByText('Cura quotidiana')).toBeInTheDocument()
   expect(screen.queryByText('Featured products')).not.toBeInTheDocument()
+})
+
+test('contact page shares contact hours and embeds the confirmed Grigno address with directions', async () => {
+  mount(<ContactPage />, '/contact')
+  await screen.findByRole('link', { name: 'Chiama' })
+  const map = screen.getByTitle('Mappa del salone — Via Vittorio Emanuele 114, Grigno')
+  const url = new URL(map.getAttribute('src')!)
+  expect(url.origin).toBe('https://www.google.com')
+  expect(url.searchParams.get('q')).toBe('Via Vittorio Emanuele 114, 38055 Grigno (TN), Italia')
+  expect(map).toHaveAttribute('loading', 'lazy')
+  const directions = new URL(screen.getByRole('link', { name: 'Indicazioni stradali' }).getAttribute('href')!)
+  expect(directions.searchParams.get('destination')).toBe(url.searchParams.get('q'))
 })

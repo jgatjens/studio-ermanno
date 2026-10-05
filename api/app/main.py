@@ -22,7 +22,7 @@ app.add_middleware(SafeRequestLogging, sanitize_errors=settings.app_env == "prod
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[str(settings.frontend_origin).rstrip("/")],
-    allow_methods=["GET", "POST", "PUT"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["Content-Type", "Authorization"],
     allow_credentials=False,
 )

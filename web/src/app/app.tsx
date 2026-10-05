@@ -7,7 +7,6 @@ import { PublicLayout } from '@/public/layout'
 import {
   HomePage,
   PublicCatalog,
-  GalleryPage,
   FaqPage,
   ContactPage,
   NotFoundPage,
@@ -33,7 +32,7 @@ export function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/services" element={<PublicCatalog key="services" resource="services" />} />
         <Route path="/products" element={<PublicCatalog key="products" resource="products" />} />
-        <Route path="/gallery" element={<GalleryPage />} />
+        <Route path="/gallery" element={<Navigate to="/" replace />} />
         <Route path="/faq" element={<FaqPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="*" element={<NotFoundPage />} />

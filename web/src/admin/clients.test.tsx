@@ -225,8 +225,8 @@ test('pending client save disables fields and prevents duplicate submissions', a
 test('Owner deletion requires confirmation and cancel sends no DELETE', async () => {
   mount('/admin/clients/one')
   await screen.findByText('Alice Test')
-  fireEvent.click(screen.getByRole('button', { name: 'Delete client' }))
-  expect(screen.getByRole('alertdialog', { name: 'Delete Alice Test?' })).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Archive client' }))
+  expect(screen.getByRole('alertdialog', { name: 'Archive Alice Test?' })).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
   expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
   expect(vi.mocked(apiRequest).mock.calls.some(([, options]) => options?.method === 'DELETE')).toBe(
@@ -245,9 +245,9 @@ test('confirmed deletion sends DELETE and returns to refreshed list', async () =
   )
   mount('/admin/clients/one')
   await screen.findByText('Alice Test')
-  fireEvent.click(screen.getByRole('button', { name: 'Delete client' }))
-  fireEvent.click(screen.getByRole('button', { name: 'Delete permanently' }))
-  await screen.findByText('Client deleted.')
+  fireEvent.click(screen.getByRole('button', { name: 'Archive client' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Archive client' }))
+  await screen.findByText('Client archived.')
   expect(await screen.findByText('No clients yet.')).toBeInTheDocument()
   expect(apiRequest).toHaveBeenCalledWith('/clients/one', { method: 'DELETE' })
 })
@@ -258,8 +258,8 @@ test('delete conflict keeps profile and presents history-preservation reason', a
   })
   mount('/admin/clients/one')
   await screen.findByText('Alice Test')
-  fireEvent.click(screen.getByRole('button', { name: 'Delete client' }))
-  fireEvent.click(screen.getByRole('button', { name: 'Delete permanently' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Archive client' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Archive client' }))
   expect(await screen.findByRole('alert')).toHaveTextContent('linked appointments or feedback')
   expect(screen.getByRole('alertdialog')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
@@ -269,7 +269,7 @@ test('Staff profile offers neither edit nor delete actions', async () => {
   state.actor.role = 'STAFF'
   mount('/admin/clients/one')
   await screen.findByText('Alice Test')
-  expect(screen.queryByRole('button', { name: 'Delete client' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Archive client' })).not.toBeInTheDocument()
   expect(screen.queryByRole('link', { name: 'Edit client' })).not.toBeInTheDocument()
 })
 
@@ -281,11 +281,11 @@ test('pending delete disables confirmation and cancel, and prevents double submi
   )
   mount('/admin/clients/one')
   await screen.findByText('Alice Test')
-  fireEvent.click(screen.getByRole('button', { name: 'Delete client' }))
-  const confirm = screen.getByRole('button', { name: 'Delete permanently' })
+  fireEvent.click(screen.getByRole('button', { name: 'Archive client' }))
+  const confirm = screen.getByRole('button', { name: 'Archive client' })
   fireEvent.click(confirm)
   fireEvent.click(confirm)
-  await waitFor(() => expect(screen.getByRole('button', { name: 'Deleting…' })).toBeDisabled())
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Archiving…' })).toBeDisabled())
   expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled()
   expect(
     vi.mocked(apiRequest).mock.calls.filter(([, options]) => options?.method === 'DELETE'),

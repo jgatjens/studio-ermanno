@@ -30,6 +30,7 @@ class ClientSummary(BaseModel):
     last_name: str
     created_at: datetime
     updated_at: datetime
+    is_archived: bool = False
 
 
 class OwnerSummary(ClientSummary):
