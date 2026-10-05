@@ -97,6 +97,13 @@ User explicitly requested client deletion, extending the historical Phase 4 boun
 - Owner create/edit form has required name, active flag and black Save action. Existing POST/PUT payloads contain only name/status; editing focuses the form and cancel does not write.
 - Preserve Staff read-only access, cache isolation and activation behavior. No scheduling/availability, role changes or backend modifications.
 
+## Increment 11 — Feedback overview (implemented locally)
+
+- shadcn feedback cards show rating/date, status/publication badges, comment previews and links to the existing detail/moderation screen.
+- Existing server status filter and pagination preserved; Show pending and empty-state Show all actions reset pagination. Skeleton/retry/empty states and matching totals added.
+- Owner review links and Staff read links preserve role behavior and omit private contact data from the overview.
+- No backend changes or detail/moderation workflow redesign. Approval/publication confirmation and exact-command retry remain intact.
+
 ## Subsequent increments — planned only
 
 2. Dashboard: cards, skeletons, empty/error states and role-appropriate appointment/stock/feedback actions.
@@ -155,3 +162,7 @@ Full frontend suite: 171 passed, one failed out of 172. All 19 product tests pas
 ### Increment 10 verification — 2026-10-05
 
 173 frontend tests passed, one previously reported public-heading test failed out of 174. All 13 catalog/admin tests passed, including two new barber search/edit-payload and Staff read-only checks. TypeScript/build passed with the existing bundle-size warning. Desktop local Owner cards/form visually inspected. Further browser interaction and mobile/tablet checks could not finish after localhost stopped responding; restarting reported port 5173 already in use. Responsive layout reuses the previously inspected service grid. No real records changed and no deployment performed; backend unchanged.
+
+### Increment 11 verification — 2026-10-05
+
+176 frontend tests passed in 16 files, including two new filter/pagination and Staff overview checks; the previously reported unrelated public-heading test is now passing after concurrent changes. TypeScript/build passed with the existing bundle warning. Local Owner feedback inspected on desktop, 390px mobile and 820px tablet; narrow-screen overflow checks passed. Browser preview recovered through a fresh localhost tab and IPv6 Vite listener; no feedback moderation or records changed. Backend unchanged; no deployment performed.

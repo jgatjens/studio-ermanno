@@ -140,34 +140,9 @@ export function AvailabilityPage() {
       periods.push([])
     periods.at(-1)!.push(interval)
   }
-  // Anchor hourly spots to each opening period and require capacity throughout the hour.
-  const hourMs = 60 * 60 * 1000
-  const groups = periods.map((period) => {
-    const hours: Interval[] = []
-    const end = new Date(period.at(-1)!.end).getTime()
-    for (let start = new Date(period[0].start).getTime(); start + hourMs <= end; start += hourMs) {
-      const overlapping = period.filter(
-        (interval) =>
-          new Date(interval.start).getTime() < start + hourMs &&
-          new Date(interval.end).getTime() > start,
-      )
-      if (
-        overlapping.length &&
-        overlapping.every(
-          (interval) => interval.state === 'AVAILABLE' || interval.state === 'LIMITED',
-        )
-      ) {
-        hours.push({
-          start: new Date(start).toISOString(),
-          end: new Date(start + hourMs).toISOString(),
-          state: overlapping.some((interval) => interval.state === 'LIMITED')
-            ? 'LIMITED'
-            : 'AVAILABLE',
-        })
-      }
-    }
-    return hours
-  })
+  const groups = periods.map((period) =>
+    period.filter((interval) => interval.state === 'AVAILABLE' || interval.state === 'LIMITED'),
+  )
   const slots = groups.flat()
   const contact = business.data
     ? contactLinks(business.data).filter((link) => ['WhatsApp', 'Call'].includes(link.label))
@@ -334,7 +309,7 @@ export function AvailabilityPage() {
             </p>
           ) : (
             <>
-              <p>Disponibilità in fasce di un’ora per questa data.</p>
+              <p>Disponibilità in fasce di 30 minuti per questa data.</p>
               <div className="availability-slot-groups">
                 {groups.map((group, index) => {
                   const available = group.filter(

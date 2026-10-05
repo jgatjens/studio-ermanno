@@ -154,3 +154,19 @@ test('detail missing shows error and retry', async () => {
   await screen.findByText('Feedback not found')
   expect(screen.getByText('Retry')).toBeInTheDocument()
 })
+
+test('feedback status changes and Show pending reset pagination',async()=>{
+  vi.mocked(apiRequest).mockResolvedValue({items:[row],total:50});mount();await screen.findByText('Visitor')
+  fireEvent.click(screen.getByRole('button',{name:'Next feedback'}))
+  await waitFor(()=>expect(apiRequest).toHaveBeenCalledWith('/feedback?limit=25&offset=25&status=PENDING',expect.anything()))
+  fireEvent.change(screen.getByLabelText('Status'),{target:{value:'APPROVED'}})
+  await waitFor(()=>expect(apiRequest).toHaveBeenCalledWith('/feedback?limit=25&offset=0&status=APPROVED',expect.anything()))
+  fireEvent.click(screen.getByRole('button',{name:'Show pending'}))
+  expect(screen.getByLabelText('Status')).toHaveValue('PENDING')
+})
+test('Staff feedback cards link to reads without private contact or moderation controls',async()=>{
+  state.actor.role='STAFF';mount();await screen.findByText('Visitor')
+  expect(screen.getByRole('link',{name:'View feedback'})).toHaveAttribute('href','/admin/feedback/one')
+  expect(screen.queryByText('private@example.com')).not.toBeInTheDocument()
+  expect(screen.queryByRole('link',{name:'Review feedback'})).not.toBeInTheDocument()
+})

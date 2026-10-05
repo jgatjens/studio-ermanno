@@ -2058,3 +2058,27 @@ body {
   font-size: 0.875rem;
   font-weight: 600;
 }
+
+/* Feedback moderation overview */
+.feedback-workspace [data-slot=card] { background: white; border: 1px solid var(--border); border-radius: 1rem; }
+.feedback-workspace [data-slot=card-header] { display: block; container-type: normal; }
+.admin-main .feedback-workspace [data-slot=field][role=group] { padding: 0; border: 0; background: transparent; border-radius: 0; }
+.feedback-workspace [data-slot=field-label] { padding: 0; }
+.feedback-filter-row, .feedback-pagination { display: flex; justify-content: space-between; align-items: end; flex-wrap: wrap; gap: 1rem; }
+.feedback-filter-row [data-slot=field] { max-width: 320px; }
+.feedback-grid { display: grid; grid-template-columns: minmax(0,1fr); gap: 1rem; }
+.feedback-grid li { min-width: 0; }
+.feedback-card { height: 100%; }
+.feedback-card-heading { display: flex; flex-direction: column; gap: 1rem; }
+.admin-site .feedback-card-heading a { display: flex; justify-content: space-between; gap: 1rem; padding: 0; text-decoration: none; }
+.feedback-card-heading h2 { overflow-wrap: anywhere; }
+.feedback-badges { display: flex; gap: .5rem; flex-wrap: wrap; }
+.feedback-rating { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .75rem; font-size: .875rem; }
+.feedback-rating span { display: inline-flex; gap: .5rem; align-items: center; font-weight: 600; }
+.feedback-rating svg { color: #9a6700; }
+.feedback-rating time { color: var(--muted-foreground); }
+.feedback-comment { white-space: pre-wrap; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.feedback-empty { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding-block: 2rem; text-align: center; }
+.feedback-card a { gap: .5rem; }
+@media (min-width: 640px) { .feedback-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (min-width: 1280px) { .feedback-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } }

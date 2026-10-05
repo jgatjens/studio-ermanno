@@ -82,7 +82,7 @@ test('only available spots are displayed as read-only times, including split hou
   render(<AvailabilityPage />)
   await loaded()
   const times = within(screen.getByRole('region', { name: /lunedì 5 ottobre/ }))
-  expect(times.queryByText('09:30')).not.toBeInTheDocument()
+  expect(times.getByText('09:30')).toBeInTheDocument()
   expect(times.getByText('14:00')).toBeInTheDocument()
   expect(times.queryByText('10:00')).not.toBeInTheDocument()
   expect(times.getAllByRole('list')).toHaveLength(2)
@@ -224,7 +224,7 @@ test('an entirely closed month has no selected day or time spots', async () => {
   )
 })
 
-test('hourly spots exclude occupied half hours and incomplete closing hours', async () => {
+test('half-hour spots show available intervals and exclude occupied intervals', async () => {
   const intervals = Array.from({ length: 7 }, (_, index) => ({
     start: new Date(Date.UTC(2026, 9, 5, 7, index * 30)).toISOString(),
     end: new Date(Date.UTC(2026, 9, 5, 7, (index + 1) * 30)).toISOString(),
@@ -236,9 +236,10 @@ test('hourly spots exclude occupied half hours and incomplete closing hours', as
   render(<AvailabilityPage />)
   await loaded()
   expect(screen.getByText('11:00')).toBeInTheDocument()
-  expect(screen.queryByText('10:00')).not.toBeInTheDocument()
-  expect(screen.queryByText('12:00')).not.toBeInTheDocument()
-  expect(screen.queryByText('09:30')).not.toBeInTheDocument()
+  expect(screen.getByText('10:00')).toBeInTheDocument()
+  expect(screen.queryByText('10:30')).not.toBeInTheDocument()
+  expect(screen.getByText('12:00')).toBeInTheDocument()
+  expect(screen.getByText('09:30')).toBeInTheDocument()
 })
 
 test('contact help groups consecutive days with matching hours and keeps different periods separate', async () => {

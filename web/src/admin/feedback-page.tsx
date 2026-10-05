@@ -4,6 +4,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/auth/auth-provider'
 import { apiRequest } from '@/lib/api'
 import { useAdminKey } from './query-provider'
+import { Button } from '@/components/ui/button'
+import { Card, CardHeader, CardContent } from '@/components/ui/card'
+import { Field, FieldLabel } from '@/components/ui/field'
+import { NativeSelect } from '@/components/ui/native-select'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Star, ArrowRight, MessageSquare } from 'lucide-react'
 type Feedback = {
   id: string
   name: string | null
@@ -20,6 +27,7 @@ type Page = { items: Feedback[]; total: number }
 const button = 'rounded border px-3 py-3'
 const field = 'block w-full min-w-0 rounded border p-3'
 export function FeedbackPage() {
+  const owner = useAuth().actor?.role === 'OWNER'
   const [status, setStatus] = useState('PENDING')
   const [offset, setOffset] = useState(0)
   const key = useAdminKey('feedback')
@@ -30,68 +38,17 @@ export function FeedbackPage() {
         signal,
       }),
   })
-  return (
-    <section className="space-y-4 break-words">
-      <h1>Feedback moderation</h1>
-      <label>
-        Status
-        <select
-          className={field}
-          value={status}
-          onChange={(e) => {
-            setStatus(e.target.value)
-            setOffset(0)
-          }}
-        >
-          <option value="">All</option>
-          <option>PENDING</option>
-          <option>APPROVED</option>
-          <option>REJECTED</option>
-        </select>
-      </label>
-      {query.isPending ? (
-        <p role="status">Loading feedback…</p>
-      ) : query.isError ? (
-        <div role="alert">
-          <p>{query.error.message}</p>
-          <button className={button} onClick={() => void query.refetch()}>
-            Retry
-          </button>
-        </div>
-      ) : (
-        <>
-          {!query.data.total && <p>No matching feedback.</p>}
-          {query.data.items.map((row) => (
-            <article className="space-y-2 rounded border p-4" key={row.id}>
-              <h2>
-                <Link to={`/admin/feedback/${row.id}`}>{row.name || 'Customer'}</Link>
-              </h2>
-              <p>
-                {row.rating} out of 5 · {new Date(row.created_at).toLocaleDateString()}
-              </p>
-              <p>
-                {row.status} · {row.is_public ? 'Public' : 'Not public'}
-              </p>
-              <p className="whitespace-pre-wrap">{row.comment}</p>
-            </article>
-          ))}
-          <div className="flex flex-wrap gap-3">
-            <button className={button} disabled={!offset} onClick={() => setOffset(offset - 25)}>
-              Previous feedback
-            </button>
-            <button
-              className={button}
-              disabled={offset + 25 >= query.data.total}
-              onClick={() => setOffset(offset + 25)}
-            >
-              Next feedback
-            </button>
-          </div>
-        </>
-      )}
-    </section>
-  )
+  return <section className="feedback-workspace space-y-6">
+    <div><h1>Feedback moderation</h1><p className="text-sm text-muted-foreground">{owner?'Review customer feedback and choose what appears on the website.':'Browse customer feedback. Staff access is read only.'}</p></div>
+    <Card><CardContent><div className="feedback-filter-row"><Field><FieldLabel htmlFor="feedback-status">Status</FieldLabel><NativeSelect id="feedback-status" value={status} onChange={e=>{setStatus(e.target.value);setOffset(0)}}><option value="">All</option><option>PENDING</option><option>APPROVED</option><option>REJECTED</option></NativeSelect></Field>{status!=='PENDING'&&<Button variant="outline" onClick={()=>{setStatus('PENDING');setOffset(0)}}>Show pending</Button>}</div><p className="text-sm text-muted-foreground mt-4">Approval and publication are separate. Open feedback to see its details{owner?' and review moderation changes':''}.</p></CardContent></Card>
+    {query.isPending?<div role="status"><span className="sr-only">Loading feedback…</span><div className="feedback-grid" aria-hidden="true">{[1,2,3].map(n=><Skeleton key={n} className="h-56 rounded-xl"/>)}</div></div>:query.isError?<div role="alert"><p>{query.error.message}</p><Button variant="outline" onClick={()=>void query.refetch()}>Retry</Button></div>:<>
+      <p className="text-sm text-muted-foreground">{query.data.total} matching feedback entries</p>
+      {query.data.items.length?<ul className="feedback-grid">{query.data.items.map(row=><li key={row.id}><Card className="feedback-card"><CardHeader><div className="feedback-card-heading"><Link to={`/admin/feedback/${row.id}`}><h2>{row.name||'Customer'}</h2><ArrowRight size={17} aria-hidden="true"/></Link><div className="feedback-badges"><Badge variant="outline">{row.status}</Badge><Badge variant="outline">{row.is_public?'Public':'Not public'}</Badge></div></div></CardHeader><CardContent className="space-y-4"><div className="feedback-rating"><span><Star size={17} aria-hidden="true"/>{row.rating} out of 5</span><time dateTime={row.created_at}>{new Date(row.created_at).toLocaleDateString()}</time></div><p className="feedback-comment">{row.comment||'No comment provided.'}</p><Button variant="outline" asChild><Link to={`/admin/feedback/${row.id}`}>{owner?'Review feedback':'View feedback'}<ArrowRight size={16} aria-hidden="true"/></Link></Button></CardContent></Card></li>)}</ul>:<Card><CardContent className="feedback-empty"><MessageSquare size={32} aria-hidden="true"/><h2>No matching feedback.</h2><p className="text-sm text-muted-foreground">{status?'There are no entries with this status. Choose All to see other feedback.':'New customer feedback will appear here.'}</p>{status&&<Button variant="outline" onClick={()=>{setStatus('');setOffset(0)}}>Show all feedback</Button>}</CardContent></Card>}
+      <div className="feedback-pagination"><p className="text-sm text-muted-foreground">Showing {query.data.items.length?offset+1:0}–{query.data.items.length?offset+query.data.items.length:0} of {query.data.total}</p><div className="flex flex-wrap gap-2"><Button variant="outline" disabled={!offset} onClick={()=>setOffset(Math.max(0,offset-25))}>Previous feedback</Button><Button variant="outline" disabled={offset+25>=query.data.total} onClick={()=>setOffset(offset+25)}>Next feedback</Button></div></div>
+    </>}
+  </section>
 }
+
 export function FeedbackDetailPage() {
   const { feedbackId } = useParams()
   const owner = useAuth().actor?.role === 'OWNER'
