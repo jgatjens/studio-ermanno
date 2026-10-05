@@ -36,16 +36,16 @@ Auth remains in React Context. Business ID/role come exclusively from membership
 
 ## Verification (2026-10-04)
 
-| Check | Result |
-| --- | --- |
+| Check                                                                     | Result                                                                                                |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | Backend: `env RUN_DATABASE_TESTS=1 .venv/bin/python -m pytest` from `api` | 59 passed, no skips; includes 24 auth, 4 foundation, 19 live PostgreSQL Phase 1, and 12 Phase 3 cases |
-| Frontend: `npm test` from `web` | 29 passed, including all previous-phase tests and 6 admin tests |
-| TypeScript: `npm run typecheck` | Passed |
-| Production frontend: `npm run build` | Passed |
-| Live `GET /health` | 200, `{"status":"ok"}` |
-| Live unauthenticated services, barbers, and business-hours reads | All returned 401 |
-| Browser `/admin/services` without a session | Redirected to `/login`; email/password login form displayed |
-| Browser public page | API Status: Connected; Supabase Auth client: Initialized |
+| Frontend: `npm test` from `web`                                           | 29 passed, including all previous-phase tests and 6 admin tests                                       |
+| TypeScript: `npm run typecheck`                                           | Passed                                                                                                |
+| Production frontend: `npm run build`                                      | Passed                                                                                                |
+| Live `GET /health`                                                        | 200, `{"status":"ok"}`                                                                                |
+| Live unauthenticated services, barbers, and business-hours reads          | All returned 401                                                                                      |
+| Browser `/admin/services` without a session                               | Redirected to `/login`; email/password login form displayed                                           |
+| Browser public page                                                       | API Status: Connected; Supabase Auth client: Initialized                                              |
 
 The PostgreSQL regression suite verified connectivity, migration roundtrip, schema metadata, and seeding using disposable test schemas. No Phase 3 migration is needed.
 

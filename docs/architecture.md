@@ -407,7 +407,6 @@ The client must already exist before the appointment is created.
 
 A barber may be assigned when the appointment is created or later.
 
-
 ---
 
 ## 9. Static Image Handling
@@ -462,7 +461,6 @@ By default:
 An Owner may override the calculated appointment duration or price for a specific appointment.
 
 Historical appointment values must remain unchanged if service definitions later change.
-
 
 ---
 

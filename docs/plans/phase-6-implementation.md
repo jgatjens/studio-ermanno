@@ -34,20 +34,20 @@ At Phase 7 handoff, existing Phase 6 completions are historical records, not pen
 
 ## Completion contract
 
-| Endpoint | Access | Behavior |
-| --- | --- | --- |
-| `GET /appointments/completion-products?q=&limit=25&offset=0` | Owner | Membership-scoped active product selectors |
-| `POST /appointments/{id}/complete` | Owner | Atomic completion; returns updated Owner appointment detail, 200 |
+| Endpoint                                                     | Access | Behavior                                                         |
+| ------------------------------------------------------------ | ------ | ---------------------------------------------------------------- |
+| `GET /appointments/completion-products?q=&limit=25&offset=0` | Owner  | Membership-scoped active product selectors                       |
+| `POST /appointments/{id}/complete`                           | Owner  | Atomic completion; returns updated Owner appointment detail, 200 |
 
 Declare the static product-selector route before the dynamic appointment-ID route. Reuse existing GET appointment detail/context, client profile/history, and active appointment edit APIs. No general product API or separate client-history table is needed.
 
 Completion body:
 
-| Field | Rule |
-| --- | --- |
+| Field         | Rule                                                                                           |
+| ------------- | ---------------------------------------------------------------------------------------------- |
 | `service_ids` | Required 1–50 distinct UUIDs, confirming the appointment's current stored service snapshot IDs |
-| `products` | Array, default empty, maximum 50 entries; each contains `product_id`, `usage_type`, `quantity` |
-| `visit_notes` | Optional string; trim, blank to null, maximum 10,000 characters |
+| `products`    | Array, default empty, maximum 50 entries; each contains `product_id`, `usage_type`, `quantity` |
+| `visit_notes` | Optional string; trim, blank to null, maximum 10,000 characters                                |
 
 Product entry validation:
 
@@ -111,13 +111,13 @@ No stock/movement effect occurs on either initial completion or retries. Postgre
 
 Reuse Phase 4's derived completed history and last-visit APIs; no separate history mutation or stored last-visit pointer.
 
-| Data | Owner | Staff |
-| --- | --- | --- |
+| Data                                                                                | Owner   | Staff   |
+| ----------------------------------------------------------------------------------- | ------- | ------- |
 | Client name, visit date, service snapshots, final duration/price, appointment notes | Visible | Visible |
-| USED product-name snapshots and quantities | Visible | Visible |
-| SOLD product history | Visible | Omitted |
-| Visit notes, contacts, general/private client notes | Visible | Omitted |
-| Completion controls/product selector/write APIs | Allowed | Denied |
+| USED product-name snapshots and quantities                                          | Visible | Visible |
+| SOLD product history                                                                | Visible | Omitted |
+| Visit notes, contacts, general/private client notes                                 | Visible | Omitted |
+| Completion controls/product selector/write APIs                                     | Allowed | Denied  |
 
 Restricted fields must be absent at every response nesting level, not null/masked. Keep backend projections authoritative; frontend role hiding is additional UX. No direct React access to Supabase business tables. Avoid logging notes, contacts, tokens, or completion bodies.
 

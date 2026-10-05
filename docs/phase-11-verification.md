@@ -39,13 +39,13 @@ Appointment client-first navigation now requires explicit acknowledgement when i
 
 ## Automated results
 
-| Check | Result |
-| --- | --- |
+| Check                                           | Result                                               |
+| ----------------------------------------------- | ---------------------------------------------------- |
 | Default backend `.venv/bin/python -m pytest -q` | 245 passed, 36 database tests skipped, 11.57 seconds |
-| Full isolated PostgreSQL backend suite | 281 passed, no skips, 529.65 seconds |
-| Frontend `npm test -- --reporter=dot` | 127 passed across 14 files |
-| TypeScript `npm run typecheck` | Passed |
-| Production `npm run build` | Passed; final sizes recorded below |
+| Full isolated PostgreSQL backend suite          | 281 passed, no skips, 529.65 seconds                 |
+| Frontend `npm test -- --reporter=dot`           | 127 passed across 14 files                           |
+| TypeScript `npm run typecheck`                  | Passed                                               |
+| Production `npm run build`                      | Passed; final sizes recorded below                   |
 
 Frontend coverage adds timezone/DST/date mismatch, active next beyond a terminal first page, ongoing labels, partial errors, exact totals/pagination, Staff shortcuts/privacy, midnight/visibility/timer cleanup, invalid timezone, manual refresh, navigation/focus, stable cache across child navigation and actor-switch isolation. Existing Phase 0–10 tests remain. Tests also prove search-page restoration, draft-leave cancellation and error-summary focus. Existing completion/inventory/moderation repeat-safe tests are retained.
 
@@ -60,7 +60,6 @@ Ten fixture pages: Dashboard, Clients, Profile, appointment create/detail/comple
 A reduced 390×450 viewport checked the appointment form after scrolling to its bottom: Save bottom about 338px versus navigation top about 392px, no overflow. This tests reduced-height clearance, not a real phone keyboard. Actual phone-keyboard behavior and screen-reader use remain manual checks; no formal accessibility audit is claimed. Temporary viewport overrides were reset.
 
 Remaining real-user checklist with mapped development accounts/disposable data: Owner find client → create appointment → today → complete → history → stock movement → feedback moderation; Staff readable views/private-field omission/403 on mutations; logout/session restoration; touch keyboard and real device comfort. Do not use real customer/business mutations for smoke tests.
-
 
 ## Final live checks and real Staff session
 

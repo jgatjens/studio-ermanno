@@ -67,28 +67,28 @@ In Supabase Auth URL configuration, set Site URL to the canonical frontend HTTPS
 
 Create the approved native Python Web Service from the release repository:
 
-| Dashboard setting | Value |
-| --- | --- |
-| Root directory | `api` |
-| Build command | `pip install -r requirements.txt` |
-| Start command | `uvicorn app.main:app --host 0.0.0.0 --port $PORT --no-access-log` |
-| Health check path | `/health` |
-| Python runtime | Set `PYTHON_VERSION=3.12.14` explicitly |
-| Instances/workers | One instance, one worker initially |
-| Deployment | Controlled release of the tested revision |
+| Dashboard setting | Value                                                              |
+| ----------------- | ------------------------------------------------------------------ |
+| Root directory    | `api`                                                              |
+| Build command     | `pip install -r requirements.txt`                                  |
+| Start command     | `uvicorn app.main:app --host 0.0.0.0 --port $PORT --no-access-log` |
+| Health check path | `/health`                                                          |
+| Python runtime    | Set `PYTHON_VERSION=3.12.14` explicitly                            |
+| Instances/workers | One instance, one worker initially                                 |
+| Deployment        | Controlled release of the tested revision                          |
 
 No disk, Docker, provider SDK or provider-specific application logic is needed. Configure environment values directly in Render:
 
-| Variable | Value |
-| --- | --- |
-| `APP_ENV` | `production` |
-| `DATABASE_URL` | Secret production PostgreSQL URL with TLS |
-| `DATABASE_POOL_SIZE` | `2` initially |
-| `DATABASE_MAX_OVERFLOW` | `1` initially |
-| `FRONTEND_ORIGIN` | Exact frontend HTTPS origin, e.g. the allocated Pages production origin |
-| `SUPABASE_URL` | Production Supabase project HTTPS origin |
-| `SUPABASE_JWT_AUDIENCE` | `authenticated` |
-| `PUBLIC_BUSINESS_ID` | Existing real Business UUID |
+| Variable                | Value                                                                   |
+| ----------------------- | ----------------------------------------------------------------------- |
+| `APP_ENV`               | `production`                                                            |
+| `DATABASE_URL`          | Secret production PostgreSQL URL with TLS                               |
+| `DATABASE_POOL_SIZE`    | `2` initially                                                           |
+| `DATABASE_MAX_OVERFLOW` | `1` initially                                                           |
+| `FRONTEND_ORIGIN`       | Exact frontend HTTPS origin, e.g. the allocated Pages production origin |
+| `SUPABASE_URL`          | Production Supabase project HTTPS origin                                |
+| `SUPABASE_JWT_AUDIENCE` | `authenticated`                                                         |
+| `PUBLIC_BUSINESS_ID`    | Existing real Business UUID                                             |
 
 Recalculate pool budget for overlapping deployments, other database users and migrations; three connections per process is an initial limit, not a guarantee the project has enough remaining capacity. Do not increase instance/worker counts casually.
 
@@ -100,13 +100,13 @@ Check `/health` over HTTPS, independently verify database connectivity and migra
 
 Prefer Git integration with the approved repository; confirm the project creation mode before using Direct Upload because changing modes later is restricted. Configure:
 
-| Dashboard setting | Value |
-| --- | --- |
-| Root directory | `web` |
-| Build command | `npm ci && npm run build` |
-| Build output directory | `dist` |
-| Node runtime | Set `NODE_VERSION=22.23.2` explicitly |
-| Production branch | Confirmed release branch |
+| Dashboard setting      | Value                                 |
+| ---------------------- | ------------------------------------- |
+| Root directory         | `web`                                 |
+| Build command          | `npm ci && npm run build`             |
+| Build output directory | `dist`                                |
+| Node runtime           | Set `NODE_VERSION=22.23.2` explicitly |
+| Production branch      | Confirmed release branch              |
 
 Production build environment:
 

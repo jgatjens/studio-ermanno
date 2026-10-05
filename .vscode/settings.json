@@ -1,0 +1,10 @@
+{
+  "editor.formatOnSave": true,
+  "[typescript][typescriptreact][javascript][javascriptreact][json][jsonc][css][html][markdown][yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
+  "prettier.requireConfig": true
+}

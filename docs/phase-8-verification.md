@@ -30,21 +30,21 @@ No schema/migration, dependency, role, hosting integration, Supabase Storage, no
 
 ## Verification
 
-| Check | Result |
-| --- | --- |
-| Backend default `.venv/bin/python -m pytest -q` | **204 passed, 35 skipped**, 9.17 seconds; explicit live database cases skipped |
-| Full backend `env RUN_DATABASE_TESTS=1 .venv/bin/python -m pytest -q` | **239 passed**, no skips/warnings, 314.75 seconds |
-| Frontend `npm test` | **91 passed**, 11 files |
-| TypeScript `npm run typecheck` | Passed |
-| Frontend `npm run build` | Passed; 155 modules, JS 617.56 kB / gzip 177.52 kB |
-| Phase 0–7 regressions | Included and passed in the full suites, including real PostgreSQL scheduling/inventory races, migration metadata and baseline checks |
-| Live health | 200 `{"status":"ok"}` |
-| Live anonymous GET `/public/feedback` | 200 `{"items":[],"total":0,"limit":25,"offset":0}` via SQLAlchemy/Supabase PostgreSQL |
-| Live invalid anonymous POST `/public/feedback` | 422; no feedback inserted |
-| Live protected GET `/feedback` without bearer | 401 |
-| Browser `/feedback` | Form renders, loading resolves to “No published reviews yet”; keyboard Tab moves Name → Email |
-| Browser `/admin/feedback` logged out | Redirects to login, email/password form rendered |
-| Alembic current | `0002_phase7 (head)`; no migration needed |
+| Check                                                                 | Result                                                                                                                               |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Backend default `.venv/bin/python -m pytest -q`                       | **204 passed, 35 skipped**, 9.17 seconds; explicit live database cases skipped                                                       |
+| Full backend `env RUN_DATABASE_TESTS=1 .venv/bin/python -m pytest -q` | **239 passed**, no skips/warnings, 314.75 seconds                                                                                    |
+| Frontend `npm test`                                                   | **91 passed**, 11 files                                                                                                              |
+| TypeScript `npm run typecheck`                                        | Passed                                                                                                                               |
+| Frontend `npm run build`                                              | Passed; 155 modules, JS 617.56 kB / gzip 177.52 kB                                                                                   |
+| Phase 0–7 regressions                                                 | Included and passed in the full suites, including real PostgreSQL scheduling/inventory races, migration metadata and baseline checks |
+| Live health                                                           | 200 `{"status":"ok"}`                                                                                                                |
+| Live anonymous GET `/public/feedback`                                 | 200 `{"items":[],"total":0,"limit":25,"offset":0}` via SQLAlchemy/Supabase PostgreSQL                                                |
+| Live invalid anonymous POST `/public/feedback`                        | 422; no feedback inserted                                                                                                            |
+| Live protected GET `/feedback` without bearer                         | 401                                                                                                                                  |
+| Browser `/feedback`                                                   | Form renders, loading resolves to “No published reviews yet”; keyboard Tab moves Name → Email                                        |
+| Browser `/admin/feedback` logged out                                  | Redirects to login, email/password form rendered                                                                                     |
+| Alembic current                                                       | `0002_phase7 (head)`; no migration needed                                                                                            |
 
 All new mutations are tested against isolated databases. No feedback submission or moderation was performed on real development business records. The only local setup change is ignored public-business configuration. The frontend error-state test allows the existing TanStack Query retry delay to finish before asserting the error; production retry behavior is unchanged.
 

@@ -37,20 +37,20 @@ No schema/model/migration changes, new dependencies, environment variables, stat
 
 ## Verification (2026-10-04)
 
-| Check | Result |
-| --- | --- |
-| `api`: `.venv/bin/python -m pytest` | 116 passed, 28 live database tests skipped by configuration |
-| `api`: `env RUN_DATABASE_TESTS=1 .venv/bin/python -m pytest` | 144 passed, no skips, 214.84 seconds |
-| PostgreSQL identical completion race | Two successes, exactly one product-history set |
-| PostgreSQL differing completion race | One success and one 409, no duplicate rows |
-| PostgreSQL completion versus cancellation/service edit | One success and one 409 with consistent terminal/snapshot state |
-| `web`: `npm test` | 64 passed across eight files, no unhandled errors |
-| `web`: `npm run typecheck` | Passed |
-| `web`: `npm run build` | Passed |
-| Live GET `/health` | 200, `{"status":"ok"}` |
-| Live unauthenticated POST completion with valid command shape | 401 |
-| Browser protected completion route without session | Redirected to `/login`; email/password form displayed |
-| Browser public page | API Status: Connected; Supabase Auth client: Initialized |
+| Check                                                         | Result                                                          |
+| ------------------------------------------------------------- | --------------------------------------------------------------- |
+| `api`: `.venv/bin/python -m pytest`                           | 116 passed, 28 live database tests skipped by configuration     |
+| `api`: `env RUN_DATABASE_TESTS=1 .venv/bin/python -m pytest`  | 144 passed, no skips, 214.84 seconds                            |
+| PostgreSQL identical completion race                          | Two successes, exactly one product-history set                  |
+| PostgreSQL differing completion race                          | One success and one 409, no duplicate rows                      |
+| PostgreSQL completion versus cancellation/service edit        | One success and one 409 with consistent terminal/snapshot state |
+| `web`: `npm test`                                             | 64 passed across eight files, no unhandled errors               |
+| `web`: `npm run typecheck`                                    | Passed                                                          |
+| `web`: `npm run build`                                        | Passed                                                          |
+| Live GET `/health`                                            | 200, `{"status":"ok"}`                                          |
+| Live unauthenticated POST completion with valid command shape | 401                                                             |
+| Browser protected completion route without session            | Redirected to `/login`; email/password form displayed           |
+| Browser public page                                           | API Status: Connected; Supabase Auth client: Initialized        |
 
 Every Phase 0–5 regression passed. Live database coverage includes 19 migration/metadata/seed/relationship tests, five scheduling races, and four new completion races. Completion races reuse the isolated `phase5_test_*` schema fixture; schemas are uniquely named and removed after each test. No live business appointment/product records were changed.
 

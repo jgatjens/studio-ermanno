@@ -91,6 +91,12 @@ User explicitly requested client deletion, extending the historical Phase 4 boun
 - Catalog cards add description previews, active status, Owner-only public/private visibility and retail price. Black Owner Edit product action and secondary Manage stock action link to existing routes; Staff retain read-only history links without financial/settings fields.
 - No backend changes, new product behavior or real mutations; existing inventory presentation remains intact.
 
+## Increment 10 — Barbers catalog (implemented locally)
+
+- Extend the existing shadcn catalog layout to `/admin/barbers`: name search/clear, initials, active/inactive badges and responsive cards.
+- Owner create/edit form has required name, active flag and black Save action. Existing POST/PUT payloads contain only name/status; editing focuses the form and cancel does not write.
+- Preserve Staff read-only access, cache isolation and activation behavior. No scheduling/availability, role changes or backend modifications.
+
 ## Subsequent increments — planned only
 
 2. Dashboard: cards, skeletons, empty/error states and role-appropriate appointment/stock/feedback actions.
@@ -145,3 +151,7 @@ Backend: 281 passed, 42 skipped (live-database suites require separate configura
 ### Increment 9 verification — 2026-10-05
 
 Full frontend suite: 171 passed, one failed out of 172. All 19 product tests passed, including two new Owner/Staff catalog checks. The unrelated public app loading test still expects the heading “Welcome” while concurrently updated public branding renders “I Minati Parrucchieri”; that work was preserved. TypeScript/build passed with the existing bundle-size warning. Local Owner desktop, 390px mobile and 820px tablet inspected; mobile/tablet overflow checks passed. No product records changed and no deployment performed. Backend unchanged.
+
+### Increment 10 verification — 2026-10-05
+
+173 frontend tests passed, one previously reported public-heading test failed out of 174. All 13 catalog/admin tests passed, including two new barber search/edit-payload and Staff read-only checks. TypeScript/build passed with the existing bundle-size warning. Desktop local Owner cards/form visually inspected. Further browser interaction and mobile/tablet checks could not finish after localhost stopped responding; restarting reported port 5173 already in use. Responsive layout reuses the previously inspected service grid. No real records changed and no deployment performed; backend unchanged.

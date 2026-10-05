@@ -19,21 +19,21 @@ The user explicitly approved a scoped launch fix for split opening periods. Opti
 
 ## Verification results
 
-| Check | Result |
-| --- | --- |
-| Python production runtime | 3.12.14 in an isolated local virtual environment |
-| Node frontend runtime | 22.23.2 |
-| Final default backend suite | 268 passed, 42 PostgreSQL cases explicitly skipped |
-| PostgreSQL regression coverage | All 42 current database cases passed across isolated runs: 24 Phase 1, 1 downgrade guard, 17 domain regressions |
-| Frontend suite | 138 passed across 15 files |
-| TypeScript | `npm run typecheck` passed |
-| Frontend build | Passed; 163 modules, JS 643.65 kB / gzip 185.78 kB; existing >500 kB warning remains |
-| Development database connectivity | `python -m app.db.check` passed under Python 3.12 |
-| Development Alembic connectivity | `python -m alembic current`: `0002_phase7 (head)` |
-| Local live API | `/health` returned `{status: "ok"}` |
-| Local real browser | Existing Owner session loaded admin; `/admin/access` showed `API Status: Connected` |
-| Source hygiene | No actual configured development database password or long Supabase secret-key match in tracked files; local credential/virtualenv files are not tracked |
-| Patch formatting | `git diff --check` passed |
+| Check                             | Result                                                                                                                                                   |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Python production runtime         | 3.12.14 in an isolated local virtual environment                                                                                                         |
+| Node frontend runtime             | 22.23.2                                                                                                                                                  |
+| Final default backend suite       | 268 passed, 42 PostgreSQL cases explicitly skipped                                                                                                       |
+| PostgreSQL regression coverage    | All 42 current database cases passed across isolated runs: 24 Phase 1, 1 downgrade guard, 17 domain regressions                                          |
+| Frontend suite                    | 138 passed across 15 files                                                                                                                               |
+| TypeScript                        | `npm run typecheck` passed                                                                                                                               |
+| Frontend build                    | Passed; 163 modules, JS 643.65 kB / gzip 185.78 kB; existing >500 kB warning remains                                                                     |
+| Development database connectivity | `python -m app.db.check` passed under Python 3.12                                                                                                        |
+| Development Alembic connectivity  | `python -m alembic current`: `0002_phase7 (head)`                                                                                                        |
+| Local live API                    | `/health` returned `{status: "ok"}`                                                                                                                      |
+| Local real browser                | Existing Owner session loaded admin; `/admin/access` showed `API Status: Connected`                                                                      |
+| Source hygiene                    | No actual configured development database password or long Supabase secret-key match in tracked files; local credential/virtualenv files are not tracked |
+| Patch formatting                  | `git diff --check` passed                                                                                                                                |
 
 Full PostgreSQL-enabled Python 3.12 run collected 285 cases before the final two local environment-file checks and startup-redaction check were added. It reported 284 passed and one failure: the production-seed fixture constructed incomplete production settings, and validation ran before the seed guard. The fixture was corrected and the affected PostgreSQL test passed on rerun (1 passed, 24.60 seconds). The final default suite includes all seven new backend operational tests and passes. Total current backend coverage is 288 distinct cases: 252 default and 36 PostgreSQL. This is combined run evidence, not a claim that a single final 288-case PostgreSQL run occurred.
 

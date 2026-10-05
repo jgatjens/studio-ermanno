@@ -36,9 +36,18 @@ def test_owner(actor: AuthenticatedActor = Depends(require_owner)):
 def test_client_visibility(actor: AuthenticatedActor = Depends(require_authenticated_actor)):
     # Synthetic fixture only; no real client lookup or CRUD.
     data = ClientVisibilityData(
-        name="Sample Client", email="client@example.test", phone="+390000000000",
-        private_notes="Synthetic private notes", visit_notes="Synthetic visit notes",
-        appointment_history=[ClientVisitData(services=["Haircut"], products_used=["Pomade"],
-            appointment_notes="Synthetic appointment notes", visit_notes="Synthetic visit notes")],
+        name="Sample Client",
+        email="client@example.test",
+        phone="+390000000000",
+        private_notes="Synthetic private notes",
+        visit_notes="Synthetic visit notes",
+        appointment_history=[
+            ClientVisitData(
+                services=["Haircut"],
+                products_used=["Pomade"],
+                appointment_notes="Synthetic appointment notes",
+                visit_notes="Synthetic visit notes",
+            )
+        ],
     )
     return visible_client(data, actor)

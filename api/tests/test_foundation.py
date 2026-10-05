@@ -5,11 +5,13 @@ from app.core.config import Settings, get_settings
 from app.db.session import get_engine, get_session_factory, get_session
 from app.main import app
 
+
 def test_app_and_health():
     with TestClient(app) as client:
         response = client.get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+
 
 def test_configuration(monkeypatch):
     monkeypatch.setenv("FRONTEND_ORIGIN", "http://localhost:5173")
@@ -27,6 +29,7 @@ def test_configuration(monkeypatch):
         Settings(_env_file=None, supabase_url="https://example.test/untrusted-path")
     with pytest.raises(ValidationError):
         Settings(_env_file=None, supabase_jwt_audience="")
+
 
 def test_database_configuration(monkeypatch):
     monkeypatch.setenv("DATABASE_URL", "postgresql://test:test@localhost:5432/test")
@@ -48,10 +51,22 @@ def test_database_configuration(monkeypatch):
         get_engine.cache_clear()
         get_settings.cache_clear()
 
+
 def test_cors():
     with TestClient(app) as client:
-        response = client.options("/health", headers={"Origin": str(get_settings().frontend_origin).rstrip("/"), "Access-Control-Request-Method": "GET"})
-        denied = client.options("/health", headers={"Origin": "https://untrusted.example", "Access-Control-Request-Method": "GET"})
+        response = client.options(
+            "/health",
+            headers={
+                "Origin": str(get_settings().frontend_origin).rstrip("/"),
+                "Access-Control-Request-Method": "GET",
+            },
+        )
+        denied = client.options(
+            "/health",
+            headers={"Origin": "https://untrusted.example", "Access-Control-Request-Method": "GET"},
+        )
     assert response.status_code == 200
-    assert response.headers["access-control-allow-origin"] == str(get_settings().frontend_origin).rstrip("/")
+    assert response.headers["access-control-allow-origin"] == str(
+        get_settings().frontend_origin
+    ).rstrip("/")
     assert "access-control-allow-origin" not in denied.headers

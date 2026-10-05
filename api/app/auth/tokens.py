@@ -1,4 +1,5 @@
 """Verify Supabase access tokens using configured public signing keys."""
+
 from functools import lru_cache
 from uuid import UUID
 
@@ -11,7 +12,9 @@ from app.core.config import get_settings
 
 
 def unauthorized():
-    return HTTPException(401, "Authentication required or token invalid", headers={"WWW-Authenticate": "Bearer"})
+    return HTTPException(
+        401, "Authentication required or token invalid", headers={"WWW-Authenticate": "Bearer"}
+    )
 
 
 @lru_cache
@@ -19,7 +22,9 @@ def get_jwks_client():
     url = get_settings().supabase_url
     if url is None:
         raise HTTPException(503, "Authentication is not configured")
-    return PyJWKClient(str(url).rstrip("/") + "/auth/v1/.well-known/jwks.json", lifespan=300, timeout=10)
+    return PyJWKClient(
+        str(url).rstrip("/") + "/auth/v1/.well-known/jwks.json", lifespan=300, timeout=10
+    )
 
 
 def validate_access_token(token: str) -> UUID:
@@ -32,7 +37,9 @@ def validate_access_token(token: str) -> UUID:
             raise InvalidTokenError()
         key = get_jwks_client().get_signing_key_from_jwt(token)
         claims = jwt.decode(
-            token, key.key, algorithms=["ES256", "RS256"],
+            token,
+            key.key,
+            algorithms=["ES256", "RS256"],
             issuer=str(settings.supabase_url).rstrip("/") + "/auth/v1",
             audience=settings.supabase_jwt_audience,
             options={"require": ["exp", "iss", "aud", "sub"], "strict_aud": True},

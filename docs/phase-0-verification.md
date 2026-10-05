@@ -12,21 +12,21 @@ Implemented only the Phase 0 foundation. No business features, business tables, 
 
 ## Verification results (2026-10-03)
 
-| Check | Result |
-| --- | --- |
-| TypeScript (`npm run typecheck`) | PASS |
-| Frontend tests (`npm test`) | PASS: 4 tests, including loading, success, error, public/admin rendering |
-| Production build (`npm run build`) | PASS; Tailwind CSS compiled |
-| Backend tests (`python -m pytest`) | PASS: 4 tests covering app/health, config validation, PostgreSQL engine/session initialization, CORS |
-| Vite local server | PASS: started on port 5173 |
-| Uvicorn local server | PASS: started on port 8000 |
-| Browser frontend → backend | PASS: public page visibly reports `API Status: Connected` |
-| Browser admin route | PASS: `/admin` renders placeholder |
-| Live `/health` and CORS headers | PASS: HTTP 200, `{"status":"ok"}`, allowed origin `http://localhost:5173` |
-| SQLAlchemy live database (`python -m app.db.check`) | PASS: read-only SELECT 1 succeeded through the Supabase session pooler |
-| Alembic live database (`alembic current`) | PASS: alembic current exited 0 through the same engine; no application revisions |
-| Supabase Auth SDK initialization | PASS with supplied project URL/publishable key; Auth settings endpoint returned HTTP 200 |
-| Frontend Auth with real project | PASS: browser reports Supabase Auth client Initialized and API Status Connected |
+| Check                                               | Result                                                                                               |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| TypeScript (`npm run typecheck`)                    | PASS                                                                                                 |
+| Frontend tests (`npm test`)                         | PASS: 4 tests, including loading, success, error, public/admin rendering                             |
+| Production build (`npm run build`)                  | PASS; Tailwind CSS compiled                                                                          |
+| Backend tests (`python -m pytest`)                  | PASS: 4 tests covering app/health, config validation, PostgreSQL engine/session initialization, CORS |
+| Vite local server                                   | PASS: started on port 5173                                                                           |
+| Uvicorn local server                                | PASS: started on port 8000                                                                           |
+| Browser frontend → backend                          | PASS: public page visibly reports `API Status: Connected`                                            |
+| Browser admin route                                 | PASS: `/admin` renders placeholder                                                                   |
+| Live `/health` and CORS headers                     | PASS: HTTP 200, `{"status":"ok"}`, allowed origin `http://localhost:5173`                            |
+| SQLAlchemy live database (`python -m app.db.check`) | PASS: read-only SELECT 1 succeeded through the Supabase session pooler                               |
+| Alembic live database (`alembic current`)           | PASS: alembic current exited 0 through the same engine; no application revisions                     |
+| Supabase Auth SDK initialization                    | PASS with supplied project URL/publishable key; Auth settings endpoint returned HTTP 200             |
+| Frontend Auth with real project                     | PASS: browser reports Supabase Auth client Initialized and API Status Connected                      |
 
 Baseline database tests do not open a network connection. Real Auth SDK initialization and a read-only hosted Auth settings request succeeded. Both live database commands succeeded. All required Phase 0 verification is complete; no business tables or migrations were created.
 

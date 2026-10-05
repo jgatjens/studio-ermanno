@@ -1,4 +1,11 @@
-export type DayHours = { day_of_week: number; opening_time: string | null; closing_time: string | null; is_closed: boolean; break_start?: string | null; break_end?: string | null }
+export type DayHours = {
+  day_of_week: number
+  opening_time: string | null
+  closing_time: string | null
+  is_closed: boolean
+  break_start?: string | null
+  break_end?: string | null
+}
 
 export function formatHours(day: DayHours) {
   if (day.is_closed) return 'Closed'

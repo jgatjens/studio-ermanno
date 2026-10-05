@@ -46,13 +46,13 @@ Use one stable protected layout with an Outlet: protection outside the actor-sco
 
 Mobile primary destinations:
 
-| Label | Route/behavior |
-| --- | --- |
-| Dashboard | `/admin` |
-| Clients | `/admin/clients` |
-| Calendar | `/admin/appointments`; existing date-filtered appointment list, no new calendar engine |
-| Inventory | `/admin/inventory` |
-| More | `/admin/more`; compact secondary navigation page |
+| Label     | Route/behavior                                                                         |
+| --------- | -------------------------------------------------------------------------------------- |
+| Dashboard | `/admin`                                                                               |
+| Clients   | `/admin/clients`                                                                       |
+| Calendar  | `/admin/appointments`; existing date-filtered appointment list, no new calendar engine |
+| Inventory | `/admin/inventory`                                                                     |
+| More      | `/admin/more`; compact secondary navigation page                                       |
 
 More links to existing Products, Feedback, Services, Barbers, Business hours and Access checks. Put the current probes/HealthStatus on `/admin/access`, with role/session information and logout accessible from the shell or More. Preserve probe functionality and Owner-only controls. No empty Settings link or new Settings editor.
 
@@ -77,13 +77,13 @@ Use an honest `Admin dashboard` title unless an authenticated business-name sour
 
 Prefer existing protected APIs; no new schema or mutation endpoints are expected:
 
-| Section | Existing source |
-| --- | --- |
-| Business timezone/currency | `GET /appointments/context`, scoped to authenticated actor |
-| Today's schedule | `GET /appointments?from=...&to=...&limit=25&offset=...` |
-| Next appointment | Separate `status=SCHEDULED` and `status=CONFIRMED` reads, current instant through local day end, `limit=1`; compare candidates |
-| Low stock | `GET /products?active=true&low_stock=true&limit=5&offset=0` |
-| Pending feedback | `GET /feedback?status=PENDING&limit=1&offset=0`, using returned total |
+| Section                    | Existing source                                                                                                                |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Business timezone/currency | `GET /appointments/context`, scoped to authenticated actor                                                                     |
+| Today's schedule           | `GET /appointments?from=...&to=...&limit=25&offset=...`                                                                        |
+| Next appointment           | Separate `status=SCHEDULED` and `status=CONFIRMED` reads, current instant through local day end, `limit=1`; compare candidates |
+| Low stock                  | `GET /products?active=true&low_stock=true&limit=5&offset=0`                                                                    |
+| Pending feedback           | `GET /feedback?status=PENDING&limit=1&offset=0`, using returned total                                                          |
 
 A thin additional protected read may be considered only if a demonstrated existing contract cannot return correct data. Document that gap before adding it; do not create an aggregate dashboard service/framework or an API solely for visual layout convenience.
 

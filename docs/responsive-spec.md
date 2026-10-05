@@ -291,7 +291,6 @@ The same content hierarchy should remain intact.
 
 ---
 
-
 # 11. Role-Based Admin Visibility
 
 Responsive layouts must respect the same authorization rules as the backend.

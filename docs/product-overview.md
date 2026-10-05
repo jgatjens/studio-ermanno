@@ -117,7 +117,6 @@ The following are not currently required:
 - Complex multi-location support
 - SMS or WhatsApp automation
 
-
 ---
 
 ## Finalized MVP Business Rules

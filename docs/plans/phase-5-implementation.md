@@ -35,15 +35,15 @@ Reuse Appointment and AppointmentService. No new table or migration is expected.
 
 Create/update payload:
 
-| Field | Rule |
-| --- | --- |
-| `client_id` | Required UUID; existing client in actor business |
-| `scheduled_start` | Required timezone-aware timestamp with offset; minute precision |
-| `service_ids` | Required ordered list of distinct UUIDs; 1–50 services |
-| `barber_id` | Optional UUID or null; same-business active barber for new assignment |
-| `appointment_notes` | Optional; trim, blank to null; maximum 10,000 characters |
-| `duration_override_minutes` | Optional/null; strict integer 1–1,440 |
-| `price_override` | Optional/null; Decimal >= 0, maximum 12 digits and 2 decimal places |
+| Field                       | Rule                                                                  |
+| --------------------------- | --------------------------------------------------------------------- |
+| `client_id`                 | Required UUID; existing client in actor business                      |
+| `scheduled_start`           | Required timezone-aware timestamp with offset; minute precision       |
+| `service_ids`               | Required ordered list of distinct UUIDs; 1–50 services                |
+| `barber_id`                 | Optional UUID or null; same-business active barber for new assignment |
+| `appointment_notes`         | Optional; trim, blank to null; maximum 10,000 characters              |
+| `duration_override_minutes` | Optional/null; strict integer 1–1,440                                 |
+| `price_override`            | Optional/null; Decimal >= 0, maximum 12 digits and 2 decimal places   |
 
 Reject extra fields, including business ID, role, calculated totals, scheduled end, status, snapshots, visit notes, and products. Names/contacts are never accepted in place of a client ID. Full-record PUT requires all required fields; omitted optional fields become null. Create always starts SCHEDULED. Status changes use the dedicated action endpoint.
 
@@ -97,27 +97,27 @@ Prove races using real PostgreSQL independent connections/transactions in dispos
 
 ## Status transitions
 
-| Current status | Phase 5 allowed action |
-| --- | --- |
-| SCHEDULED | CONFIRMED, CANCELLED, NO_SHOW |
-| CONFIRMED | CANCELLED, NO_SHOW |
-| COMPLETED | Read only |
-| CANCELLED | Read only |
-| NO_SHOW | Read only |
+| Current status | Phase 5 allowed action        |
+| -------------- | ----------------------------- |
+| SCHEDULED      | CONFIRMED, CANCELLED, NO_SHOW |
+| CONFIRMED      | CANCELLED, NO_SHOW            |
+| COMPLETED      | Read only                     |
+| CANCELLED      | Read only                     |
+| NO_SHOW        | Read only                     |
 
 Repeated requests for the current status are harmless 200 responses. Other transitions return 409. No reopening/unconfirming or direct COMPLETED action. Timing restrictions for marking no-show are not introduced in this phase; Owner makes that explicit decision. Confirmation preserves schedule/snapshots and checks the barber remains active; it does not add another capacity reservation. Cancellation/no-show release capacity by changing status and retain records/snapshots.
 
 ## Backend API
 
-| Endpoint | Access | Contract |
-| --- | --- | --- |
-| `GET /appointments` | Owner/Staff | Scoped paginated list with optional time range, status, client ID, barber ID filters |
-| `GET /appointments/context` | Owner/Staff | Membership-scoped business timezone and currency for date controls/display; no credentials or private business settings |
-| `GET /appointments/{id}` | Owner/Staff | Role-filtered appointment detail |
-| `POST /appointments/preview` | Owner | Validate selected references and calculate snapshot totals/end; no writes or capacity reservation |
-| `POST /appointments` | Owner | Create SCHEDULED appointment; 201 |
-| `PUT /appointments/{id}` | Owner | Full edit of SCHEDULED/CONFIRMED appointment; 200 |
-| `POST /appointments/{id}/status` | Owner | Body `{status}` restricted to CONFIRMED/CANCELLED/NO_SHOW; 200 |
+| Endpoint                         | Access      | Contract                                                                                                                |
+| -------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `GET /appointments`              | Owner/Staff | Scoped paginated list with optional time range, status, client ID, barber ID filters                                    |
+| `GET /appointments/context`      | Owner/Staff | Membership-scoped business timezone and currency for date controls/display; no credentials or private business settings |
+| `GET /appointments/{id}`         | Owner/Staff | Role-filtered appointment detail                                                                                        |
+| `POST /appointments/preview`     | Owner       | Validate selected references and calculate snapshot totals/end; no writes or capacity reservation                       |
+| `POST /appointments`             | Owner       | Create SCHEDULED appointment; 201                                                                                       |
+| `PUT /appointments/{id}`         | Owner       | Full edit of SCHEDULED/CONFIRMED appointment; 200                                                                       |
+| `POST /appointments/{id}/status` | Owner       | Body `{status}` restricted to CONFIRMED/CANCELLED/NO_SHOW; 200                                                          |
 
 Declare `/preview` and `/context` before the dynamic ID route. Reuse `/business-hours` for schedule display and existing service/barber lists for selection; do not introduce a general business-settings API. No DELETE. List uses `limit=25` (1–100), nonnegative `offset`, and `{items,total,limit,offset}` with start/ID deterministic ordering. Optional `from`/`to` parameters are aware timestamps defining an overlap window (`start < to` and `end > from`), with `from < to`. Validate enums/UUIDs/pagination and cap a supplied two-sided date range at 366 days. Unfiltered lists remain paginated.
 

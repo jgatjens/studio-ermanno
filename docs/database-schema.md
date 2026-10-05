@@ -102,7 +102,6 @@ The model should still keep ownership explicit rather than treating all records 
 
 ---
 
-
 # 5. Admin Users
 
 Represents authenticated users who can access the private admin.
@@ -554,7 +553,6 @@ Only feedback that is approved and intended for public display should appear on 
 Client and appointment relationships are optional because public feedback may come from someone who is not connected to an existing client record.
 
 ---
-
 
 # 15. Business Hours
 

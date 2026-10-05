@@ -45,20 +45,20 @@ No new tables, migrations, dependencies, environment variables, privileged API k
 
 ## Verification (2026-10-04)
 
-| Check | Result |
-| --- | --- |
-| `api`: `.venv/bin/python -m pytest` | 86 passed, 24 live database cases skipped by configuration |
-| `api`: `env RUN_DATABASE_TESTS=1 .venv/bin/python -m pytest` | 110 passed, no skips, 180.06 seconds |
-| PostgreSQL assigned/unassigned simultaneous creates | One success and one 409 for the last slot |
-| PostgreSQL assigned/unassigned competing reschedules | One success and one 409; both records/snapshot sets remain consistent |
-| PostgreSQL configuration coordination | Booking waits for the shared business lock and reads newly committed service duration |
-| `web`: `npm test` | 55 passed across seven files, no unhandled errors |
-| `web`: `npm run typecheck` | Passed |
-| `web`: `npm run build` | Passed |
-| Live GET `/health` | 200, `{"status":"ok"}` |
-| Live GET `/appointments` without token | 401 |
-| Browser `/admin/appointments` without session | Redirected to `/login`; email/password form displayed |
-| Browser public page | API Status: Connected; Supabase Auth client: Initialized |
+| Check                                                        | Result                                                                                |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| `api`: `.venv/bin/python -m pytest`                          | 86 passed, 24 live database cases skipped by configuration                            |
+| `api`: `env RUN_DATABASE_TESTS=1 .venv/bin/python -m pytest` | 110 passed, no skips, 180.06 seconds                                                  |
+| PostgreSQL assigned/unassigned simultaneous creates          | One success and one 409 for the last slot                                             |
+| PostgreSQL assigned/unassigned competing reschedules         | One success and one 409; both records/snapshot sets remain consistent                 |
+| PostgreSQL configuration coordination                        | Booking waits for the shared business lock and reads newly committed service duration |
+| `web`: `npm test`                                            | 55 passed across seven files, no unhandled errors                                     |
+| `web`: `npm run typecheck`                                   | Passed                                                                                |
+| `web`: `npm run build`                                       | Passed                                                                                |
+| Live GET `/health`                                           | 200, `{"status":"ok"}`                                                                |
+| Live GET `/appointments` without token                       | 401                                                                                   |
+| Browser `/admin/appointments` without session                | Redirected to `/login`; email/password form displayed                                 |
+| Browser public page                                          | API Status: Connected; Supabase Auth client: Initialized                              |
 
 Every Phase 0–4 regression test passed. The complete suite includes 19 existing PostgreSQL migration/metadata/seed/relationship cases plus five new concurrency cases. New race tests create and remove only uniquely named `phase5_test_*` schemas; existing live tests use `phase1_test_*`. No live business appointments were created or changed.
 

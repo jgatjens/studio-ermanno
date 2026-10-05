@@ -10,6 +10,7 @@ from app.db.models import Barber
 from app.db.session import get_session
 from app.db.locking import lock_business
 
+
 class WriteData(BaseModel):
     model_config = ConfigDict(extra="forbid")
     name: str = Field(min_length=1, max_length=200)
@@ -23,21 +24,33 @@ class WriteData(BaseModel):
             raise ValueError("Name cannot be blank")
         return value
 
+
 class ReadData(WriteData):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
 
+
 router = APIRouter(prefix="/barbers", tags=["barbers"])
 
+
 @router.get("", response_model=list[ReadData])
-def list_records(active: Optional[bool] = None, actor: AuthenticatedActor = Depends(require_authenticated_actor), session: Session = Depends(get_session)):
+def list_records(
+    active: Optional[bool] = None,
+    actor: AuthenticatedActor = Depends(require_authenticated_actor),
+    session: Session = Depends(get_session),
+):
     query = select(Barber).where(Barber.business_id == actor.business_id)
     if active is not None:
         query = query.where(Barber.is_active == active)
     return session.scalars(query.order_by(Barber.name, Barber.id)).all()
 
+
 @router.post("", response_model=ReadData, status_code=201)
-def create(data: WriteData, actor: AuthenticatedActor = Depends(require_owner), session: Session = Depends(get_session)):
+def create(
+    data: WriteData,
+    actor: AuthenticatedActor = Depends(require_owner),
+    session: Session = Depends(get_session),
+):
     lock_business(session, actor.business_id)
     record = Barber(business_id=actor.business_id, **data.model_dump())
     session.add(record)
@@ -45,10 +58,18 @@ def create(data: WriteData, actor: AuthenticatedActor = Depends(require_owner), 
     session.refresh(record)
     return record
 
+
 @router.put("/{record_id}", response_model=ReadData)
-def update(record_id: UUID, data: WriteData, actor: AuthenticatedActor = Depends(require_owner), session: Session = Depends(get_session)):
+def update(
+    record_id: UUID,
+    data: WriteData,
+    actor: AuthenticatedActor = Depends(require_owner),
+    session: Session = Depends(get_session),
+):
     lock_business(session, actor.business_id)
-    record = session.scalar(select(Barber).where(Barber.id == record_id, Barber.business_id == actor.business_id))
+    record = session.scalar(
+        select(Barber).where(Barber.id == record_id, Barber.business_id == actor.business_id)
+    )
     if record is None:
         raise HTTPException(404, "Record not found")
     for key, value in data.model_dump().items():

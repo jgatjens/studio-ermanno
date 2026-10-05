@@ -37,11 +37,11 @@ The current `/` is a technical foundation placeholder. Replace its customer pres
 
 Existing public endpoints:
 
-| Endpoint | Reuse |
-| --- | --- |
+| Endpoint                   | Reuse                                                                                           |
+| -------------------------- | ----------------------------------------------------------------------------------------------- |
 | `GET /public/availability` | Phase 9 date/interval states, business-local defaults, timezone/DST, no-store snapshot behavior |
-| `GET /public/feedback` | Phase 8 approved AND public reviews only, paginated private-field-free projection |
-| `POST /public/feedback` | Phase 8 visitor fields, Pending/private defaults, no association and no automatic retries |
+| `GET /public/feedback`     | Phase 8 approved AND public reviews only, paginated private-field-free projection               |
+| `POST /public/feedback`    | Phase 8 visitor fields, Pending/private defaults, no association and no automatic retries       |
 
 Do not call protected `/services`, `/products`, `/business-hours`, client/appointment APIs or `/auth/me` to populate public pages. Do not calculate public availability from browser data or change Phase 9 thresholds. Home uses an availability CTA rather than adding a second calendar or a fabricated “next available” claim.
 
@@ -49,16 +49,16 @@ Retain `GET /health` and its focused frontend component/tests. Move technical AP
 
 ## Route and layout contract
 
-| Route | Content |
-| --- | --- |
-| `/` | Home in the wireframe order |
-| `/services` | All active public services, paginated cards |
-| `/products` | All active, explicitly public products, paginated informational cards |
-| `/gallery` | Static frontend asset grid and captions |
-| `/availability` | Existing Phase 9 date/interval view |
-| `/feedback` | Existing Phase 8 reviews and submission form |
-| `/faq` | Short static approved question/answer list |
-| `/contact` | Configured contacts, weekly hours, address/location view and directions |
+| Route           | Content                                                                 |
+| --------------- | ----------------------------------------------------------------------- |
+| `/`             | Home in the wireframe order                                             |
+| `/services`     | All active public services, paginated cards                             |
+| `/products`     | All active, explicitly public products, paginated informational cards   |
+| `/gallery`      | Static frontend asset grid and captions                                 |
+| `/availability` | Existing Phase 9 date/interval view                                     |
+| `/feedback`     | Existing Phase 8 reviews and submission form                            |
+| `/faq`          | Short static approved question/answer list                              |
+| `/contact`      | Configured contacts, weekly hours, address/location view and directions |
 
 Use a small public layout with semantic header/main/footer and an Outlet, alongside the existing login/admin layouts. Public container widths can expand for desktop imagery/grids without changing admin form widths. Avoid nested mains or duplicated Public/Admin placeholder navigation. Keep login accessible through a discreet Staff login link; customer navigation prioritizes Services, Products, Gallery, Availability and Contact, with FAQ/Feedback in menu/footer. Public navigation uses normal links and clearly marks the current route. A public not-found page provides Home/contact navigation; preserve private route protection, including unknown admin subpaths.
 

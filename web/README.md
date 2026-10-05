@@ -47,3 +47,7 @@ npm run build
 ```
 
 The production build validates deployment environment settings. See `.env.example` and `deployment/config.ts` for the supported deployment configuration.
+
+## Formatting
+
+Run `npm run format` to format supported files throughout the repository with Prettier, or `npm run format:check` to check without modifying files. The root `.prettierrc.json`, `.prettierignore` and `.editorconfig` define the conventions. Install the recommended VS Code extensions to enable the committed format-on-save settings. Python uses Ruff separately; see the root README.

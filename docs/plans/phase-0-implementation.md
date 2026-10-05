@@ -37,12 +37,15 @@ project/
 ```
 
 ### `web/`
+
 React + Vite frontend.
 
 ### `api/`
+
 FastAPI backend.
 
 ### `docs/`
+
 Planning and implementation documentation.
 
 ---

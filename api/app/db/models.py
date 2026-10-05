@@ -1,4 +1,5 @@
 """Persistent models, tenant constraints, and inventory linkage."""
+
 from __future__ import annotations
 
 from datetime import datetime, time, timezone
@@ -8,9 +9,22 @@ from uuid import UUID, uuid4
 from typing import Optional
 
 from sqlalchemy import (
-    Boolean, CheckConstraint, DateTime, Enum as SAEnum, ForeignKey,
-    ForeignKeyConstraint, Integer, Numeric, String, Text, Time, UniqueConstraint,
-    Uuid, func, true, false,
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    Enum as SAEnum,
+    ForeignKey,
+    ForeignKeyConstraint,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    Time,
+    UniqueConstraint,
+    Uuid,
+    func,
+    true,
+    false,
 )
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column, relationship
 
@@ -56,8 +70,10 @@ def enum_type(enum, name):
 
 def same_business(target, field):
     return ForeignKeyConstraint(
-        ["business_id", field], [f"{target}.business_id", f"{target}.id"],
-        name=f"fk_{field}_{target}_business", ondelete="RESTRICT",
+        ["business_id", field],
+        [f"{target}.business_id", f"{target}.id"],
+        name=f"fk_{field}_{target}_business",
+        ondelete="RESTRICT",
     )
 
 
@@ -68,13 +84,16 @@ class Identity:
 
 class Updated:
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(),
+        DateTime(timezone=True),
+        server_default=func.now(),
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
 
 class Owned:
-    business_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey("businesses.id", ondelete="RESTRICT"), index=True)
+    business_id: Mapped[UUID] = mapped_column(
+        Uuid, ForeignKey("businesses.id", ondelete="RESTRICT"), index=True
+    )
 
     @declared_attr
     def business(cls):
@@ -96,7 +115,9 @@ class Business(Identity, Updated, Base):
 
 class AdminMembership(Identity, Updated, Owned, Base):
     __tablename__ = "admin_memberships"
-    __table_args__ = (UniqueConstraint("business_id", "auth_user_id", name="uq_membership_identity"),)
+    __table_args__ = (
+        UniqueConstraint("business_id", "auth_user_id", name="uq_membership_identity"),
+    )
     # External Supabase identity reference; no local identity/profile duplication.
     # No auth.users FK: deterministic development placeholders are not Auth users.
     auth_user_id: Mapped[UUID] = mapped_column(Uuid)
@@ -118,7 +139,9 @@ class Client(Identity, Updated, Owned, Base):
     email: Mapped[Optional[str]] = mapped_column(String(320))
     phone: Mapped[Optional[str]] = mapped_column(String(50))
     private_notes: Mapped[Optional[str]] = mapped_column(Text)
-    appointments: Mapped[list["Appointment"]] = relationship(back_populates="client", foreign_keys="Appointment.client_id")
+    appointments: Mapped[list["Appointment"]] = relationship(
+        back_populates="client", foreign_keys="Appointment.client_id"
+    )
 
 
 class Service(Identity, Updated, Owned, Base):
@@ -139,8 +162,12 @@ class Appointment(Identity, Updated, Owned, Base):
     __tablename__ = "appointments"
     __table_args__ = (
         UniqueConstraint("business_id", "id", name="uq_appointment_business_id"),
-        same_business("clients", "client_id"), same_business("barbers", "barber_id"),
-        CheckConstraint("calculated_duration_minutes >= 0 AND final_duration_minutes >= 0", name="ck_appointment_duration"),
+        same_business("clients", "client_id"),
+        same_business("barbers", "barber_id"),
+        CheckConstraint(
+            "calculated_duration_minutes >= 0 AND final_duration_minutes >= 0",
+            name="ck_appointment_duration",
+        ),
         CheckConstraint("calculated_price >= 0 AND final_price >= 0", name="ck_appointment_price"),
         CheckConstraint("scheduled_end > scheduled_start", name="ck_appointment_times"),
     )
@@ -148,7 +175,11 @@ class Appointment(Identity, Updated, Owned, Base):
     barber_id: Mapped[Optional[UUID]] = mapped_column(Uuid, index=True)
     scheduled_start: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     scheduled_end: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    status: Mapped[AppointmentStatus] = mapped_column(enum_type(AppointmentStatus, "appointment_status"), default=AppointmentStatus.SCHEDULED, server_default="SCHEDULED")
+    status: Mapped[AppointmentStatus] = mapped_column(
+        enum_type(AppointmentStatus, "appointment_status"),
+        default=AppointmentStatus.SCHEDULED,
+        server_default="SCHEDULED",
+    )
     appointment_notes: Mapped[Optional[str]] = mapped_column(Text)
     visit_notes: Mapped[Optional[str]] = mapped_column(Text)
     calculated_duration_minutes: Mapped[int] = mapped_column(Integer)
@@ -157,14 +188,19 @@ class Appointment(Identity, Updated, Owned, Base):
     final_price: Mapped[Decimal] = mapped_column(Numeric(12, 2))
     client: Mapped[Client] = relationship(back_populates="appointments", foreign_keys=[client_id])
     barber: Mapped[Optional[Barber]] = relationship(foreign_keys=[barber_id])
-    services: Mapped[list["AppointmentService"]] = relationship(back_populates="appointment", foreign_keys="AppointmentService.appointment_id")
-    products: Mapped[list["AppointmentProduct"]] = relationship(back_populates="appointment", foreign_keys="AppointmentProduct.appointment_id")
+    services: Mapped[list["AppointmentService"]] = relationship(
+        back_populates="appointment", foreign_keys="AppointmentService.appointment_id"
+    )
+    products: Mapped[list["AppointmentProduct"]] = relationship(
+        back_populates="appointment", foreign_keys="AppointmentProduct.appointment_id"
+    )
 
 
 class AppointmentService(Identity, Owned, Base):
     __tablename__ = "appointment_services"
     __table_args__ = (
-        same_business("appointments", "appointment_id"), same_business("services", "service_id"),
+        same_business("appointments", "appointment_id"),
+        same_business("services", "service_id"),
         CheckConstraint("service_price_snapshot >= 0", name="ck_snapshot_price"),
         CheckConstraint("service_duration_snapshot >= 0", name="ck_snapshot_duration"),
     )
@@ -173,7 +209,9 @@ class AppointmentService(Identity, Owned, Base):
     service_name_snapshot: Mapped[str] = mapped_column(String(200))
     service_price_snapshot: Mapped[Decimal] = mapped_column(Numeric(12, 2))
     service_duration_snapshot: Mapped[int] = mapped_column(Integer)
-    appointment: Mapped[Appointment] = relationship(back_populates="services", foreign_keys=[appointment_id])
+    appointment: Mapped[Appointment] = relationship(
+        back_populates="services", foreign_keys=[appointment_id]
+    )
     service: Mapped[Service] = relationship(foreign_keys=[service_id])
 
 
@@ -197,14 +235,19 @@ class Product(Identity, Updated, Owned, Base):
     minimum_stock: Mapped[Decimal] = mapped_column(Numeric(12, 3), default=0, server_default="0")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
     is_public: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
-    inventory_movements: Mapped[list["InventoryMovement"]] = relationship(back_populates="product", foreign_keys="InventoryMovement.product_id")
+    inventory_movements: Mapped[list["InventoryMovement"]] = relationship(
+        back_populates="product", foreign_keys="InventoryMovement.product_id"
+    )
 
 
 class AppointmentProduct(Identity, Owned, Base):
     __tablename__ = "appointment_products"
     __table_args__ = (
-        same_business("appointments", "appointment_id"), same_business("products", "product_id"),
-        UniqueConstraint("business_id", "id", "appointment_id", "product_id", name="uq_appointment_product_link"),
+        same_business("appointments", "appointment_id"),
+        same_business("products", "product_id"),
+        UniqueConstraint(
+            "business_id", "id", "appointment_id", "product_id", name="uq_appointment_product_link"
+        ),
         CheckConstraint("quantity > 0", name="ck_appointment_product_quantity"),
     )
     appointment_id: Mapped[UUID] = mapped_column(Uuid, index=True)
@@ -212,19 +255,36 @@ class AppointmentProduct(Identity, Owned, Base):
     product_name_snapshot: Mapped[str] = mapped_column(String(200))
     quantity: Mapped[Decimal] = mapped_column(Numeric(12, 3))
     usage_type: Mapped[ProductUsage] = mapped_column(enum_type(ProductUsage, "product_usage"))
-    appointment: Mapped[Appointment] = relationship(back_populates="products", foreign_keys=[appointment_id])
+    appointment: Mapped[Appointment] = relationship(
+        back_populates="products", foreign_keys=[appointment_id]
+    )
     product: Mapped[Product] = relationship(foreign_keys=[product_id])
 
 
 class InventoryMovement(Identity, Owned, Base):
     __tablename__ = "inventory_movements"
     __table_args__ = (
-        same_business("products", "product_id"), same_business("appointments", "appointment_id"),
+        same_business("products", "product_id"),
+        same_business("appointments", "appointment_id"),
         UniqueConstraint("appointment_product_id", name="uq_movement_appointment_product"),
-        ForeignKeyConstraint(["business_id", "appointment_product_id", "appointment_id", "product_id"],
-                             ["appointment_products.business_id", "appointment_products.id", "appointment_products.appointment_id", "appointment_products.product_id"], name="fk_movement_product_link"),
-        CheckConstraint("quantity <> 0 AND ((movement_type = 'STOCK_IN' AND quantity > 0) OR (movement_type IN ('USED','SOLD','DAMAGED') AND quantity < 0) OR movement_type = 'ADJUSTMENT')", name="ck_movement_delta"),
-        CheckConstraint("(movement_type IN ('USED','SOLD') AND appointment_id IS NOT NULL AND appointment_product_id IS NOT NULL) OR (movement_type NOT IN ('USED','SOLD') AND appointment_id IS NULL AND appointment_product_id IS NULL)", name="ck_movement_links"),
+        ForeignKeyConstraint(
+            ["business_id", "appointment_product_id", "appointment_id", "product_id"],
+            [
+                "appointment_products.business_id",
+                "appointment_products.id",
+                "appointment_products.appointment_id",
+                "appointment_products.product_id",
+            ],
+            name="fk_movement_product_link",
+        ),
+        CheckConstraint(
+            "quantity <> 0 AND ((movement_type = 'STOCK_IN' AND quantity > 0) OR (movement_type IN ('USED','SOLD','DAMAGED') AND quantity < 0) OR movement_type = 'ADJUSTMENT')",
+            name="ck_movement_delta",
+        ),
+        CheckConstraint(
+            "(movement_type IN ('USED','SOLD') AND appointment_id IS NOT NULL AND appointment_product_id IS NOT NULL) OR (movement_type NOT IN ('USED','SOLD') AND appointment_id IS NULL AND appointment_product_id IS NULL)",
+            name="ck_movement_links",
+        ),
     )
     appointment_product_id: Mapped[Optional[UUID]] = mapped_column(Uuid)
     product_id: Mapped[UUID] = mapped_column(Uuid, index=True)
@@ -233,14 +293,17 @@ class InventoryMovement(Identity, Owned, Base):
     # Signed delta; inventory service updates its balance in the same transaction.
     quantity: Mapped[Decimal] = mapped_column(Numeric(12, 3))
     notes: Mapped[Optional[str]] = mapped_column(Text)
-    product: Mapped[Product] = relationship(back_populates="inventory_movements", foreign_keys=[product_id])
+    product: Mapped[Product] = relationship(
+        back_populates="inventory_movements", foreign_keys=[product_id]
+    )
     appointment: Mapped[Optional[Appointment]] = relationship(foreign_keys=[appointment_id])
 
 
 class Feedback(Identity, Updated, Owned, Base):
     __tablename__ = "feedback"
     __table_args__ = (
-        same_business("clients", "client_id"), same_business("appointments", "appointment_id"),
+        same_business("clients", "client_id"),
+        same_business("appointments", "appointment_id"),
         CheckConstraint("rating BETWEEN 1 AND 5", name="ck_feedback_rating"),
     )
     client_id: Mapped[Optional[UUID]] = mapped_column(Uuid, index=True)
@@ -249,7 +312,11 @@ class Feedback(Identity, Updated, Owned, Base):
     email: Mapped[Optional[str]] = mapped_column(String(320))
     rating: Mapped[int] = mapped_column(Integer)
     comment: Mapped[Optional[str]] = mapped_column(Text)
-    status: Mapped[FeedbackStatus] = mapped_column(enum_type(FeedbackStatus, "feedback_status"), default=FeedbackStatus.PENDING, server_default="PENDING")
+    status: Mapped[FeedbackStatus] = mapped_column(
+        enum_type(FeedbackStatus, "feedback_status"),
+        default=FeedbackStatus.PENDING,
+        server_default="PENDING",
+    )
     is_public: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     client: Mapped[Optional[Client]] = relationship(foreign_keys=[client_id])
     appointment: Mapped[Optional[Appointment]] = relationship(foreign_keys=[appointment_id])
@@ -260,8 +327,14 @@ class BusinessHours(Identity, Updated, Owned, Base):
     __table_args__ = (
         UniqueConstraint("business_id", "day_of_week", name="uq_business_hours_day"),
         CheckConstraint("day_of_week BETWEEN 0 AND 6", name="ck_business_hours_day"),
-        CheckConstraint("is_closed OR (opening_time IS NOT NULL AND closing_time IS NOT NULL AND closing_time > opening_time)", name="ck_business_hours_times"),
-        CheckConstraint("(break_start IS NULL AND break_end IS NULL) OR (NOT is_closed AND break_start IS NOT NULL AND break_end IS NOT NULL AND opening_time IS NOT NULL AND closing_time IS NOT NULL AND opening_time < break_start AND break_start < break_end AND break_end < closing_time)", name="ck_business_hours_break"),
+        CheckConstraint(
+            "is_closed OR (opening_time IS NOT NULL AND closing_time IS NOT NULL AND closing_time > opening_time)",
+            name="ck_business_hours_times",
+        ),
+        CheckConstraint(
+            "(break_start IS NULL AND break_end IS NULL) OR (NOT is_closed AND break_start IS NOT NULL AND break_end IS NOT NULL AND opening_time IS NOT NULL AND closing_time IS NOT NULL AND opening_time < break_start AND break_start < break_end AND break_end < closing_time)",
+            name="ck_business_hours_break",
+        ),
     )
     # ISO-style Python weekday: Monday=0, Sunday=6. Times are local to Business.timezone.
     day_of_week: Mapped[int] = mapped_column(Integer)

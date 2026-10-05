@@ -34,17 +34,17 @@ No database schema/migration, environment configuration, production data, privil
 
 ## Verification (2026-10-04)
 
-| Check | Result |
-| --- | --- |
-| `api`: `.venv/bin/python -m pytest` | 54 passed, 19 live database tests skipped as configured |
-| `api`: `env RUN_DATABASE_TESTS=1 .venv/bin/python -m pytest` | 73 passed, no skips, 126.83 seconds |
-| `web`: `npm test` | 41 passed across five test files; no unhandled errors |
-| `web`: `npm run typecheck` | Passed |
-| `web`: `npm run build` | Passed |
-| Live GET `/health` | 200, `{"status":"ok"}` |
-| Live GET `/clients` without token | 401 |
-| Browser `/admin/clients` without session | Redirected to `/login`; email/password form displayed |
-| Browser public page | API Status: Connected; Supabase Auth client: Initialized |
+| Check                                                        | Result                                                   |
+| ------------------------------------------------------------ | -------------------------------------------------------- |
+| `api`: `.venv/bin/python -m pytest`                          | 54 passed, 19 live database tests skipped as configured  |
+| `api`: `env RUN_DATABASE_TESTS=1 .venv/bin/python -m pytest` | 73 passed, no skips, 126.83 seconds                      |
+| `web`: `npm test`                                            | 41 passed across five test files; no unhandled errors    |
+| `web`: `npm run typecheck`                                   | Passed                                                   |
+| `web`: `npm run build`                                       | Passed                                                   |
+| Live GET `/health`                                           | 200, `{"status":"ok"}`                                   |
+| Live GET `/clients` without token                            | 401                                                      |
+| Browser `/admin/clients` without session                     | Redirected to `/login`; email/password form displayed    |
+| Browser public page                                          | API Status: Connected; Supabase Auth client: Initialized |
 
 All previous Phase 0–3 tests passed. The 19 live PostgreSQL cases retain database connectivity, migration roundtrip, metadata, relationships, and seeding verification using disposable schemas. Phase 4 writes are tested in isolated SQLAlchemy databases with real JWT/JWKS verification; no live business clients were created.
 

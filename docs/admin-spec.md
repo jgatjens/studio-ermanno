@@ -61,7 +61,6 @@ Barber / Service Provider profiles are separate from admin users.
 
 A barber may exist without admin login access.
 
-
 ---
 
 # 4. Main Admin Areas
@@ -261,7 +260,6 @@ The admin should support:
 - Month
 
 The mobile default should prioritize today's appointments.
-
 
 ## Calendar Capacity Rules
 

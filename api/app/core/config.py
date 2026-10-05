@@ -7,6 +7,7 @@ from pydantic import AnyHttpUrl, SecretStr, Field, ValidationError, field_valida
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import make_url
 
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
     app_env: Literal["development", "test", "production"] = "development"
@@ -24,7 +25,9 @@ class Settings(BaseSettings):
         if self.app_env != "production":
             return self
         if not self.database_url or not self.supabase_url or not self.public_business_id:
-            raise ValueError("Production requires DATABASE_URL, SUPABASE_URL and PUBLIC_BUSINESS_ID")
+            raise ValueError(
+                "Production requires DATABASE_URL, SUPABASE_URL and PUBLIC_BUSINESS_ID"
+            )
         for origin in (self.frontend_origin, self.supabase_url):
             if origin.scheme != "https" or origin.host in ("localhost", "127.0.0.1", "::1"):
                 raise ValueError("Production origins must use public HTTPS URLs")
@@ -46,7 +49,13 @@ class Settings(BaseSettings):
     @field_validator("supabase_url")
     @classmethod
     def validate_supabase_url(cls, value):
-        if value and (value.path not in (None, "/") or value.query or value.fragment or value.username or value.password):
+        if value and (
+            value.path not in (None, "/")
+            or value.query
+            or value.fragment
+            or value.username
+            or value.password
+        ):
             raise ValueError("SUPABASE_URL must be an HTTP origin")
         return value
 
@@ -74,7 +83,11 @@ class Settings(BaseSettings):
         raw = value.get_secret_value() if isinstance(value, SecretStr) else value
         try:
             url = make_url(raw)
-            if url.drivername not in ("postgresql", "postgresql+psycopg") or not url.host or not url.database:
+            if (
+                url.drivername not in ("postgresql", "postgresql+psycopg")
+                or not url.host
+                or not url.database
+            ):
                 raise ValueError()
         except Exception:
             raise ValueError("DATABASE_URL must be a PostgreSQL connection URL") from None
@@ -83,9 +96,16 @@ class Settings(BaseSettings):
     @field_validator("frontend_origin")
     @classmethod
     def validate_origin(cls, value):
-        if value.path not in (None, "/") or value.query or value.fragment or value.username or value.password:
+        if (
+            value.path not in (None, "/")
+            or value.query
+            or value.fragment
+            or value.username
+            or value.password
+        ):
             raise ValueError("FRONTEND_ORIGIN must be an HTTP origin without credentials or a path")
         return value
+
 
 @lru_cache
 def get_settings() -> Settings:
@@ -96,4 +116,6 @@ def get_settings() -> Settings:
         return Settings(_env_file=selected_file if selected_file is not None else ".env")
     except ValidationError:
         # Pydantic errors can include raw input values, including connection URLs.
-        raise RuntimeError("Invalid application configuration; review environment settings") from None
+        raise RuntimeError(
+            "Invalid application configuration; review environment settings"
+        ) from None

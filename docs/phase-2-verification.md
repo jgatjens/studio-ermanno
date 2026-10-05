@@ -49,21 +49,21 @@ No schema/migration, role, frontend package, business endpoint, or business data
 
 ## Verification (2026-10-03)
 
-| Verification | Result |
-| --- | --- |
-| Complete backend suite: env RUN_DATABASE_TESTS=1 .venv/bin/python -m pytest | PASS: 47 tests, no skips or warnings |
-| New backend authentication/authorization cases | PASS: 24 tests, with real signatures and local JWKS transport |
-| Existing Phase 0 backend foundation | PASS: 4 tests |
-| Existing Phase 1 live PostgreSQL integrity/migration/seed cases | PASS: 19 tests, isolated disposable schemas |
-| Frontend tests: npm test | PASS: 23 tests (13 auth, 6 API, 4 baseline app/health) |
-| TypeScript: npm run typecheck | PASS |
-| Frontend build: npm run build | PASS; existing non-fatal bundle-size warning (~525 kB before gzip) |
-| Live GET /health | PASS: HTTP 200 |
-| Live protected endpoints without tokens | PASS: all four return HTTP 401 |
-| Backend's configured JWKS client → real Supabase public endpoint | PASS: fetched one published ES256 signing key |
-| Browser unauthenticated /admin route | PASS: redirected to /login with email/password form |
-| Browser public page after auth changes | PASS: API Status Connected; Supabase Auth client Initialized |
-| Real hosted Owner and Staff sign-in/session/logout | NOT VERIFIED: real user credentials unavailable |
+| Verification                                                                | Result                                                             |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Complete backend suite: env RUN_DATABASE_TESTS=1 .venv/bin/python -m pytest | PASS: 47 tests, no skips or warnings                               |
+| New backend authentication/authorization cases                              | PASS: 24 tests, with real signatures and local JWKS transport      |
+| Existing Phase 0 backend foundation                                         | PASS: 4 tests                                                      |
+| Existing Phase 1 live PostgreSQL integrity/migration/seed cases             | PASS: 19 tests, isolated disposable schemas                        |
+| Frontend tests: npm test                                                    | PASS: 23 tests (13 auth, 6 API, 4 baseline app/health)             |
+| TypeScript: npm run typecheck                                               | PASS                                                               |
+| Frontend build: npm run build                                               | PASS; existing non-fatal bundle-size warning (~525 kB before gzip) |
+| Live GET /health                                                            | PASS: HTTP 200                                                     |
+| Live protected endpoints without tokens                                     | PASS: all four return HTTP 401                                     |
+| Backend's configured JWKS client → real Supabase public endpoint            | PASS: fetched one published ES256 signing key                      |
+| Browser unauthenticated /admin route                                        | PASS: redirected to /login with email/password form                |
+| Browser public page after auth changes                                      | PASS: API Status Connected; Supabase Auth client Initialized       |
+| Real hosted Owner and Staff sign-in/session/logout                          | NOT VERIFIED: real user credentials unavailable                    |
 
 The protected endpoints and database-derived roles are exercised through the real FastAPI dependency chain in tests; only the external JWKS location and isolated test DB connection are supplied by fixtures. No verifier/authenticated-actor shortcut overrides are used. Owner/Staff tests include spoofed token metadata, query values, request headers, and POST body values; none influence the backend actor. Staff visibility assertions check absence of private fields and nested visit notes, rather than null placeholders.
 

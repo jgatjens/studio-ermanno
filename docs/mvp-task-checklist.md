@@ -1,9 +1,11 @@
 # MVP Task Checklist
 
 ## Phase 0 — Project Foundation
+
 **Depends on:** Nothing
 
 ### Tasks
+
 - [ ] Create repository structure: `web/`, `api/`, `docs/`
 - [ ] Set up React + Vite + TypeScript
 - [ ] Set up React Router
@@ -23,6 +25,7 @@
 - [ ] Configure frontend and backend test commands
 
 ### Completion Criteria
+
 - [ ] React app runs locally
 - [ ] FastAPI runs locally
 - [ ] Frontend can call `/health`
@@ -34,9 +37,11 @@
 ---
 
 ## Phase 1 — Database Foundation
+
 **Depends on:** Phase 0
 
 ### Tasks
+
 - [ ] Create Business model
 - [ ] Create Admin User / Business Membership model
 - [ ] Create Barber / Service Provider model
@@ -54,6 +59,7 @@
 - [ ] Add database relationship tests
 
 ### Completion Criteria
+
 - [ ] Clean database can be created from migrations
 - [ ] Seed data loads successfully
 - [ ] Core relationships are valid
@@ -62,9 +68,11 @@
 ---
 
 ## Phase 2 — Authentication & Authorization
+
 **Depends on:** Phase 1
 
 ### Tasks
+
 - [ ] Add Supabase login
 - [ ] Add logout
 - [ ] Restore frontend sessions
@@ -78,6 +86,7 @@
 - [ ] Add backend authorization tests
 
 ### Completion Criteria
+
 - [ ] Unauthenticated users cannot access admin data
 - [ ] Owner can read and modify protected data
 - [ ] Staff is read-only
@@ -87,9 +96,11 @@
 ---
 
 ## Phase 3 — Services, Barbers & Business Hours
+
 **Depends on:** Phase 2
 
 ### Tasks
+
 - [ ] Build Service CRUD
 - [ ] Add service activate/deactivate
 - [ ] Build Barber CRUD
@@ -100,6 +111,7 @@
 - [ ] Build business-hours settings screen
 
 ### Completion Criteria
+
 - [ ] Active services can be retrieved
 - [ ] Active barbers can be retrieved
 - [ ] All barbers use shared business hours
@@ -108,9 +120,11 @@
 ---
 
 ## Phase 4 — Clients
+
 **Depends on:** Phase 2
 
 ### Tasks
+
 - [ ] Create client
 - [ ] Update client
 - [ ] Search clients
@@ -126,6 +140,7 @@
 - [ ] Build client profile UI
 
 ### Completion Criteria
+
 - [ ] Owner can create and edit clients
 - [ ] Client search works
 - [ ] Staff sees only allowed client fields
@@ -134,9 +149,11 @@
 ---
 
 ## Phase 5 — Appointment Core
+
 **Depends on:** Phases 3 and 4
 
 ### Tasks
+
 - [ ] Create appointment endpoint
 - [ ] Require existing client
 - [ ] Support multiple services
@@ -158,6 +175,7 @@
 - [ ] Add no-show action
 
 ### Completion Criteria
+
 - [ ] Appointment can be created for an existing client
 - [ ] Multiple services work
 - [ ] Duration and price auto-calculate
@@ -170,9 +188,11 @@
 ---
 
 ## Phase 6 — Appointment Completion & Client History
+
 **Depends on:** Phase 5
 
 ### Tasks
+
 - [ ] Add complete appointment action
 - [ ] Record services performed
 - [ ] Record products used
@@ -188,6 +208,7 @@
 - [ ] Preserve final appointment duration
 
 ### Completion Criteria
+
 - [ ] Completed appointments appear in client history
 - [ ] Last visit is derived correctly
 - [ ] Historical values do not change when services change
@@ -196,9 +217,11 @@
 ---
 
 ## Phase 7 — Products & Inventory
+
 **Depends on:** Phase 6
 
 ### Tasks
+
 - [ ] Build Product CRUD
 - [ ] Add product activate/deactivate
 - [ ] Add public visibility flag
@@ -221,6 +244,7 @@
 - [ ] Add low-stock state
 
 ### Completion Criteria
+
 - [ ] Every stock change creates an inventory movement
 - [ ] Current stock matches movement history
 - [ ] Appointment product usage updates inventory once
@@ -229,9 +253,11 @@
 ---
 
 ## Phase 8 — Feedback
+
 **Depends on:** Phase 2
 
 ### Tasks
+
 - [ ] Add public feedback submission
 - [ ] Store new feedback as Pending
 - [ ] Default public visibility to false
@@ -243,6 +269,7 @@
 - [ ] Add public feedback query
 
 ### Completion Criteria
+
 - [ ] Public users can submit feedback
 - [ ] New feedback never appears automatically
 - [ ] Owner can moderate feedback
@@ -251,9 +278,11 @@
 ---
 
 ## Phase 9 — Public Availability
+
 **Depends on:** Phases 3 and 5
 
 ### Tasks
+
 - [ ] Calculate business availability from business hours
 - [ ] Count active barbers
 - [ ] Apply assigned appointment capacity
@@ -264,6 +293,7 @@
 - [ ] Build mobile-friendly availability UI
 
 ### Completion Criteria
+
 - [ ] Availability reflects actual barber capacity
 - [ ] Unassigned appointments consume one slot
 - [ ] Public response contains no private data
@@ -272,9 +302,11 @@
 ---
 
 ## Phase 10 — Public Website
+
 **Depends on:** Phases 3, 7, 8, and 9
 
 ### Tasks
+
 - [ ] Build Home
 - [ ] Build Services
 - [ ] Build Products
@@ -291,6 +323,7 @@
 - [ ] Show approved + public feedback only
 
 ### Completion Criteria
+
 - [ ] Public site works on mobile and desktop
 - [ ] Static images load correctly
 - [ ] Public/private data boundaries are respected
@@ -299,9 +332,11 @@
 ---
 
 ## Phase 11 — Mobile Admin Polish
+
 **Depends on:** Phases 4–8
 
 ### Tasks
+
 - [ ] Finalize mobile navigation
 - [ ] Improve dashboard hierarchy
 - [ ] Improve today view
@@ -320,6 +355,7 @@
 - [ ] Verify labels and contrast
 
 ### Completion Criteria
+
 - [ ] Owner can complete core workflows comfortably on a phone
 - [ ] No essential action depends on hover
 - [ ] Core screens are usable without horizontal scrolling
@@ -327,9 +363,11 @@
 ---
 
 ## Phase 12 — MVP Deployment
+
 **Depends on:** Phases 0–11
 
 ### Tasks
+
 - [ ] Deploy frontend to Cloudflare Pages
 - [ ] Deploy FastAPI to Render
 - [ ] Configure production Supabase
@@ -343,6 +381,7 @@
 - [ ] Run deployment smoke tests
 
 ### Smoke Tests
+
 - [ ] Login
 - [ ] Client create/search
 - [ ] Appointment creation
@@ -355,6 +394,7 @@
 - [ ] Public services/products
 
 ### Completion Criteria
+
 - [ ] MVP works end-to-end in deployed environments
 - [ ] Core Owner workflows pass smoke testing
 - [ ] Public website loads correctly
@@ -363,6 +403,7 @@
 ---
 
 # Post-MVP — Do Not Block Launch
+
 **Depends on:** Stable MVP
 
 - [ ] AWS Lambda migration

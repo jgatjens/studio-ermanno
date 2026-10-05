@@ -25,13 +25,13 @@ No client deletion, archiving, activation, merging, imports, exports, bulk opera
 
 Reuse `Client` in `api/app/db/models.py`:
 
-| Field | Write rule |
-| --- | --- |
-| `first_name` | Required, trim whitespace, nonempty, maximum 100 characters |
-| `last_name` | Required, trim whitespace, nonempty, maximum 100 characters |
-| `email` | Optional, trim, blank becomes null, validate email format, maximum 320 characters |
-| `phone` | Optional, trim, blank becomes null, maximum 50 characters; preserve international formatting without imposing a country |
-| `private_notes` | Optional general notes/preferences, blank becomes null; maximum 10,000 characters as an API limit |
+| Field           | Write rule                                                                                                              |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `first_name`    | Required, trim whitespace, nonempty, maximum 100 characters                                                             |
+| `last_name`     | Required, trim whitespace, nonempty, maximum 100 characters                                                             |
+| `email`         | Optional, trim, blank becomes null, validate email format, maximum 320 characters                                       |
+| `phone`         | Optional, trim, blank becomes null, maximum 50 characters; preserve international formatting without imposing a country |
+| `private_notes` | Optional general notes/preferences, blank becomes null; maximum 10,000 characters as an API limit                       |
 
 Reject extra write fields, including `business_id`, role, timestamps, IDs, and history. Server generates identity/timestamps and derives business ownership from the actor. Optional fields may be explicitly null. Full-record PUT requires both names and treats omitted optional fields as null; frontend submits the complete editable record.
 
@@ -41,27 +41,27 @@ Do not require email or phone uniqueness: households may share contact details. 
 
 FastAPI independently validates the token and resolves membership on every protected request. A valid identity without membership receives 403. Missing/invalid/expired credentials receive 401. All queries, including nested history joins, are scoped to actor.business_id. Foreign-business and nonexistent client IDs both return 404 for authorized reads/Owner updates. Staff mutations return 403 before record lookup.
 
-| Capability or field | Owner | Staff |
-| --- | --- | --- |
-| List and profile read | Allowed | Allowed |
-| First/last name search | Allowed | Allowed |
-| Email/phone search | Allowed | Excluded from search predicates |
-| Create/update | Allowed | 403 |
-| Client names, appointment history, service snapshots, products used, appointment notes | Visible | Visible |
-| Client email, phone, private/general notes, visit notes | Visible | Omitted |
-| Products sold in history | Visible | Omitted; Staff allowlist permits products used |
+| Capability or field                                                                    | Owner   | Staff                                          |
+| -------------------------------------------------------------------------------------- | ------- | ---------------------------------------------- |
+| List and profile read                                                                  | Allowed | Allowed                                        |
+| First/last name search                                                                 | Allowed | Allowed                                        |
+| Email/phone search                                                                     | Allowed | Excluded from search predicates                |
+| Create/update                                                                          | Allowed | 403                                            |
+| Client names, appointment history, service snapshots, products used, appointment notes | Visible | Visible                                        |
+| Client email, phone, private/general notes, visit notes                                | Visible | Omitted                                        |
+| Products sold in history                                                               | Visible | Omitted; Staff allowlist permits products used |
 
 Staff search must never match on email, phone, or private notes: result membership/counts could otherwise reveal hidden contact information. Use role-specific search predicates, not filtering after pagination. Return explicit response schemas/allowlists at every nesting level; hidden fields must be absent, not null, masked, or merely hidden by React. Never return ORM objects with unrestricted serialization. Avoid logging tokens, contacts, notes, or search terms.
 
 ## Backend API
 
-| Endpoint | Access | Behavior |
-| --- | --- | --- |
-| `GET /clients?q=&limit=25&offset=0` | Owner/Staff | Scoped, paginated list/search |
-| `POST /clients` | Owner | Create; 201 with Owner client response |
-| `GET /clients/{client_id}` | Owner/Staff | Scoped client profile and last completed visit |
-| `PUT /clients/{client_id}` | Owner | Full editable record update; 200 |
-| `GET /clients/{client_id}/history?limit=25&offset=0` | Owner/Staff | Scoped, paginated completed-visit history |
+| Endpoint                                             | Access      | Behavior                                       |
+| ---------------------------------------------------- | ----------- | ---------------------------------------------- |
+| `GET /clients?q=&limit=25&offset=0`                  | Owner/Staff | Scoped, paginated list/search                  |
+| `POST /clients`                                      | Owner       | Create; 201 with Owner client response         |
+| `GET /clients/{client_id}`                           | Owner/Staff | Scoped client profile and last completed visit |
+| `PUT /clients/{client_id}`                           | Owner       | Full editable record update; 200               |
+| `GET /clients/{client_id}/history?limit=25&offset=0` | Owner/Staff | Scoped, paginated completed-visit history      |
 
 List response: `{items, total, limit, offset}`. Items contain ID, names, created/updated timestamps; Owner also receives email/phone. General notes belong to the profile, not list summaries. Profile contains these permitted client fields, Owner private notes, and `last_completed_visit` (object or null). History uses the same pagination envelope. No DELETE endpoint.
 

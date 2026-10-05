@@ -21,20 +21,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
-    if (!supabase) { setSession(null); return }
+    if (!supabase) {
+      setSession(null)
+      return
+    }
     let active = true
     let eventSeen = false
     // Synchronous callback only: Supabase calls it under its session lock.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, next) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, next) => {
       eventSeen = true
-      if (active) { setActor(null); setStatus('initializing'); setSession(next); setAttempt(value => value + 1) }
-    })
-    supabase.auth.getSession().then(({ data, error }) => {
-      if (active && !eventSeen) {
-        if (error) { setStatus('error'); return }
-        setSession(data.session)
+      if (active) {
+        setActor(null)
+        setStatus('initializing')
+        setSession(next)
+        setAttempt((value) => value + 1)
       }
-    }).catch(() => { if (active && !eventSeen) setStatus('error') })
+    })
+    supabase.auth
+      .getSession()
+      .then(({ data, error }) => {
+        if (active && !eventSeen) {
+          if (error) {
+            setStatus('error')
+            return
+          }
+          setSession(data.session)
+        }
+      })
+      .catch(() => {
+        if (active && !eventSeen) setStatus('error')
+      })
     const unsubscribe = onUnauthorized(() => {
       if (!active) return
       setActor(null)
@@ -42,23 +60,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(null)
       void supabase?.auth.signOut({ scope: 'local' }).catch(() => {})
     })
-    return () => { active = false; subscription.unsubscribe(); unsubscribe() }
+    return () => {
+      active = false
+      subscription.unsubscribe()
+      unsubscribe()
+    }
   }, [])
 
   useEffect(() => {
     setActor(null)
     if (session === undefined) return
-    if (session === null) { setStatus('unauthenticated'); return }
+    if (session === null) {
+      setStatus('unauthenticated')
+      return
+    }
     setStatus('initializing')
     const controller = new AbortController()
-    getActor(controller.signal).then(next => {
-      if (!controller.signal.aborted) { setActor(next); setStatus('authenticated') }
-    }).catch(error => {
-      if (controller.signal.aborted) return
-      if (error instanceof ApiError && error.status === 403) setStatus('denied')
-      else if (error instanceof ApiError && error.status === 401) { setSession(null); setStatus('unauthenticated') }
-      else setStatus('error')
-    })
+    getActor(controller.signal)
+      .then((next) => {
+        if (!controller.signal.aborted) {
+          setActor(next)
+          setStatus('authenticated')
+        }
+      })
+      .catch((error) => {
+        if (controller.signal.aborted) return
+        if (error instanceof ApiError && error.status === 403) setStatus('denied')
+        else if (error instanceof ApiError && error.status === 401) {
+          setSession(null)
+          setStatus('unauthenticated')
+        } else setStatus('error')
+      })
     return () => controller.abort()
   }, [session, attempt])
 
@@ -81,14 +113,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   function retry() {
     if (session === undefined) {
-      void supabase?.auth.getSession().then(({ data, error }) => {
-        if (error) setStatus('error')
-        else setSession(data.session)
-      }).catch(() => setStatus('error'))
-    } else setAttempt(value => value + 1)
+      void supabase?.auth
+        .getSession()
+        .then(({ data, error }) => {
+          if (error) setStatus('error')
+          else setSession(data.session)
+        })
+        .catch(() => setStatus('error'))
+    } else setAttempt((value) => value + 1)
   }
 
-  return <AuthContext.Provider value={{ status, session: session ?? null, actor, login, logout, retry }}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={{ status, session: session ?? null, actor, login, logout, retry }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export function useAuth() {

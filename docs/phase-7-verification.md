@@ -33,21 +33,21 @@ No dependencies, environment files, credentials, roles, hosting integration, pub
 
 ## Verification results
 
-| Check | Result |
-| --- | --- |
-| Backend default `.venv/bin/python -m pytest -q` | **158 passed, 35 skipped**, 7.70 seconds; skips are explicit live PostgreSQL cases |
-| Full `env RUN_DATABASE_TESTS=1 .venv/bin/python -m pytest -q` | **193 passed, no skips or warnings**, 311.35 seconds |
-| Frontend `npm test` | **75 passed**, 9 files |
-| TypeScript `npm run typecheck` | Passed |
-| Frontend `npm run build` | Passed; 153 modules, JS 608.93 kB / gzip 175.38 kB |
-| Existing Phase 0–6 regressions | Included and passed in both complete suites; Phase 6 assertions updated only for intentional new stock behavior |
-| Live `GET /health` | 200, `{"status":"ok"}` |
-| Live `GET /products`, `GET /inventory`, `POST /products/{id}/movements` without bearer | All 401; curl `--fail` exit 22 is expected for the latter checks |
-| Browser `/admin/products` logged out | Redirected to `/login`; email/password form rendered |
-| Browser `/` | “API Status: Connected” and “Supabase Auth client: Initialized” |
-| Supabase PostgreSQL SQLAlchemy connection | Passed |
-| Development Alembic upgrade/current | `0002_phase7` |
-| Development baseline reconciliation | Four products retained **10.000** each; **four** baseline movements added; **zero** ledger mismatches; **zero** prior appointment-product rows preserved unchanged |
+| Check                                                                                  | Result                                                                                                                                                             |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Backend default `.venv/bin/python -m pytest -q`                                        | **158 passed, 35 skipped**, 7.70 seconds; skips are explicit live PostgreSQL cases                                                                                 |
+| Full `env RUN_DATABASE_TESTS=1 .venv/bin/python -m pytest -q`                          | **193 passed, no skips or warnings**, 311.35 seconds                                                                                                               |
+| Frontend `npm test`                                                                    | **75 passed**, 9 files                                                                                                                                             |
+| TypeScript `npm run typecheck`                                                         | Passed                                                                                                                                                             |
+| Frontend `npm run build`                                                               | Passed; 153 modules, JS 608.93 kB / gzip 175.38 kB                                                                                                                 |
+| Existing Phase 0–6 regressions                                                         | Included and passed in both complete suites; Phase 6 assertions updated only for intentional new stock behavior                                                    |
+| Live `GET /health`                                                                     | 200, `{"status":"ok"}`                                                                                                                                             |
+| Live `GET /products`, `GET /inventory`, `POST /products/{id}/movements` without bearer | All 401; curl `--fail` exit 22 is expected for the latter checks                                                                                                   |
+| Browser `/admin/products` logged out                                                   | Redirected to `/login`; email/password form rendered                                                                                                               |
+| Browser `/`                                                                            | “API Status: Connected” and “Supabase Auth client: Initialized”                                                                                                    |
+| Supabase PostgreSQL SQLAlchemy connection                                              | Passed                                                                                                                                                             |
+| Development Alembic upgrade/current                                                    | `0002_phase7`                                                                                                                                                      |
+| Development baseline reconciliation                                                    | Four products retained **10.000** each; **four** baseline movements added; **zero** ledger mismatches; **zero** prior appointment-product rows preserved unchanged |
 
 Real PostgreSQL races cover competing last-unit completions, completion versus damage, completion versus negative adjustment, identical completion retries, duplicate manual command, and duplicate opening-stock create. Every race checks final nonnegative balance and ledger equality. Existing completion/scheduling races also pass.
 

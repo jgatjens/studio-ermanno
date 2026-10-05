@@ -25,22 +25,22 @@ No migration/model change, dependency, role, environment value, per-barber sched
 
 ## Verification results
 
-| Check | Result |
-| --- | --- |
-| Backend default `.venv/bin/python -m pytest -q` | **240 passed, 36 skipped**, 10.58 seconds; live database cases intentionally skipped |
-| Full backend `env RUN_DATABASE_TESTS=1 .venv/bin/python -m pytest -q` | **276 passed**, no skips/warnings, 296.33 seconds |
-| Frontend `npm test` | **100 passed**, 12 files |
-| TypeScript `npm run typecheck` | Passed |
-| Frontend `npm run build` | Passed, 156 modules; JS 621.74 kB / gzip 178.87 kB |
-| Phase 0–8 regression coverage | Included; unchanged authentication/privacy/scheduling/completion/inventory/feedback checks and live migration/race checks |
-| Live health | 200 `{"status":"ok"}` |
-| Live anonymous availability, 2026-10-05 for seven days | 200; Europe/Rome, six AVAILABLE dates with 18 intervals each, Sunday CLOSED with no intervals |
-| Live range validation, days=15 | 422 |
-| Live protected appointment read without token | 401 |
-| Alembic current | `0002_phase7 (head)`; no migration required |
-| Browser public availability | Date cards, Closed day, selectable Monday with 09:00–18:00 GMT+2 intervals and informational wording verified |
-| Mobile public page | 320-pixel viewport: content width **320**, viewport width **320**, no horizontal overflow; temporary viewport reset |
-| Browser `/admin` logged out | Redirect to login verified |
+| Check                                                                 | Result                                                                                                                    |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Backend default `.venv/bin/python -m pytest -q`                       | **240 passed, 36 skipped**, 10.58 seconds; live database cases intentionally skipped                                      |
+| Full backend `env RUN_DATABASE_TESTS=1 .venv/bin/python -m pytest -q` | **276 passed**, no skips/warnings, 296.33 seconds                                                                         |
+| Frontend `npm test`                                                   | **100 passed**, 12 files                                                                                                  |
+| TypeScript `npm run typecheck`                                        | Passed                                                                                                                    |
+| Frontend `npm run build`                                              | Passed, 156 modules; JS 621.74 kB / gzip 178.87 kB                                                                        |
+| Phase 0–8 regression coverage                                         | Included; unchanged authentication/privacy/scheduling/completion/inventory/feedback checks and live migration/race checks |
+| Live health                                                           | 200 `{"status":"ok"}`                                                                                                     |
+| Live anonymous availability, 2026-10-05 for seven days                | 200; Europe/Rome, six AVAILABLE dates with 18 intervals each, Sunday CLOSED with no intervals                             |
+| Live range validation, days=15                                        | 422                                                                                                                       |
+| Live protected appointment read without token                         | 401                                                                                                                       |
+| Alembic current                                                       | `0002_phase7 (head)`; no migration required                                                                               |
+| Browser public availability                                           | Date cards, Closed day, selectable Monday with 09:00–18:00 GMT+2 intervals and informational wording verified             |
+| Mobile public page                                                    | 320-pixel viewport: content width **320**, viewport width **320**, no horizontal overflow; temporary viewport reset       |
+| Browser `/admin` logged out                                           | Redirect to login verified                                                                                                |
 
 No real business appointments/configuration were changed for verification. Live checks are read-only and range-validation-only. Automated fixtures use disposable SQLite or PostgreSQL schemas, with real signature/membership tests retained. A test-fixture error introduced during the extra tenant-query assertion was fixed by retaining the UUID before closing its ORM session; final results above reflect the corrected fixture. Earlier passing capacity/privacy cases remained unchanged.
 

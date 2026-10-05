@@ -47,23 +47,23 @@ Frontend source and existing credentials were not changed.
 
 ## Verification results (2026-10-03)
 
-| Check | Result |
-| --- | --- |
-| Backend suite with RUN_DATABASE_TESTS=1 | PASS: 23 tests, including 19 live PostgreSQL cases; no skips or warnings |
-| Clean-schema upgrade → downgrade → upgrade | PASS in isolated Supabase PostgreSQL schema |
-| Migration head | PASS: 0001_phase1 |
-| Migration/model parity | PASS: compare_metadata returned no differences; alembic check reported no new operations |
-| All application tables use RLS | PASS: 12 protected tables in test and development schemas |
-| Development/public migration | PASS: applied to previously empty schema |
-| Seed CLI run twice | PASS: same deterministic records, no duplicates |
-| Development seed record counts | PASS: Business 1; memberships 3 (Owner 2, Staff 1); Barber 2; Client 5; Service 4; Product 4; BusinessHours 7 |
-| No seeded appointment/feedback workflows | PASS: appointments 0, feedback 0 |
-| Database read-only SELECT 1 | PASS |
-| Test schema cleanup | PASS: zero phase1_test_* schemas remain |
-| Frontend TypeScript | PASS |
-| Frontend tests | PASS: 4 tests |
-| Frontend production build | PASS with existing non-fatal bundle-size warning |
-| Live GET /health and CORS | PASS: HTTP 200, {"status":"ok"}, configured frontend origin allowed |
+| Check                                      | Result                                                                                                        |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| Backend suite with RUN_DATABASE_TESTS=1    | PASS: 23 tests, including 19 live PostgreSQL cases; no skips or warnings                                      |
+| Clean-schema upgrade → downgrade → upgrade | PASS in isolated Supabase PostgreSQL schema                                                                   |
+| Migration head                             | PASS: 0001_phase1                                                                                             |
+| Migration/model parity                     | PASS: compare_metadata returned no differences; alembic check reported no new operations                      |
+| All application tables use RLS             | PASS: 12 protected tables in test and development schemas                                                     |
+| Development/public migration               | PASS: applied to previously empty schema                                                                      |
+| Seed CLI run twice                         | PASS: same deterministic records, no duplicates                                                               |
+| Development seed record counts             | PASS: Business 1; memberships 3 (Owner 2, Staff 1); Barber 2; Client 5; Service 4; Product 4; BusinessHours 7 |
+| No seeded appointment/feedback workflows   | PASS: appointments 0, feedback 0                                                                              |
+| Database read-only SELECT 1                | PASS                                                                                                          |
+| Test schema cleanup                        | PASS: zero phase1_test_* schemas remain                                                                       |
+| Frontend TypeScript                        | PASS                                                                                                          |
+| Frontend tests                             | PASS: 4 tests                                                                                                 |
+| Frontend production build                  | PASS with existing non-fatal bundle-size warning                                                              |
+| Live GET /health and CORS                  | PASS: HTTP 200, {"status":"ok"}, configured frontend origin allowed                                           |
 
 The live schema contains only the 12 application tables plus Alembic's version table. The production seed guard, seed edit preservation, and snapshot preservation after catalog edits are covered by the passing suite. No Supabase Auth users were created. The pre-existing frontend bundle-size warning and Phase 0 dependency audit findings remain; no new packages or deferred tooling were added.
 

@@ -19,7 +19,13 @@ from app.public.router import router as public_router
 settings = get_settings()
 app = FastAPI(title="Project foundation")
 app.add_middleware(SafeRequestLogging, sanitize_errors=settings.app_env == "production")
-app.add_middleware(CORSMiddleware, allow_origins=[str(settings.frontend_origin).rstrip("/")], allow_methods=["GET", "POST", "PUT"], allow_headers=["Content-Type", "Authorization"], allow_credentials=False)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[str(settings.frontend_origin).rstrip("/")],
+    allow_methods=["GET", "POST", "PUT"],
+    allow_headers=["Content-Type", "Authorization"],
+    allow_credentials=False,
+)
 
 app.include_router(public_router)
 app.include_router(availability_router)
@@ -32,6 +38,7 @@ app.include_router(barbers_router)
 app.include_router(hours_router)
 app.include_router(clients_router)
 app.include_router(appointments_router)
+
 
 @app.get("/health")
 def health() -> dict[str, str]:

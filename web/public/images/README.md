@@ -12,7 +12,6 @@ Each source JPEG was EXIF-oriented, resized to 480×640 and 960×1280 and encode
 
 Alt text, captions, dimensions and responsive sources are defined in `web/src/public/content.ts`. Keep paths in that manifest synchronized with these files. Below-fold images are lazy loaded; the hero loads eagerly. Empty manifests retain a gallery unavailable state.
 
-
 Location clarification: the user confirmed the business is in Grigno, Trento. The configured public Business placeholder address was updated to `Grigno, Trento, Italia` and verified through `/public/business`. This is a municipality-level location; the exact street address is still pending. Existing directions links currently lead to this general location. The location comes from the user, not an inference from photographs. No other business fields were changed.
 
 Street-address clarification: the user supplied Via Vittorio Emanuele 114, postal code 38055. The configured public Business address is now `Via Vittorio Emanuele 114, 38055 Grigno (TN), Italia`, verified through `/public/business`. This supersedes the municipality-only location above; the website contact section and generated directions link use the full address. No other Business fields were changed.

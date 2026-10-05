@@ -1,4 +1,5 @@
 """Explicit client read projection for the two MVP roles; no generic permissions system."""
+
 from typing import Optional
 from pydantic import BaseModel, Field
 
@@ -29,8 +30,11 @@ def visible_client(data: ClientVisibilityData, actor: AuthenticatedActor) -> dic
     return {
         "name": data.name,
         "appointment_history": [
-            {"services": visit.services, "products_used": visit.products_used,
-             "appointment_notes": visit.appointment_notes}
+            {
+                "services": visit.services,
+                "products_used": visit.products_used,
+                "appointment_notes": visit.appointment_notes,
+            }
             for visit in data.appointment_history
         ],
     }

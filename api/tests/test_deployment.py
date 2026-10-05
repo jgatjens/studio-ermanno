@@ -15,26 +15,40 @@ from app.main import app
 
 
 def production_settings(**overrides):
-    values = dict(app_env="production", database_url="postgresql://user:password@db.example.test/database?sslmode=require",
-                  frontend_origin="https://business.pages.dev", supabase_url="https://project.supabase.co",
-                  public_business_id=uuid4())
+    values = dict(
+        app_env="production",
+        database_url="postgresql://user:password@db.example.test/database?sslmode=require",
+        frontend_origin="https://business.pages.dev",
+        supabase_url="https://project.supabase.co",
+        public_business_id=uuid4(),
+    )
     values.update(overrides)
     return Settings(_env_file=None, **values)
 
 
 def test_production_configuration():
     assert production_settings().database_pool_size == 2
-    for overrides in ({"database_url": None}, {"public_business_id": None}, {"supabase_url": None},
-                      {"frontend_origin": "http://localhost:5173"}, {"supabase_url": "http://auth.example.test"},
-                      {"database_url": "postgresql://user:password@db.example.test/database"},
-                      {"database_pool_size": 0}, {"database_max_overflow": -1}):
+    for overrides in (
+        {"database_url": None},
+        {"public_business_id": None},
+        {"supabase_url": None},
+        {"frontend_origin": "http://localhost:5173"},
+        {"supabase_url": "http://auth.example.test"},
+        {"database_url": "postgresql://user:password@db.example.test/database"},
+        {"database_pool_size": 0},
+        {"database_max_overflow": -1},
+    ):
         with pytest.raises(ValidationError):
             production_settings(**overrides)
 
 
 def test_engine_pool_and_parameter_hiding(monkeypatch):
     from app.db import session
-    with patch.object(session, "get_settings", return_value=production_settings()), patch.object(session, "create_engine") as create:
+
+    with (
+        patch.object(session, "get_settings", return_value=production_settings()),
+        patch.object(session, "create_engine") as create,
+    ):
         session.get_engine.cache_clear()
         try:
             session.get_engine()
@@ -59,14 +73,28 @@ def test_logs_omit_query_headers_body_and_dynamic_path():
         raise ValueError("secret-db-password private-note")
 
     with patch.object(logger, "info") as logged, TestClient(test_app) as client:
-        response = client.post("/clients/private-id?q=private-email", headers={"Authorization": "Bearer private-token", "X-Request-ID": "untrusted-id"}, json={"notes": "private-note"})
+        response = client.post(
+            "/clients/private-id?q=private-email",
+            headers={"Authorization": "Bearer private-token", "X-Request-ID": "untrusted-id"},
+            json={"notes": "private-note"},
+        )
         assert response.status_code == 500
         assert response.json() == {"detail": "Internal server error"}
         record = json.loads(logged.call_args.args[0])
         assert record["route"] == "/clients/{client_id}"
         assert record["status"] == 500 and record["error_type"] == "ValueError"
         assert response.headers["x-request-id"] == record["request_id"]
-        assert all(value not in logged.call_args.args[0] for value in ("private-id", "private-email", "private-note", "private-token", "secret-db-password", "untrusted-id"))
+        assert all(
+            value not in logged.call_args.args[0]
+            for value in (
+                "private-id",
+                "private-email",
+                "private-note",
+                "private-token",
+                "secret-db-password",
+                "untrusted-id",
+            )
+        )
 
 
 def test_unknown_routes_and_health_logging():
@@ -79,11 +107,15 @@ def test_unknown_routes_and_health_logging():
 
 def test_startup_configuration_error_does_not_expose_secret():
     from app.core import config
+
     with pytest.raises(ValidationError) as error:
         production_settings(database_url="postgresql://user:private-password@db.test/database")
     config.get_settings.cache_clear()
     try:
-        with patch.object(config, "Settings", side_effect=error.value), pytest.raises(RuntimeError) as failure:
+        with (
+            patch.object(config, "Settings", side_effect=error.value),
+            pytest.raises(RuntimeError) as failure,
+        ):
             config.get_settings()
         assert "private-password" not in str(failure.value)
         assert failure.value.__suppress_context__ is True
@@ -93,6 +125,7 @@ def test_startup_configuration_error_does_not_expose_secret():
 
 def test_explicit_environment_file_preserves_development_file(tmp_path, monkeypatch):
     from app.core.config import get_settings
+
     selected = tmp_path / ".env.production"
     selected.write_text("APP_ENV=test\nFRONTEND_ORIGIN=https://selected.example.test\n")
     monkeypatch.delenv("APP_ENV", raising=False)
@@ -108,6 +141,7 @@ def test_explicit_environment_file_preserves_development_file(tmp_path, monkeypa
 
 def test_missing_selected_environment_file_does_not_fall_back(tmp_path, monkeypatch):
     from app.core.config import get_settings
+
     monkeypatch.setenv("APP_ENV_FILE", str(tmp_path / "missing.env"))
     get_settings.cache_clear()
     try:

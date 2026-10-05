@@ -7,7 +7,10 @@ beforeEach(() => {
   vi.resetAllMocks()
   vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:8000')
   getSession.mockResolvedValue({ data: { session: { access_token: 'latest-token' } }, error: null })
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{"status":"ok"}', { status: 200 })))
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockResolvedValue(new Response('{"status":"ok"}', { status: 200 })),
+  )
 })
 
 test('central API client adds latest bearer token', async () => {
@@ -24,17 +27,23 @@ test('public health call does not require or send bearer token', async () => {
 })
 
 test('401 notifies auth invalidation and returns typed error', async () => {
-  const callback = vi.fn(); const off = onUnauthorized(callback)
+  const callback = vi.fn()
+  const off = onUnauthorized(callback)
   vi.mocked(fetch).mockResolvedValue(new Response('{}', { status: 401 }))
   await expect(apiRequest('/auth/me')).rejects.toMatchObject({ status: 401 })
-  expect(callback).toHaveBeenCalledOnce(); off()
+  expect(callback).toHaveBeenCalledOnce()
+  off()
 })
 
 test('403 returns forbidden without auth invalidation', async () => {
-  const callback = vi.fn(); const off = onUnauthorized(callback)
+  const callback = vi.fn()
+  const off = onUnauthorized(callback)
   vi.mocked(fetch).mockResolvedValue(new Response('{}', { status: 403 }))
-  await expect(apiRequest('/auth/test-owner', { method: 'POST' })).rejects.toMatchObject({ status: 403 })
-  expect(callback).not.toHaveBeenCalled(); off()
+  await expect(apiRequest('/auth/test-owner', { method: 'POST' })).rejects.toMatchObject({
+    status: 403,
+  })
+  expect(callback).not.toHaveBeenCalled()
+  off()
 })
 
 test('missing session rejects protected request without fetching', async () => {
@@ -44,43 +53,82 @@ test('missing session rejects protected request without fetching', async () => {
 })
 
 test('aborted stale request cannot invalidate a new session', async () => {
-  const callback = vi.fn(); const off = onUnauthorized(callback)
-  const controller = new AbortController(); controller.abort()
+  const callback = vi.fn()
+  const off = onUnauthorized(callback)
+  const controller = new AbortController()
+  controller.abort()
   getSession.mockResolvedValue({ data: { session: null }, error: null })
-  await expect(apiRequest('/auth/me', { signal: controller.signal })).rejects.toMatchObject({ name: 'AbortError' })
-  expect(callback).not.toHaveBeenCalled(); off()
+  await expect(apiRequest('/auth/me', { signal: controller.signal })).rejects.toMatchObject({
+    name: 'AbortError',
+  })
+  expect(callback).not.toHaveBeenCalled()
+  off()
 })
 
 test('409 exposes safe conflict message without invalidating authentication', async () => {
-  const callback = vi.fn(); const off = onUnauthorized(callback)
-  vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({detail:{code:'capacity_full',message:'No capacity remains.'}}), { status: 409 }))
-  await expect(apiRequest('/appointments', {method:'POST'})).rejects.toMatchObject({status:409,message:'No capacity remains.'})
-  expect(callback).not.toHaveBeenCalled(); off()
+  const callback = vi.fn()
+  const off = onUnauthorized(callback)
+  vi.mocked(fetch).mockResolvedValue(
+    new Response(
+      JSON.stringify({ detail: { code: 'capacity_full', message: 'No capacity remains.' } }),
+      { status: 409 },
+    ),
+  )
+  await expect(apiRequest('/appointments', { method: 'POST' })).rejects.toMatchObject({
+    status: 409,
+    message: 'No capacity remains.',
+  })
+  expect(callback).not.toHaveBeenCalled()
+  off()
 })
 
 test('anonymous feedback request skips session and bearer token', async () => {
   getSession.mockRejectedValue(new Error('Auth unavailable'))
-  vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({ status: 'received' }), { status: 201 }))
-  await expect(apiRequest('/public/feedback', { protected: false, method: 'POST', body: '{}' })).resolves.toEqual({ status: 'received' })
+  vi.mocked(fetch).mockResolvedValue(
+    new Response(JSON.stringify({ status: 'received' }), { status: 201 }),
+  )
+  await expect(
+    apiRequest('/public/feedback', { protected: false, method: 'POST', body: '{}' }),
+  ).resolves.toEqual({ status: 'received' })
   expect(getSession).not.toHaveBeenCalled()
   const init = vi.mocked(fetch).mock.calls[0][1]
   expect(new Headers(init?.headers).has('Authorization')).toBe(false)
 })
 
 test('public 401 never clears an authenticated admin session', async () => {
-  const callback = vi.fn(); const off = onUnauthorized(callback)
+  const callback = vi.fn()
+  const off = onUnauthorized(callback)
   vi.mocked(fetch).mockResolvedValue(new Response('{}', { status: 401 }))
-  await expect(apiRequest('/public/feedback', { protected: false })).rejects.toMatchObject({ status: 401 })
-  expect(callback).not.toHaveBeenCalled(); expect(getSession).not.toHaveBeenCalled(); off()
+  await expect(apiRequest('/public/feedback', { protected: false })).rejects.toMatchObject({
+    status: 401,
+  })
+  expect(callback).not.toHaveBeenCalled()
+  expect(getSession).not.toHaveBeenCalled()
+  off()
 })
 
 test('successful DELETE handles 204 without parsing an empty response', async () => {
-  vi.mocked(fetch).mockResolvedValue(new Response(null, {status:204}))
-  await expect(apiRequest<void>('/clients/one', {method:'DELETE'})).resolves.toBeUndefined()
+  vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 204 }))
+  await expect(apiRequest<void>('/clients/one', { method: 'DELETE' })).resolves.toBeUndefined()
   expect(vi.mocked(fetch).mock.calls[0][1]?.method).toBe('DELETE')
 })
 
 test('validation failures show field reasons without echoing rejected input', async () => {
-  vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({ detail: [{ loc: ['body', 'days', 0, 'break_start'], msg: 'Extra inputs are not permitted', input: 'private value' }] }), { status: 422 }))
-  await expect(apiRequest('/business-hours')).rejects.toThrow('days.0.break_start: Extra inputs are not permitted')
+  vi.mocked(fetch).mockResolvedValue(
+    new Response(
+      JSON.stringify({
+        detail: [
+          {
+            loc: ['body', 'days', 0, 'break_start'],
+            msg: 'Extra inputs are not permitted',
+            input: 'private value',
+          },
+        ],
+      }),
+      { status: 422 },
+    ),
+  )
+  await expect(apiRequest('/business-hours')).rejects.toThrow(
+    'days.0.break_start: Extra inputs are not permitted',
+  )
 })

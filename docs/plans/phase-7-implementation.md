@@ -31,17 +31,17 @@ Do not add feedback, public product pages, online sales/payment, suppliers/purch
 
 Reuse Product. Owner metadata create/update fields:
 
-| Field | Validation |
-| --- | --- |
-| `name` | Required, trimmed/nonempty, maximum 200 characters |
-| `brand` | Optional, trimmed, blank to null, maximum 200 |
-| `category` | Optional, trimmed, blank to null, maximum 100 |
-| `description` | Optional, blank to null, maximum 10,000 |
-| `sku` | Optional, trimmed, blank to null, maximum 100; unique within business |
-| `cost_price`, `retail_price` | Required Decimal >= 0, maximum 12 digits/2 decimal places |
-| `minimum_stock` | Decimal >= 0, maximum 12 digits/3 decimal places; default zero on create |
-| `is_active` | Boolean; create default true |
-| `is_public` | Boolean; create default false |
+| Field                        | Validation                                                               |
+| ---------------------------- | ------------------------------------------------------------------------ |
+| `name`                       | Required, trimmed/nonempty, maximum 200 characters                       |
+| `brand`                      | Optional, trimmed, blank to null, maximum 200                            |
+| `category`                   | Optional, trimmed, blank to null, maximum 100                            |
+| `description`                | Optional, blank to null, maximum 10,000                                  |
+| `sku`                        | Optional, trimmed, blank to null, maximum 100; unique within business    |
+| `cost_price`, `retail_price` | Required Decimal >= 0, maximum 12 digits/2 decimal places                |
+| `minimum_stock`              | Decimal >= 0, maximum 12 digits/3 decimal places; default zero on create |
+| `is_active`                  | Boolean; create default true                                             |
+| `is_public`                  | Boolean; create default false                                            |
 
 Full-record PUT requires the editable metadata and never accepts `current_stock`. Reject extra ownership, role, timestamps, balances, or movement/history fields. SKU uniqueness uses trimmed exact case-sensitive values to match the existing database constraint; do not add case-folding or generated-SKU infrastructure. Map duplicate SKU to 409 `sku_conflict` without raw database errors.
 
@@ -55,13 +55,13 @@ Low stock is derived as `current_stock <= minimum_stock`, including equality/zer
 
 InventoryMovement.quantity remains a signed delta. Use Decimal throughout; resulting balance must stay within 0–999,999,999.999. Negative stock is rejected with 409 `insufficient_stock`; no negative-balance override. Capacity/precision overflow is 422. No browser float arithmetic determines the persisted result.
 
-| Movement | Source | Delta |
-| --- | --- | --- |
-| STOCK_IN | Owner command/opening stock | Positive |
-| ADJUSTMENT | Owner signed correction | Positive or negative, never zero |
-| DAMAGED | Owner command | Negative; UI/API supply positive damaged quantity |
-| USED | New completion | Negative appointment product quantity |
-| SOLD | New completion | Negative appointment product quantity |
+| Movement   | Source                      | Delta                                             |
+| ---------- | --------------------------- | ------------------------------------------------- |
+| STOCK_IN   | Owner command/opening stock | Positive                                          |
+| ADJUSTMENT | Owner signed correction     | Positive or negative, never zero                  |
+| DAMAGED    | Owner command               | Negative; UI/API supply positive damaged quantity |
+| USED       | New completion              | Negative appointment product quantity             |
+| SOLD       | New completion              | Negative appointment product quantity             |
 
 Manual command body: `{request_id, movement_type, quantity, notes}`. `movement_type` permits STOCK_IN/ADJUSTMENT/DAMAGED only. `quantity` is positive for stock-in/damaged and a nonzero signed delta for adjustment. `notes` optional, trimmed/blank to null, maximum 10,000. No appointment reference, business ID, balance, USED/SOLD manual command, or movement timestamp is accepted. The UI must label adjustment as “change stock by +/− quantity”, not silently treat it as a target balance.
 
@@ -106,15 +106,15 @@ Database linkage uniqueness supplies a second protection against duplicate compl
 
 ## APIs and authorization
 
-| Endpoint | Access | Behavior |
-| --- | --- | --- |
-| `GET /products` | Owner/Staff | Scoped paginated search/list; optional active/low-stock filters |
-| `GET /products/{id}` | Owner/Staff | Scoped product detail/current balance |
-| `POST /products` | Owner | Metadata/opening stock create; 201 initially, 200 on matching retry |
-| `PUT /products/{id}` | Owner | Metadata edit/activation/public visibility; no direct balance write |
-| `GET /inventory` | Owner/Staff | Stock-focused paginated projection/filter of products |
-| `GET /products/{id}/movements` | Owner/Staff | Role-filtered immutable ledger history |
-| `POST /products/{id}/movements` | Owner | Safe-retry stock-in/adjustment/damage command; 201 initially, 200 on retry |
+| Endpoint                        | Access      | Behavior                                                                   |
+| ------------------------------- | ----------- | -------------------------------------------------------------------------- |
+| `GET /products`                 | Owner/Staff | Scoped paginated search/list; optional active/low-stock filters            |
+| `GET /products/{id}`            | Owner/Staff | Scoped product detail/current balance                                      |
+| `POST /products`                | Owner       | Metadata/opening stock create; 201 initially, 200 on matching retry        |
+| `PUT /products/{id}`            | Owner       | Metadata edit/activation/public visibility; no direct balance write        |
+| `GET /inventory`                | Owner/Staff | Stock-focused paginated projection/filter of products                      |
+| `GET /products/{id}/movements`  | Owner/Staff | Role-filtered immutable ledger history                                     |
+| `POST /products/{id}/movements` | Owner       | Safe-retry stock-in/adjustment/damage command; 201 initially, 200 on retry |
 
 Product search: trimmed `q`, maximum 200, case-insensitive literal substring across name/brand/category/SKU, escaped wildcards and bound parameters. Lists use `{items,total,limit,offset}`, default limit 25 (1–100), offset >= 0; product ordering name/ID, movement ordering created date/ID descending. Add optional movement-type filter. No public product endpoint yet.
 

@@ -8,13 +8,13 @@ Use the supplied desktop/mobile screenshot as the visual direction for `/availab
 
 ## Scope boundaries
 
-| Layer | Work | Effect |
-| --- | --- | --- |
-| Shared public foundation | Public color, typography, spacing, buttons and focus treatments | All public pages; scope styles under `.public-site` so admin styles stay independent |
-| Shared header/footer | Brand, navigation, mobile menu, availability CTA, social/contact links | All public routes through `web/src/public/layout.tsx` |
-| Availability hero | Italian introduction, large heading, dedicated salon image | `/availability` only; do not change the home hero |
-| Availability interaction | Month calendar, date browsing, read-only available times | `/availability` only |
-| Help section | Supporting image, WhatsApp/call actions, business opening hours | Initially `/availability`; extract for reuse when another page needs it |
+| Layer                    | Work                                                                   | Effect                                                                               |
+| ------------------------ | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Shared public foundation | Public color, typography, spacing, buttons and focus treatments        | All public pages; scope styles under `.public-site` so admin styles stay independent |
+| Shared header/footer     | Brand, navigation, mobile menu, availability CTA, social/contact links | All public routes through `web/src/public/layout.tsx`                                |
+| Availability hero        | Italian introduction, large heading, dedicated salon image             | `/availability` only; do not change the home hero                                    |
+| Availability interaction | Month calendar, date browsing, read-only available times               | `/availability` only                                                                 |
+| Help section             | Supporting image, WhatsApp/call actions, business opening hours        | Initially `/availability`; extract for reuse when another page needs it              |
 
 Keep existing routes accessible. Map “Studio” to `/`, “Servizi” to `/services`, “Gallery” to `/gallery`, and “Contatti” to `/contact`. Keep Products, FAQ, Feedback and Staff login reachable through suitable secondary/footer links instead of deleting them to match the screenshot. Suggested header CTA: “Disponibilità” linking to `/availability`; reserve “Prenota ora” for an explicitly approved booking/contact wording decision.
 

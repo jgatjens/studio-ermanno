@@ -59,18 +59,18 @@ Configure health path `/health`. Its successful response proves process liveness
 
 ### Environment matrix
 
-| Setting | Location | Production value / handling |
-| --- | --- | --- |
-| `APP_ENV` | Backend | `production` |
-| `DATABASE_URL` | Backend secret | Supabase PostgreSQL URL, TLS enabled, password encoded correctly |
-| `FRONTEND_ORIGIN` | Backend | Exact canonical frontend HTTPS origin, without a path |
-| `SUPABASE_URL` | Backend | Production Auth project URL |
-| `SUPABASE_JWT_AUDIENCE` | Backend | `authenticated`, matching project tokens |
-| `PUBLIC_BUSINESS_ID` | Backend | Actual production Business UUID |
-| `VITE_API_BASE_URL` | Frontend build | Render API HTTPS base URL |
-| `VITE_SUPABASE_URL` | Frontend build | Same production Auth project URL |
-| `VITE_SUPABASE_ANON_KEY` | Frontend build | Public/publishable Auth key; existing variable name is retained |
-| Node/Python version | Hosting configuration | Explicit tested runtime versions |
+| Setting                  | Location              | Production value / handling                                      |
+| ------------------------ | --------------------- | ---------------------------------------------------------------- |
+| `APP_ENV`                | Backend               | `production`                                                     |
+| `DATABASE_URL`           | Backend secret        | Supabase PostgreSQL URL, TLS enabled, password encoded correctly |
+| `FRONTEND_ORIGIN`        | Backend               | Exact canonical frontend HTTPS origin, without a path            |
+| `SUPABASE_URL`           | Backend               | Production Auth project URL                                      |
+| `SUPABASE_JWT_AUDIENCE`  | Backend               | `authenticated`, matching project tokens                         |
+| `PUBLIC_BUSINESS_ID`     | Backend               | Actual production Business UUID                                  |
+| `VITE_API_BASE_URL`      | Frontend build        | Render API HTTPS base URL                                        |
+| `VITE_SUPABASE_URL`      | Frontend build        | Same production Auth project URL                                 |
+| `VITE_SUPABASE_ANON_KEY` | Frontend build        | Public/publishable Auth key; existing variable name is retained  |
+| Node/Python version      | Hosting configuration | Explicit tested runtime versions                                 |
 
 Frontend `VITE_*` values are public and compiled into the bundle. Changes require a rebuild. Never include database credentials, Supabase secret/service-role keys, or privileged tokens there. The current backend validates JWTs through issuer/JWKS and does not need a Supabase privileged API key. `SEED_TIMEZONE` is development seed configuration, not production Business timezone.
 
@@ -140,22 +140,22 @@ python -m alembic current
 
 Do not overlap the PostgreSQL suite with live browser checks on the constrained pool. Preserve all Phase 0–11 regressions. Record actual test counts, skips, runtime versions and build warnings; the existing large-bundle warning is a documented limitation, not a reason to rewrite bundling.
 
-| Deployed check | Required result |
-| --- | --- |
-| HTTPS and `/health` | Successful liveness response, browser health request succeeds |
-| PostgreSQL / Alembic | Read-only connectivity succeeds; revision matches release head |
-| CORS | Canonical origin succeeds, unrelated origin gets no CORS grant |
-| Login / restore / logout | Real Owner and Staff load the backend actor; logout clears private state |
-| Access boundaries | Missing/invalid/expired token returns 401; nonmember and Staff mutations return 403 |
-| Staff privacy | Protected reads work; email, phone, private/general client notes and visit notes are omitted |
-| Client creation/search | Owner creates and finds disposable staging client; search survives navigation |
-| Appointment creation/conflict | Owner creates appointment; conflicting barber reservation is rejected |
-| Completion/inventory | Completion records history and correct stock movement; repeat attempt does not double-deduct |
-| Feedback | Submission stays pending/private; Owner moderation controls public visibility |
-| Availability | Public date/interval states use Business timezone and expose no private records |
-| Public services/products | Only allowed active/public catalog fields appear; no stock/cost/internal identifiers |
-| Public pages / mobile | Confirmed content/images, deep-link reloads, contact links, safe-area navigation and errors work |
-| Logging / build assets | Logs and browser bundle contain no privileged credentials or private payloads |
+| Deployed check                | Required result                                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------------------------------ |
+| HTTPS and `/health`           | Successful liveness response, browser health request succeeds                                    |
+| PostgreSQL / Alembic          | Read-only connectivity succeeds; revision matches release head                                   |
+| CORS                          | Canonical origin succeeds, unrelated origin gets no CORS grant                                   |
+| Login / restore / logout      | Real Owner and Staff load the backend actor; logout clears private state                         |
+| Access boundaries             | Missing/invalid/expired token returns 401; nonmember and Staff mutations return 403              |
+| Staff privacy                 | Protected reads work; email, phone, private/general client notes and visit notes are omitted     |
+| Client creation/search        | Owner creates and finds disposable staging client; search survives navigation                    |
+| Appointment creation/conflict | Owner creates appointment; conflicting barber reservation is rejected                            |
+| Completion/inventory          | Completion records history and correct stock movement; repeat attempt does not double-deduct     |
+| Feedback                      | Submission stays pending/private; Owner moderation controls public visibility                    |
+| Availability                  | Public date/interval states use Business timezone and expose no private records                  |
+| Public services/products      | Only allowed active/public catalog fields appear; no stock/cost/internal identifiers             |
+| Public pages / mobile         | Confirmed content/images, deep-link reloads, contact links, safe-area navigation and errors work |
+| Logging / build assets        | Logs and browser bundle contain no privileged credentials or private payloads                    |
 
 Check cold-start/restart behavior on the selected tier, session restoration after a reload, and partial API failures. Production business content must be confirmed and no sample contact details exposed. Keep staging smoke records out of real business history.
 

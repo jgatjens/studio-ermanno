@@ -44,19 +44,19 @@ Public API fields are explicit allowlists; products omit stock, minimums, cost, 
 
 ## Verification results
 
-| Check | Result |
-| --- | --- |
-| Default backend `.venv/bin/python -m pytest -q` | 245 passed, 36 database tests skipped, 11.32 seconds |
-| Full `env RUN_DATABASE_TESTS=1 .venv/bin/python -m pytest -q` | 281 passed, no skips, 370.60 seconds |
-| Frontend `npm test` | 111 passed across 13 files |
-| `npm run typecheck` | Passed |
-| `npm run build` | Passed, 159 modules |
-| Alembic current via configured PostgreSQL | `0002_phase7 (head)` |
-| SQLAlchemy PostgreSQL connectivity | Passed through live public API reads and all PostgreSQL regression fixtures |
-| `/health` | 200, `status: ok` |
-| Anonymous `/public/business`, `/public/services`, `/public/products`, `/public/feedback`, `/public/availability` | All 200; business/catalog response allowlists checked |
-| `/public/products?limit=0` | 422 |
-| Anonymous `/services`, `/products`, `/auth/me` | All 401 |
+| Check                                                                                                            | Result                                                                      |
+| ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Default backend `.venv/bin/python -m pytest -q`                                                                  | 245 passed, 36 database tests skipped, 11.32 seconds                        |
+| Full `env RUN_DATABASE_TESTS=1 .venv/bin/python -m pytest -q`                                                    | 281 passed, no skips, 370.60 seconds                                        |
+| Frontend `npm test`                                                                                              | 111 passed across 13 files                                                  |
+| `npm run typecheck`                                                                                              | Passed                                                                      |
+| `npm run build`                                                                                                  | Passed, 159 modules                                                         |
+| Alembic current via configured PostgreSQL                                                                        | `0002_phase7 (head)`                                                        |
+| SQLAlchemy PostgreSQL connectivity                                                                               | Passed through live public API reads and all PostgreSQL regression fixtures |
+| `/health`                                                                                                        | 200, `status: ok`                                                           |
+| Anonymous `/public/business`, `/public/services`, `/public/products`, `/public/feedback`, `/public/availability` | All 200; business/catalog response allowlists checked                       |
+| `/public/products?limit=0`                                                                                       | 422                                                                         |
+| Anonymous `/services`, `/products`, `/auth/me`                                                                   | All 401                                                                     |
 
 Existing Phase 0–9 tests remain passing. New tests use disposable SQLite fixtures and existing isolated PostgreSQL regressions; live smoke checks are read-only. No real feedback or business rows were changed by smoke checks.
 
@@ -80,7 +80,6 @@ Final JS: 633.42 kB, gzip 182.83 kB. CSS: 16.07 kB, gzip 4.15 kB. HTML: 0.44 kB,
 WebP bytes (480 / 960): village street 60,724 / 204,516; studio exterior 56,068 / 234,542; street detail 54,076 / 259,798. Responsive browser selection reduces phone transfer; no original multi-megabyte JPEGs are shipped. Hero/gallery may share the same cached storefront image.
 
 Remaining manual setup: confirmed business branding/contact/address/copy/catalog/hours; photograph publication-rights and business-context confirmation; real mapped Owner/Staff credentials for authenticated browser smoke checks. Owner visibility and Staff mutation denial are verified with signed fixture tokens, not actual Supabase logins. Production hostname/canonical/social/robots/sitemap and any SPA prerendering decision remain deferred. No deployment or production-content readiness is claimed.
-
 
 Location clarification: the user confirmed the business is in Grigno, Trento. The configured public Business placeholder address was updated to `Grigno, Trento, Italia` and verified through `/public/business`. This is a municipality-level location; the exact street address is still pending. Existing directions links currently lead to this general location. The location comes from the user, not an inference from photographs. No other business fields were changed.
 

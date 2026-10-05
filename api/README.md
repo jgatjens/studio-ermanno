@@ -61,3 +61,7 @@ From `api/`:
 ```
 
 Database-backed tests require the additional setup described in the project verification and planning documents under [`../docs/`](../docs/).
+
+## Formatting
+
+Install development tools with `.venv/bin/python -m pip install -r requirements-dev.txt`. Run `make format` to format Python or `make format-check` to check formatting without editing files. `pyproject.toml` defines the shared Ruff settings; the formatter is a development dependency and is not added to production requirements.
