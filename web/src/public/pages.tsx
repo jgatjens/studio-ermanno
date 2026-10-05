@@ -1,7 +1,9 @@
+import { ContactHelp } from './contact-help'
 import { useState } from 'react'
+import { Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { formatHours } from '@/lib/business-hours'
-import { faq, gallery, hero, publicBrand } from './content'
+import { faq, gallery, homeHero, availabilityHero, publicBrand } from './content'
 import {
   contactLinks,
   price,
@@ -15,11 +17,11 @@ import {
 function State({ error, retry }: { error: boolean; retry: () => void }) {
   return error ? (
     <div role="alert">
-      This section could not load. <button onClick={retry}>Try again</button>
+      Non è stato possibile caricare questa sezione. <button onClick={retry}>Riprova</button>
     </div>
   ) : (
     <p role="status" className="public-loading">
-      Loading…
+      Caricamento…
     </p>
   )
 }
@@ -33,7 +35,7 @@ function Cards({ items, business }: { items: Item[]; business?: Business }) {
           {item.category && <p>{item.category}</p>}
           <p>{item.description}</p>
           {item.duration_minutes !== undefined && <p>{item.duration_minutes} minutes</p>}
-          <p>{price(item.price ?? item.retail_price, business?.currency)}</p>
+          {/* <p>{price(item.price ?? item.retail_price, business?.currency)}</p> */}
         </article>
       ))}
     </div>
@@ -103,7 +105,7 @@ export function Contact({ business }: { business: Business }) {
               <dt>
                 {
                   ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][
-                    hour.day_of_week
+                  hour.day_of_week
                   ]
                 }
               </dt>
@@ -122,107 +124,169 @@ export function HomePage() {
     reviews = usePublic<Page<Review>>('/public/feedback?limit=3')
   return (
     <>
-      <section className="public-hero">
-        <div>
-          <p className="eyebrow">Your next visit starts here</p>
+      <section className="home-hero">
+        <img
+          className="home-hero-photo"
+          src={homeHero.src}
+          srcSet={homeHero.srcSet}
+          sizes="100vw"
+          alt={homeHero.alt}
+          width={homeHero.width}
+          height={homeHero.height}
+          fetchPriority="high"
+        />
+        <div className="home-hero-copy">
           <h1>
-            {publicBrand.name}
+            Capelli.
             <br />
-            <span className="public-home-brand-descriptor">{publicBrand.descriptor}</span>
+            Cura.
+            <br />
+            Identità.
           </h1>
-          {business.data ? (
-            <p>
-              {business.data.description ||
-                'Explore services and contact us to arrange your visit.'}
-            </p>
-          ) : (
-            <State {...business} />
-          )}
+          <p>
+            Più di un taglio.
+            <br />
+            Un’esperienza pensata intorno a te.
+          </p>
           <div className="public-actions">
             <Link className="primary-link" to="/availability">
-              Check availability
+              Scopri disponibilità <span aria-hidden="true">→</span>
             </Link>
-            <Link to="/services">View services</Link>
+            <a href="#studio">
+              Esplora lo studio <span aria-hidden="true">→</span>
+            </a>
           </div>
         </div>
-        {hero && (
+        <p className="home-hero-signature">
+          {publicBrand.title}
+          <br />
+          Grigno, TN
+        </p>
+      </section>
+      <div className="home-content">
+        <section id="studio" className="home-studio">
+          <p className="eyebrow">01 / Studio</p>
           <img
-            className="hero-photo"
-            src={hero.src}
-            srcSet={hero.srcSet}
-            sizes="(min-width: 768px) 40vw, 100vw"
-            alt={hero.alt}
-            width={hero.width}
-            height={hero.height}
-            loading="eager"
-            fetchPriority="high"
+            src={availabilityHero.src}
+            srcSet={availabilityHero.srcSet}
+            sizes="(min-width: 900px) 34vw, 100vw"
+            alt={availabilityHero.alt}
+            width={availabilityHero.width}
+            height={availabilityHero.height}
+            loading="lazy"
           />
-        )}
-      </section>
-      <section>
-        <h2>Featured services</h2>
-        {services.data ? (
-          services.data.items.length ? (
-            <Cards items={services.data.items} business={business.data} />
-          ) : (
-            <p>Contact us for service information.</p>
-          )
-        ) : (
-          <State {...services} />
-        )}
-        <Link to="/services">View all services</Link>
-      </section>
-      <section className="public-callout">
-        <h2>Plan your visit</h2>
-        <p>Explore informational availability, then contact us to arrange a visit.</p>
-        <Link to="/availability">Check availability</Link>
-      </section>
-      <section>
-        <h2>A look around</h2>
-        <Gallery />
-        <Link to="/gallery">View gallery</Link>
-      </section>
-      {(!products.data || products.data.items.length > 0) && (
-        <section>
-          <h2>Featured products</h2>
-          <p>Explore our informational product catalog.</p>
-          {products.data ? (
-            <Cards items={products.data.items} business={business.data} />
-          ) : (
-            <State {...products} />
-          )}
-          <Link to="/products">View products</Link>
+          <div className="home-studio-copy">
+            <h2>Un taglio non dovrebbe semplicemente seguire uno stile. Dovrebbe appartenerti.</h2>
+            <p>
+              Da {publicBrand.title}, tecnica, estetica e attenzione si incontrano. Ogni servizio
+              parte dall’ascolto, per creare un risultato che valorizzi la tua identità, non solo il
+              momento.
+            </p>
+            <Link className="home-text-link" to="/contact">
+              Scopri di più <span aria-hidden="true">→</span>
+            </Link>
+          </div>
         </section>
-      )}
-      {(!reviews.data || reviews.data.items.length > 0) && (
-        <section>
-          <h2>Customer feedback</h2>
-          {reviews.data ? (
-            <div className="public-grid">
-              {reviews.data.items.map((review, i) => (
-                <blockquote className="public-card" key={i}>
-                  <p>{review.rating} / 5</p>
-                  <p>{review.comment}</p>
-                  <cite>{review.name}</cite>
-                </blockquote>
-              ))}
+        <section className="home-services">
+          <div>
+            <p className="eyebrow">02 / Servizi</p>
+            <h2>
+              Servizi essenziali.
+              <br />
+              Risultati straordinari.
+            </h2>
+          </div>
+          <div>
+            {services.data ? (
+              services.data.items.length ? (
+                <ol className="home-service-list">
+                  {services.data.items.map((item, index) => (
+                    <li key={index}>
+                      <Link to="/services">
+                        <span className="home-service-number">
+                          {String(index + 1).padStart(2, '0')}
+                        </span>
+                        <span className="home-service-description">
+                          <h3>{item.name}</h3>
+                          {item.description && <span>{item.description}</span>}
+                        </span>
+                        <span className="home-service-duration">
+                          {item.duration_minutes != null && `${item.duration_minutes} min`}
+                        </span>
+                        <span aria-hidden="true">→</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p>Contattaci per conoscere i nostri servizi.</p>
+              )
+            ) : services.error ? (
+              <div role="alert">
+                Non è stato possibile caricare i servizi.{' '}
+                <button onClick={services.retry}>Riprova</button>
+              </div>
+            ) : (
+              <p role="status">Caricamento dei servizi…</p>
+            )}
+            <Link className="home-text-link home-all-services" to="/services">
+              Tutti i servizi <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+        </section>
+        <div className="home-more">
+          {(!products.data || products.data.items.length > 0) && (
+            <section className="home-editorial home-products">
+              <div className="home-section-heading">
+                <p className="eyebrow">03 / Prodotti</p>
+                <h2>La cura continua.<br />Anche a casa.</h2>
+                <p>Scopri i prodotti del salone. Ti aiutiamo a scegliere quelli più adatti alla tua routine.</p>
+                <Link className="home-text-link" to="/products">Esplora i prodotti <span aria-hidden="true">→</span></Link>
+              </div>
+              <div className="home-section-body">
+                {products.data ? <div className="home-product-selection">{products.data.items.map((item, i) => (
+                  <article className="home-product-tile" key={`${item.name}-${i}`}>
+                    <div className="home-product-emblem" aria-hidden="true"><span>{String(i + 1).padStart(2, '0')}</span><Sparkles size={42} strokeWidth={1} /><span>I MINATI</span></div>
+                    <div className="home-product-copy">
+                      {item.brand && <p className="home-product-brand">{item.brand}</p>}
+                      <h3>{item.name}</h3>
+                      {item.category && <p className="home-product-category">{item.category}</p>}
+                      {item.description && <p className="home-product-description">{item.description}</p>}
+                    </div>
+                  </article>
+                ))}</div> : <State {...products} />}
+              </div>
+            </section>
+          )}
+          {(!reviews.data || reviews.data.items.length > 0) && (
+            <section className="home-editorial home-reviews">
+              <div className="home-section-heading">
+                <p className="eyebrow">04 / Esperienze</p>
+                <h2>Le vostre esperienze</h2>
+                <Link className="home-text-link" to="/feedback">Leggi e condividi la tua esperienza <span aria-hidden="true">→</span></Link>
+              </div>
+              <div className="home-section-body">
+                {reviews.data ? <div className="home-review-list">{reviews.data.items.map((review, i) => (
+                  <blockquote key={i}>
+                    <p className="home-review-rating"><span aria-hidden="true">★</span> {review.rating} / 5</p>
+                    <p className="home-review-comment">{review.comment}</p>
+                    <cite>{review.name}</cite>
+                  </blockquote>
+                ))}</div> : <State {...reviews} />}
+              </div>
+            </section>
+          )}
+          <section className="home-editorial home-faq">
+            <div className="home-section-heading">
+              <p className="eyebrow">05 / Domande</p>
+              <h2>Prima di venirci a trovare</h2>
+              <Link className="home-text-link" to="/faq">Tutte le risposte <span aria-hidden="true">→</span></Link>
             </div>
-          ) : (
-            <State {...reviews} />
-          )}
-          <Link to="/feedback">Read reviews and leave feedback</Link>
-        </section>
-      )}
-      <section>
-        <h2>Location and contact</h2>
-        {business.data ? <Contact business={business.data} /> : <State {...business} />}
-        <Link to="/contact">Contact us</Link>
-      </section>
-      <section>
-        <h2>Questions before your visit</h2>
-        <Faq />
-        <Link to="/faq">View FAQ</Link>
-      </section>
+            <div className="home-section-body"><Faq /></div>
+          </section>
+        </div>
+      </div>
+      <ContactHelp business={business} />
     </>
   )
 }

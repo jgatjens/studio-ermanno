@@ -7,7 +7,7 @@ Implemented from the Phase 3 roadmap in `docs/mvp-implementation-phases.md` and 
 Created:
 
 - `api/app/services/__init__.py`, `api/app/services/router.py`: business-scoped lists, active filter, Owner create/update with activation flag, validation, and no deletion.
-- `api/app/barbers/__init__.py`, `api/app/barbers/router.py`: equivalent barber configuration without schedules or service mappings.
+- `api/app/barbers/__init__.py`, `api/app/barbers/router.py`: equivalent hairdresser configuration without schedules or service mappings.
 - `api/app/business_hours/__init__.py`, `api/app/business_hours/router.py`: scoped weekly read and atomic Owner save, unique complete weekday validation, closed-day null times, and per-business writer locking.
 - `api/tests/test_phase3.py`: 12 cases covering authentication, Staff mutation denial, business isolation, inactive retention, input validation, and weekly atomicity. Real JWT/JWKS and SQLAlchemy membership fixtures are reused from Phase 2.
 - `web/src/admin/query-provider.tsx`: TanStack Query client scoped to the backend actor and disposed on protected-tree unmount or actor change. No persistent private cache.
@@ -43,7 +43,7 @@ Auth remains in React Context. Business ID/role come exclusively from membership
 | TypeScript: `npm run typecheck`                                           | Passed                                                                                                |
 | Production frontend: `npm run build`                                      | Passed                                                                                                |
 | Live `GET /health`                                                        | 200, `{"status":"ok"}`                                                                                |
-| Live unauthenticated services, barbers, and business-hours reads          | All returned 401                                                                                      |
+| Live unauthenticated services, hairdressers, and business-hours reads          | All returned 401                                                                                      |
 | Browser `/admin/services` without a session                               | Redirected to `/login`; email/password login form displayed                                           |
 | Browser public page                                                       | API Status: Connected; Supabase Auth client: Initialized                                              |
 

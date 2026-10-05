@@ -298,3 +298,25 @@ test('invalid date context fails safely without requests using guessed dates', a
   expect(screen.getByText('Stock levels look good.')).toBeInTheDocument()
   expect(vi.mocked(apiRequest).mock.calls.some(([p]) => p.startsWith('/appointments?'))).toBe(false)
 })
+
+test('featured appointment provides a direct detail action without leaking client contacts',async()=>{
+  vi.mocked(apiRequest).mockImplementation(async path=>path==='/appointments/context'?{timezone:'UTC',currency:'EUR'}:path.includes('status=SCHEDULED')?{...page,items:[{...appointment('next'),client:{first_name:'Ada',last_name:'Next',email:'secret@example.com',phone:'private phone'}}]}:page)
+  mount();await screen.findByText('Ada Next')
+  expect(screen.getByRole('link',{name:'Open appointment'})).toHaveAttribute('href','/admin/appointments/next')
+  expect(screen.queryByText('secret@example.com')).not.toBeInTheDocument()
+  expect(screen.queryByText('private phone')).not.toBeInTheDocument()
+})
+test('low stock preview distinguishes the loaded subset from the full total',async()=>{
+  vi.mocked(apiRequest).mockImplementation(async path=>path==='/appointments/context'?{timezone:'UTC',currency:'EUR'}:path.startsWith('/products?')?{...page,total:8,items:[{id:'p',name:'Pomade',current_stock:'1.000',minimum_stock:'3.000'}]}:page)
+  mount();await screen.findByText('Showing 1 of 8 low-stock products.')
+  expect(screen.getByRole('link',{name:'Update stock'})).toHaveAttribute('href','/admin/products/p')
+})
+test('failed summary refresh retains data but does not assert clear stock or feedback',async()=>{
+  mount();await screen.findByText('Stock levels look good.');await screen.findByText('No pending feedback.')
+  vi.mocked(apiRequest).mockImplementation(async path=>{if(path.startsWith('/products?')||path.startsWith('/feedback?'))throw Error('offline');return path==='/appointments/context'?{timezone:'UTC',currency:'EUR'}:page})
+  fireEvent.click(screen.getByRole('button',{name:'Refresh dashboard'}))
+  await screen.findByText('Could not load inventory status.',{},{timeout:3000})
+  expect(screen.getAllByText('Showing the last loaded data.').length).toBeGreaterThan(0)
+  expect(screen.queryByText('Stock levels look good.')).not.toBeInTheDocument()
+  expect(screen.queryByText('No pending feedback.')).not.toBeInTheDocument()
+})

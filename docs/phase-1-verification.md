@@ -4,12 +4,12 @@ Source of truth: `docs/plans/phase-1-implementation.md`, together with `docs/dat
 
 ## Implemented
 
-- All 12 required SQLAlchemy models: Business, AdminMembership, Barber, Client, Service, Appointment, AppointmentService, Product, AppointmentProduct, InventoryMovement, Feedback, and BusinessHours.
+- All 12 required SQLAlchemy models: Business, AdminMembership, Hairdresser, Client, Service, Appointment, AppointmentService, Product, AppointmentProduct, InventoryMovement, Feedback, and BusinessHours.
 - Frozen initial Alembic migration `0001_phase1`, with upgrade and reverse-order downgrade.
 - UUID identifiers and explicit business ownership. Composite foreign keys reject references between different businesses. Restrictive deletion preserves referenced records.
 - Stored service/product snapshots and distinct calculated/final duration and price fields.
 - Check constraints for enum values, non-negative durations/prices/minimum stock, rating 1–5, valid weekdays and opening times. Membership identity, business/day schedules, and per-business non-null SKUs are unique.
-- Deterministic, development-only seed with one business, two owner memberships, one staff membership, two active barbers, five clients, four services, four products, and seven business-hours rows. Reruns preserve existing edits and add only missing deterministic records.
+- Deterministic, development-only seed with one business, two owner memberships, one staff membership, two active hairdressers, five clients, four services, four products, and seven business-hours rows. Reruns preserve existing edits and add only missing deterministic records.
 - Live PostgreSQL tests in disposable schemas, covering migrations, metadata parity, ownership, relationships, snapshots, defaults, constraints, seed idempotency and production refusal.
 - RLS enabled without policies on all application tables to protect the FastAPI data boundary from Supabase browser data access. No browser business-data code or authorization workflows added.
 
@@ -56,7 +56,7 @@ Frontend source and existing credentials were not changed.
 | All application tables use RLS             | PASS: 12 protected tables in test and development schemas                                                     |
 | Development/public migration               | PASS: applied to previously empty schema                                                                      |
 | Seed CLI run twice                         | PASS: same deterministic records, no duplicates                                                               |
-| Development seed record counts             | PASS: Business 1; memberships 3 (Owner 2, Staff 1); Barber 2; Client 5; Service 4; Product 4; BusinessHours 7 |
+| Development seed record counts             | PASS: Business 1; memberships 3 (Owner 2, Staff 1); Hairdresser 2; Client 5; Service 4; Product 4; BusinessHours 7 |
 | No seeded appointment/feedback workflows   | PASS: appointments 0, feedback 0                                                                              |
 | Database read-only SELECT 1                | PASS                                                                                                          |
 | Test schema cleanup                        | PASS: zero phase1_test_* schemas remain                                                                       |

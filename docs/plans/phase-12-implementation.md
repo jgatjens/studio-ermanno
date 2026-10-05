@@ -26,7 +26,7 @@ Required implementation inputs:
 - Cloudflare and Render account access, project/service names, chosen region, hosting tier and budget.
 - Canonical frontend HTTPS origin and backend HTTPS URL. Provider domains can serve the first MVP release; a purchased domain is not required.
 - Explicit decision on production Supabase project: prefer isolation from development; do not silently turn the current fixture database into production.
-- Production Business UUID, verified identity/contact details, currency/timezone, services, products, stock baselines, barbers and hours.
+- Production Business UUID, verified identity/contact details, currency/timezone, services, products, stock baselines, hairdressers and hours.
 - Real Owner and Staff Auth accounts mapped to the intended Business memberships. An Auth user alone is insufficient.
 - Confirm publication rights for supplied photographs. The confirmed address is Via Vittorio Emanuele 114, 38055 Grigno (TN), Italia. Sample business name/contact information and seed hours/catalog are not approved production facts.
 - Rotate the database password and privileged Supabase key previously shared in chat before launch. Update only their required secret consumers; never copy them into this document, source control, build output, or browser configuration.
@@ -149,7 +149,7 @@ Do not overlap the PostgreSQL suite with live browser checks on the constrained 
 | Access boundaries             | Missing/invalid/expired token returns 401; nonmember and Staff mutations return 403              |
 | Staff privacy                 | Protected reads work; email, phone, private/general client notes and visit notes are omitted     |
 | Client creation/search        | Owner creates and finds disposable staging client; search survives navigation                    |
-| Appointment creation/conflict | Owner creates appointment; conflicting barber reservation is rejected                            |
+| Appointment creation/conflict | Owner creates appointment; conflicting hairdresser reservation is rejected                            |
 | Completion/inventory          | Completion records history and correct stock movement; repeat attempt does not double-deduct     |
 | Feedback                      | Submission stays pending/private; Owner moderation controls public visibility                    |
 | Availability                  | Public date/interval states use Business timezone and expose no private records                  |

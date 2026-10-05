@@ -57,9 +57,9 @@ Staff may not see:
 
 Staff cannot create, edit, delete, approve, reject, or otherwise modify admin data.
 
-Barber / Service Provider profiles are separate from admin users.
+Hairdresser / Service Provider profiles are separate from admin users.
 
-A barber may exist without admin login access.
+A hairdresser may exist without admin login access.
 
 ---
 
@@ -180,7 +180,7 @@ Required workflow:
 
 The client must already exist before the appointment can be created.
 
-A barber is optional at creation and may be assigned later.
+A hairdresser is optional at creation and may be assigned later.
 
 ---
 
@@ -204,7 +204,7 @@ Changes should remain easy to make from a phone.
 The appointment detail should provide:
 
 - Client name
-- Barber when assigned
+- Hairdresser when assigned
 - Contact information when the current role is allowed to see it
 - Date and time
 - Status
@@ -265,12 +265,12 @@ The mobile default should prioritize today's appointments.
 
 For the MVP:
 
-- All active barbers follow the same business hours.
-- All barbers can perform all active services.
-- Different barbers may have appointments at the same time.
-- The same barber cannot have overlapping active appointments.
-- Unassigned appointments reserve one generic barber slot.
-- Barber assignment can happen after appointment creation.
+- All active hairdressers follow the same business hours.
+- All hairdressers can perform all active services.
+- Different hairdressers may have appointments at the same time.
+- The same hairdresser cannot have overlapping active appointments.
+- Unassigned appointments reserve one generic hairdresser slot.
+- Hairdresser assignment can happen after appointment creation.
 
 ## Calendar Actions
 
@@ -434,7 +434,7 @@ Inactive services should not be shown as normal selectable services for new appo
 
 Historical appointments must continue to show services that were used previously.
 
-For the MVP, every active barber can perform every active service.
+For the MVP, every active hairdresser can perform every active service.
 
 ---
 
@@ -615,9 +615,9 @@ Initial settings may include:
 - Business hours
 - Timezone
 - Currency
-- Barber / Service Provider profiles
+- Hairdresser / Service Provider profiles
 
-All active barbers share the same business hours in the MVP.
+All active hairdressers share the same business hours in the MVP.
 
 The settings area should not become a catch-all for operational workflows.
 

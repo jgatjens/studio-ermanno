@@ -171,7 +171,7 @@ See which dates still have availability.
 [View Availability]
 ```
 
-Do not expose barber names.
+Do not expose hairdresser names.
 
 Do not allow booking from this section.
 

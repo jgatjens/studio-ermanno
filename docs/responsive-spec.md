@@ -138,7 +138,7 @@ Each appointment item should show enough information to scan quickly:
 
 - Time
 - Client
-- Barber or Unassigned
+- Hairdresser or Unassigned
 - Main service
 - Status
 
@@ -176,7 +176,7 @@ The form should follow a logical vertical sequence:
 2. Date
 3. Time
 4. Services
-5. Barber assignment when available
+5. Hairdresser assignment when available
 6. Appointment notes
 7. Calculated duration and price
 8. Optional Owner overrides
@@ -186,7 +186,7 @@ The flow should remain short.
 
 The client must already exist before appointment creation.
 
-Barber assignment is optional and may be completed later.
+Hairdresser assignment is optional and may be completed later.
 
 ## Form Rules
 
@@ -656,7 +656,7 @@ Possible states:
 
 The public layout should show business-level availability only.
 
-It should not display individual barber names or barber-specific availability.
+It should not display individual hairdresser names or barber-specific availability.
 
 If a traditional month calendar becomes too dense on small screens, a date-list or simplified calendar treatment may be used.
 

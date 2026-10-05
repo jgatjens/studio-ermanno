@@ -92,7 +92,7 @@ def calculate(session, actor, data, record=None):
             and utc(record.scheduled_end) == end
         )
         if not barber.is_active and not unchanged:
-            conflict("inactive_reference", "Choose an active barber.")
+            conflict("inactive_reference", "Choose an active hairdresser.")
     return dict(
         services=selected,
         calculated_duration_minutes=duration,
@@ -189,7 +189,7 @@ def change_status(session, actor, identifier, status):
                     record.barber_id is not None
                     and not scoped(session, Barber, actor.business_id, record.barber_id).is_active
                 ):
-                    conflict("inactive_reference", "Choose an active barber before confirming.")
+                    conflict("inactive_reference", "Choose an active hairdresser before confirming.")
             record.status = AppointmentStatus(status)
             session.commit()
         return detail(session, actor, identifier)

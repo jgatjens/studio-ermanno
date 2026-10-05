@@ -1,18 +1,9 @@
 import { useEffect, useState } from 'react'
-import {
-  ChevronLeft,
-  ChevronRight,
-  Info,
-  RefreshCw,
-  ArrowRight,
-  Phone,
-  Clock,
-  MessageCircle,
-} from 'lucide-react'
+import { ChevronLeft, ChevronRight, Info, RefreshCw } from 'lucide-react'
+import { ContactHelp } from '@/public/contact-help'
 import { apiRequest } from '@/lib/api'
-import { formatHours } from '@/lib/business-hours'
-import { availabilityHero as hero, availabilityHelpImage } from '@/public/content'
-import { contactLinks, usePublic, type Business } from '@/public/data'
+import { availabilityHero as hero } from '@/public/content'
+import { usePublic, type Business } from '@/public/data'
 
 type State = 'AVAILABLE' | 'LIMITED' | 'FULL' | 'CLOSED'
 type Interval = { start: string; end: string; state: State }
@@ -30,8 +21,8 @@ const labels: Record<State, string> = {
   FULL: 'Completo',
   CLOSED: 'Chiuso',
 }
-const weekdays = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
 const fullWeekdays = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica']
+const weekdays = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
 const dateObject = (date: string) => new Date(`${date}T12:00:00Z`)
 const dateKey = (date: Date) => date.toISOString().slice(0, 10)
 const dayLabel = (date: string) =>
@@ -140,63 +131,10 @@ export function AvailabilityPage() {
       periods.push([])
     periods.at(-1)!.push(interval)
   }
-  // Anchor hourly spots to each opening period and require capacity throughout the hour.
-  const hourMs = 60 * 60 * 1000
-  const groups = periods.map((period) => {
-    const hours: Interval[] = []
-    const end = new Date(period.at(-1)!.end).getTime()
-    for (let start = new Date(period[0].start).getTime(); start + hourMs <= end; start += hourMs) {
-      const overlapping = period.filter(
-        (interval) =>
-          new Date(interval.start).getTime() < start + hourMs &&
-          new Date(interval.end).getTime() > start,
-      )
-      if (
-        overlapping.length &&
-        overlapping.every(
-          (interval) => interval.state === 'AVAILABLE' || interval.state === 'LIMITED',
-        )
-      ) {
-        hours.push({
-          start: new Date(start).toISOString(),
-          end: new Date(start + hourMs).toISOString(),
-          state: overlapping.some((interval) => interval.state === 'LIMITED')
-            ? 'LIMITED'
-            : 'AVAILABLE',
-        })
-      }
-    }
-    return hours
-  })
+  const groups = periods.map((period) =>
+    period.filter((interval) => interval.state === 'AVAILABLE' || interval.state === 'LIMITED'),
+  )
   const slots = groups.flat()
-  const contact = business.data
-    ? contactLinks(business.data).filter((link) => ['WhatsApp', 'Call'].includes(link.label))
-    : []
-  const contactActions = ['WhatsApp', 'Call']
-    .map(
-      (label) =>
-        contact.find((link) => link.label === label) ||
-        (label === 'WhatsApp' ? { label, href: '/contact' } : null),
-    )
-    .filter((link): link is { label: string; href: string } => link !== null)
-  const hourGroups: { first: number; last: number; periods: string[]; signature: string }[] = []
-  for (const hour of business.data?.hours.slice().sort((a, b) => a.day_of_week - b.day_of_week) ||
-    []) {
-    if (hour.is_closed) continue
-    const short = (value: string | null | undefined) => value?.slice(0, 5) || ''
-    const periods =
-      hour.break_start && hour.break_end
-        ? [
-            `${short(hour.opening_time)} – ${short(hour.break_start)}`,
-            `${short(hour.break_end)} – ${short(hour.closing_time)}`,
-          ]
-        : [formatHours(hour).replace('–', ' – ')]
-    const signature = periods.join('|')
-    const previous = hourGroups.at(-1)
-    if (previous && previous.last + 1 === hour.day_of_week && previous.signature === signature)
-      previous.last = hour.day_of_week
-    else hourGroups.push({ first: hour.day_of_week, last: hour.day_of_week, periods, signature })
-  }
   const first = month ? dateObject(`${month}-01`) : null
   const padding = first ? (first.getUTCDay() + 6) % 7 : 0
   const count = first
@@ -334,7 +272,7 @@ export function AvailabilityPage() {
             </p>
           ) : (
             <>
-              <p>Disponibilità in fasce di un’ora per questa data.</p>
+              <p>Disponibilità in fasce di 30 minuti per questa data.</p>
               <div className="availability-slot-groups">
                 {groups.map((group, index) => {
                   const available = group.filter(
@@ -380,89 +318,7 @@ export function AvailabilityPage() {
           {data && <p className="availability-timezone">Ora locale del salone: {data.timezone}</p>}
         </section>
       </section>
-      <section className="availability-help" aria-labelledby="availability-help-title">
-        <img
-          src={availabilityHelpImage.src}
-          srcSet={availabilityHelpImage.srcSet}
-          sizes="(min-width: 768px) 25vw, 100vw"
-          alt={availabilityHelpImage.alt}
-          width={availabilityHelpImage.width}
-          height={availabilityHelpImage.height}
-          loading="lazy"
-        />
-        <div>
-          <p className="availability-eyebrow">Hai bisogno di aiuto?</p>
-          <h2 id="availability-help-title">
-            Preferisci contattarci
-            <br />
-            direttamente?
-          </h2>
-          <p>
-            Puoi scriverci su WhatsApp, chiamarci o passare in salone. Saremo felici di aiutarti a
-            trovare il momento migliore per te.
-          </p>
-          <div className="availability-contact-actions">
-            {contactActions.map((link) => (
-              <a
-                href={link.href}
-                key={link.label}
-                title={
-                  link.href === '/contact'
-                    ? 'Consulta le informazioni di contatto per WhatsApp'
-                    : undefined
-                }
-                {...(link.href.startsWith('https:')
-                  ? { target: '_blank', rel: 'noopener noreferrer' }
-                  : {})}
-              >
-                <span className="availability-contact-label">
-                  {link.label === 'Call' ? <Phone size={18} /> : <MessageCircle size={18} />}
-                  {link.label === 'Call' ? 'Chiama' : link.label}
-                </span>
-                <ArrowRight size={16} />
-              </a>
-            ))}
-          </div>
-          {business.error && (
-            <p>
-              Contatti non disponibili.{' '}
-              <button type="button" onClick={business.retry}>
-                Riprova
-              </button>
-            </p>
-          )}
-          {!business.data && !business.error && <p role="status">Caricamento contatti…</p>}
-          {business.data && !contact.length && (
-            <a href="/contact">
-              Informazioni di contatto <ArrowRight size={16} />
-            </a>
-          )}
-        </div>
-        <div className="availability-help-hours">
-          <p className="availability-eyebrow">
-            <Clock size={18} /> I nostri orari
-          </p>
-          {hourGroups.length ? (
-            <dl>
-              {hourGroups.map((group) => (
-                <div key={group.first}>
-                  <dt>
-                    {fullWeekdays[group.first]}
-                    {group.first !== group.last && ` — ${fullWeekdays[group.last]}`}
-                  </dt>
-                  <dd>
-                    {group.periods.map((period) => (
-                      <span key={period}>{period}</span>
-                    ))}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          ) : (
-            <p>Consulta il salone per gli orari di apertura.</p>
-          )}
-        </div>
-      </section>
+      <ContactHelp business={business} />
     </div>
   )
 }

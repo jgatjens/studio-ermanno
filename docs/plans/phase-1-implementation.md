@@ -36,7 +36,7 @@ Create these models:
 
 - Business
 - Admin User / Business Membership
-- Barber / Service Provider
+- Hairdresser / Service Provider
 - Client
 - Service
 - Appointment
@@ -58,7 +58,7 @@ All business-owned records must belong to a Business.
 Business-owned entities include:
 
 - Admin memberships
-- Barbers
+- Hairdressers
 - Clients
 - Services
 - Appointments
@@ -126,11 +126,11 @@ The database owns application-level business membership and role.
 
 ---
 
-## Barber / Service Provider
+## Hairdresser / Service Provider
 
 Represents a person who performs services.
 
-A Barber is separate from an authenticated Admin User.
+A Hairdresser is separate from an authenticated Admin User.
 
 ### Fields
 
@@ -143,9 +143,9 @@ A Barber is separate from an authenticated Admin User.
 
 ### MVP Rules
 
-- Barbers do not require admin accounts.
-- All active Barbers share the same business hours.
-- All active Barbers can perform all active services.
+- Hairdressers do not require admin accounts.
+- All active Hairdressers share the same business hours.
+- All active Hairdressers can perform all active services.
 - No barber-specific schedules.
 - No barber-to-service mapping table.
 
@@ -227,9 +227,9 @@ A Barber is separate from an authenticated Admin User.
 ### Rules
 
 - Client is required.
-- Barber is optional.
+- Hairdresser is optional.
 - Appointment business must match Client business.
-- Appointment business must match Barber business when a Barber is assigned.
+- Appointment business must match Hairdresser business when a Hairdresser is assigned.
 - Multiple services are represented through Appointment Service records.
 - Final duration and final price must be stored separately from calculated values.
 - Overlap rules belong to Phase 5 business logic.
@@ -408,7 +408,7 @@ Represents one stock change.
 ### Rules
 
 - One logical schedule row per Business/day.
-- All active Barbers use the same Business Hours.
+- All active Hairdressers use the same Business Hours.
 - Holiday overrides are out of scope.
 - Split shifts are out of scope.
 
@@ -468,7 +468,7 @@ Recommended:
 
 Do not add soft-delete timestamps unless a real business requirement appears.
 
-`is_active` is sufficient for Services, Products, and Barbers in the MVP.
+`is_active` is sufficient for Services, Products, and Hairdressers in the MVP.
 
 ---
 
@@ -534,12 +534,12 @@ Use clearly documented development auth-user identifiers.
 
 Do not provision real Supabase Auth users in Phase 1.
 
-#### Barbers
+#### Hairdressers
 
 Create:
 
-- Barber 1
-- Barber 2
+- Hairdresser 1
+- Hairdresser 2
 
 Both active.
 
@@ -611,7 +611,7 @@ Verify that these can be created:
 
 - Business
 - Admin Membership
-- Barber
+- Hairdresser
 - Client
 - Service
 - Product
@@ -635,7 +635,7 @@ Verify:
 Test representative cross-business mismatches for:
 
 - Client and Appointment
-- Barber and Appointment
+- Hairdresser and Appointment
 - Service and Appointment Service
 - Product and Appointment Product
 
@@ -684,7 +684,7 @@ Verify:
 
 - [ ] Business
 - [ ] Admin Membership
-- [ ] Barber / Service Provider
+- [ ] Hairdresser / Service Provider
 - [ ] Client
 - [ ] Service
 - [ ] Appointment
@@ -718,7 +718,7 @@ Verify:
 - [ ] One Business
 - [ ] Two Owner memberships
 - [ ] One Staff membership
-- [ ] Two Barbers
+- [ ] Two Hairdressers
 - [ ] Sample Clients
 - [ ] Sample Services
 - [ ] Sample Products

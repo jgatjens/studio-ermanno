@@ -238,8 +238,8 @@ test('barber catalog search and Owner editing retain barber-only payload', async
     </AdminQueryProvider>,
   )
   await screen.findByText('Ermanno')
-  fireEvent.change(screen.getByLabelText('Search barbers'), { target: { value: 'missing' } })
-  expect(screen.getByText('No matching barbers.')).toBeInTheDocument()
+  fireEvent.change(screen.getByLabelText('Search hairdressers'), { target: { value: 'missing' } })
+  expect(screen.getByText('No matching hairdressers.')).toBeInTheDocument()
   fireEvent.click(screen.getAllByRole('button', { name: 'Clear search' })[0])
   fireEvent.click(screen.getByRole('button', { name: 'Edit Ermanno' }))
   expect(screen.getByLabelText('Name')).toHaveValue('Ermanno')
@@ -266,8 +266,36 @@ test('Staff barbers retain search and hide create/edit controls', async () => {
   )
   await screen.findByText('Ermanno')
   expect(screen.getByText('Inactive')).toBeInTheDocument()
-  expect(screen.getByLabelText('Search barbers')).toBeInTheDocument()
+  expect(screen.getByLabelText('Search hairdressers')).toBeInTheDocument()
   expect(screen.queryByLabelText('Name')).not.toBeInTheDocument()
-  expect(screen.queryByRole('button', { name: 'Create barber' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Create hairdresser' })).not.toBeInTheDocument()
   expect(screen.queryByRole('button', { name: 'Activate Ermanno' })).not.toBeInTheDocument()
+})
+
+test('pending weekly save disables time and day controls', async () => {
+  const week = [
+    {
+      day_of_week: 0,
+      is_closed: false,
+      opening_time: '09:00',
+      closing_time: '18:00',
+      break_start: null,
+      break_end: null,
+    },
+  ]
+  vi.mocked(apiRequest).mockImplementation(async (_path, options) =>
+    options?.method === 'PUT' ? new Promise(() => {}) : week,
+  )
+  render(
+    <AdminQueryProvider>
+      <HoursPage />
+    </AdminQueryProvider>,
+  )
+  await screen.findByLabelText('Monday opening')
+  fireEvent.click(screen.getByRole('button', { name: 'Save week' }))
+  await screen.findByRole('button', { name: 'Saving…' })
+  expect(screen.getByLabelText('Monday opening')).toBeDisabled()
+  expect(screen.getByLabelText('Monday closed')).toBeDisabled()
+  expect(screen.getByLabelText('Monday split opening periods')).toBeDisabled()
+  expect(vi.mocked(apiRequest).mock.calls.filter(([, o]) => o?.method === 'PUT')).toHaveLength(1)
 })

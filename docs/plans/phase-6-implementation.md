@@ -69,7 +69,7 @@ Completion preserves all existing:
 
 - Service name, price, and duration snapshots.
 - Calculated/final appointment totals.
-- Scheduled interval, client, barber assignment, and appointment notes.
+- Scheduled interval, client, hairdresser assignment, and appointment notes.
 
 Product entries snapshot the current product name on first completion. Later product/service edits or deactivation must never rewrite stored history. Product sales do not automatically add to final appointment price because the existing schema has no product-sale price snapshot/payment model; financial extensions are outside this phase.
 

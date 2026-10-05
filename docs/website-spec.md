@@ -215,11 +215,11 @@ The public availability calendar is informational only.
 
 Customers can check whether the business has availability, but they cannot create or modify appointments.
 
-The redesigned `/availability` page uses a Monday-first month calendar. Choosing a date displays read-only one-hour spots in the business timezone. Each spot requires Available or Limited capacity throughout the entire hour. Hourly spots start at each opening period and do not cross breaks or extend beyond closing. The API may still return finer intervals for capacity calculations. Full and Closed intervals are omitted from the time grid. Closed dates remain visible for calendar alignment but are disabled and never selected automatically. A date is closed if either availability or configured business hours marks it closed; this includes Mondays and Sundays when configured as closed. There is no time selection, appointment summary, or Continue action. General contact links and business opening hours remain available below the calendar.
+The redesigned `/availability` page uses a Monday-first month calendar. Choosing a date displays the API’s read-only 30-minute availability intervals in the business timezone. Available and Limited intervals are shown, grouped by opening period without crossing breaks. Full and Closed intervals are omitted from the time grid. Closed dates remain visible for calendar alignment but are disabled and never selected automatically. A date is closed if either availability or configured business hours marks it closed; this includes Mondays and Sundays when configured as closed. There is no time selection, appointment summary, or Continue action. General contact links and business opening hours remain available below the calendar.
 
 Month data is fetched through anonymous requests of at most 14 days each. Loading, missing data, retry, refresh, and dates with no available spots must be explicit. The page explains that displayed availability is indicative and requires confirmation from the salon.
 
-Public availability is aggregated across active barbers and never exposes individual barber names.
+Public availability is aggregated across active hairdressers and never exposes individual hairdresser names.
 
 ## Public Availability Information
 
@@ -232,10 +232,10 @@ The website may expose simplified availability states such as:
 
 Availability is capacity-based:
 
-- Different barbers may be booked at the same time.
-- The same barber cannot hold overlapping active appointments.
-- An unassigned appointment reserves one barber slot.
-- The business may still show availability if another barber slot remains free.
+- Different hairdressers may be booked at the same time.
+- The same hairdresser cannot hold overlapping active appointments.
+- An unassigned appointment reserves one hairdresser slot.
+- The business may still show availability if another hairdresser slot remains free.
 - Closed means the requested time falls outside normal business hours.
 
 The exact thresholds for `Available` versus `Limited` can be refined during implementation.
@@ -288,7 +288,7 @@ Future exceptions such as holidays or special closures can be added later if nee
 
 Business hours should also help inform public availability.
 
-All active barbers share the same business hours in the MVP.
+All active hairdressers share the same business hours in the MVP.
 
 ---
 
@@ -484,7 +484,7 @@ The public website must not expose:
 - Cost prices
 - Inventory movements
 - Pending or rejected feedback
-- Individual barber availability or names in the public calendar
+- Individual hairdresser availability or names in the public calendar
 - Admin-only settings
 
 ---

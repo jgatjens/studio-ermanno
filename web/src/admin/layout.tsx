@@ -45,7 +45,7 @@ const primary = [
 const catalog = [
   { label: 'Services', path: '/admin/services', icon: Scissors },
   { label: 'Products', path: '/admin/products', icon: ShoppingBag },
-  { label: 'Barbers', path: '/admin/barbers', icon: UserRound },
+  { label: 'Hairdressers', path: '/admin/hairdressers', icon: UserRound },
 ]
 const management = [
   { label: 'Feedback', path: '/admin/feedback', icon: MessageSquare },
@@ -93,8 +93,8 @@ function ShellContent() {
                   M
                 </span>
                 <span className="grid text-left">
-                  <span className="font-semibold">Minati Parrucchieri</span>
-                  <span className="text-xs text-muted-foreground">Studio administration</span>
+                  <span className="font-semibold">I Minati Parrucchieri</span>
+                  <span className="text-xs text-muted-foreground">administration</span>
                 </span>
               </Link>
             </SidebarMenuButton>

@@ -89,7 +89,7 @@ Make the next scheduled appointment immediately visible.
 
 - Time
 - Client name
-- Barber or `Unassigned`
+- Hairdresser or `Unassigned`
 - Main service or service summary
 - Appointment status
 
@@ -126,7 +126,7 @@ Show:
 
 - Time
 - Client
-- Barber or Unassigned
+- Hairdresser or Unassigned
 - Main service
 - Status
 

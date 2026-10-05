@@ -748,7 +748,7 @@ function AppointmentForm({ context, existing }: { context: Context; existing?: A
           )}
         </fieldset>
         <label>
-          Barber
+          Hairdresser
           <select className={field} value={barber} onChange={(e) => setBarber(e.target.value)}>
             <option value="">Unassigned</option>
             {barbers.data?.map((b) => (

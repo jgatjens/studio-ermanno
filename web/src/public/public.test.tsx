@@ -38,16 +38,15 @@ function mount(element: React.ReactNode, path = '/') {
 }
 test('Home follows section order, hides empty products/reviews and retains independent navigation', async () => {
   mount(<HomePage />)
-  await screen.findByRole('heading', { name: 'I Minati Parrucchieri' })
+  await screen.findByRole('heading', { name: 'Capelli. Cura. Identità.' })
   expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
-    'Featured services',
-    'Plan your visit',
-    'A look around',
-    'Location and contact',
-    'Questions before your visit',
+    'Un taglio non dovrebbe semplicemente seguire uno stile. Dovrebbe appartenerti.',
+    'Servizi essenziali.Risultati straordinari.',
+    'Prima di venirci a trovare',
+    'Preferisci contattarcidirettamente?',
   ])
   expect(screen.queryByText('API Status: Connected')).not.toBeInTheDocument()
-  expect(screen.getAllByRole('link', { name: 'Check availability' })[0]).toHaveAttribute(
+  expect(screen.getByRole('link', { name: 'Scopri disponibilità' })).toHaveAttribute(
     'href',
     '/availability',
   )
@@ -56,7 +55,7 @@ test('Home follows section order, hides empty products/reviews and retains indep
     expect(options?.signal).toBeInstanceOf(AbortSignal)
   }
 })
-test('independent section failure retries without losing hero; unknown currency withheld', async () => {
+test('business failure retries independently while live services and hero remain visible', async () => {
   vi.mocked(apiRequest).mockImplementation(async (path) => {
     if (path === '/public/business') throw Error('offline')
     if (path.includes('/services'))
@@ -65,9 +64,9 @@ test('independent section failure retries without losing hero; unknown currency 
   })
   mount(<HomePage />)
   await screen.findByText('Cut')
-  expect(screen.getByText('Price information unavailable')).toBeInTheDocument()
+  expect(screen.getByText('30 min')).toBeInTheDocument()
   expect(screen.queryByRole('link', { name: 'Directions' })).not.toBeInTheDocument()
-  fireEvent.click(screen.getAllByRole('button', { name: 'Try again' })[0])
+  fireEvent.click(await screen.findByRole('button', { name: 'Riprova' }))
   await waitFor(() =>
     expect(vi.mocked(apiRequest).mock.calls.filter(([p]) => p === '/public/business')).toHaveLength(
       3,
@@ -129,7 +128,7 @@ test('mobile disclosure has controls, Escape returns focus, navigation closes', 
   fireEvent.click(menu)
   fireEvent.click(screen.getAllByRole('link', { name: 'Servizi' })[0])
   await waitFor(() => expect(menu).toHaveAttribute('aria-expanded', 'false'))
-  expect(screen.getByText('Skip to content')).toHaveAttribute('href', '#public-main')
+  expect(screen.getByText('Vai al contenuto')).toHaveAttribute('href', '#public-main')
 })
 test('gallery unavailable, FAQ disclosure and route metadata', () => {
   const view = mount(<GalleryPage />, '/gallery')
@@ -139,12 +138,12 @@ test('gallery unavailable, FAQ disclosure and route metadata', () => {
     expect(image).toHaveAttribute('width', '960')
     expect(image).toHaveAttribute('loading', 'lazy')
   }
-  expect(document.title).toBe('Gallery | I Minati Parrucchieri')
+  expect(document.title).toBe('Gallery del salone | I Minati Parrucchieri')
   view.unmount()
   mount(<FaqPage />, '/faq')
-  const summary = screen.getByText('How do I arrange a visit?')
+  const summary = screen.getByText('Come posso organizzare una visita?')
   expect(summary.tagName).toBe('SUMMARY')
-  expect(document.title).toBe('FAQ | I Minati Parrucchieri')
+  expect(document.title).toBe('Domande frequenti | I Minati Parrucchieri')
 })
 test('contact failure has retry and no fabricated links', async () => {
   vi.mocked(apiRequest).mockRejectedValue(Error('offline'))
@@ -189,4 +188,37 @@ test('empty gallery remains a usable state when assets are unavailable', () => {
   } finally {
     gallery.push(...saved)
   }
+})
+
+test.each([
+  ['/', 'Parrucchieri a Grigno'],
+  ['/services', 'Servizi e prezzi'],
+  ['/products', 'Prodotti per capelli'],
+  ['/gallery', 'Gallery del salone'],
+  ['/availability', 'Disponibilità e orari'],
+  ['/feedback', 'Recensioni dei clienti'],
+  ['/faq', 'Domande frequenti'],
+  ['/contact', 'Contatti e indirizzo'],
+])('public route %s has matching SEO and social metadata', (path, title) => {
+  mount(<FaqPage />, path)
+  expect(document.title).toBe(`${title} | I Minati Parrucchieri`)
+  const description = document.querySelector<HTMLMetaElement>('meta[name="description"]')!.content
+  expect(description).toContain('Grigno')
+  expect(document.querySelector<HTMLMetaElement>('meta[property="og:title"]')!.content).toBe(
+    document.title,
+  )
+  expect(document.querySelector<HTMLMetaElement>('meta[property="og:description"]')!.content).toBe(
+    description,
+  )
+  expect(document.querySelectorAll('meta[property="og:title"]')).toHaveLength(1)
+})
+
+test('homepage product collection uses Italian navigation and the published catalog content', async () => {
+  vi.mocked(apiRequest).mockImplementation(async path => path === '/public/business' ? business : path.includes('/products') ? { ...page, items: [{ name: 'Olio barba', brand: 'Marca', description: 'Cura quotidiana' }] } : page)
+  mount(<HomePage />)
+  await screen.findByRole('heading', { name: 'Olio barba' })
+  expect(screen.getByRole('heading', { name: 'La cura continua. Anche a casa.' })).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'Esplora i prodotti' })).toHaveAttribute('href', '/products')
+  expect(screen.getByText('Cura quotidiana')).toBeInTheDocument()
+  expect(screen.queryByText('Featured products')).not.toBeInTheDocument()
 })

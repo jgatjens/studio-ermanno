@@ -115,14 +115,14 @@ Admin users and service providers are separate concepts.
 
 ## Service Providers
 
-Barber / Service Provider profiles represent people who perform services.
+Hairdresser / Service Provider profiles represent people who perform services.
 
-A Barber may exist without admin access.
+A Hairdresser may exist without admin access.
 
 For the MVP:
 
-- All active Barbers share the same business hours.
-- All active Barbers can perform all active services.
+- All active Hairdressers share the same business hours.
+- All active Hairdressers can perform all active services.
 - Barber-specific schedules are not required.
 - Barber-specific service assignments are not required.
 
