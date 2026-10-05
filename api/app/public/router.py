@@ -25,7 +25,8 @@ def business_info(response: Response, session: Session = Depends(get_session)):
     for day in range(7):
         hour = hours.get(day)
         closed = hour is None or hour.is_closed
-        result['hours'].append(dict(day_of_week=day, is_closed=closed, opening_time=None if closed else hour.opening_time, closing_time=None if closed else hour.closing_time))
+        result['hours'].append(dict(day_of_week=day, is_closed=closed, opening_time=None if closed else hour.opening_time, closing_time=None if closed else hour.closing_time,
+                                   break_start=None if closed else hour.break_start, break_end=None if closed else hour.break_end))
     return result
 
 def catalog(session, response, model, fields, limit, offset):

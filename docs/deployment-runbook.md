@@ -57,7 +57,7 @@ APP_ENV_FILE=.env.production python -m alembic upgrade head
 APP_ENV_FILE=.env.production python -m alembic current
 ```
 
-Expected release head is `0002_phase7`. Run this once serially, never per worker startup. If a paid Render service provides a pre-deploy command, use `python -m alembic upgrade head` there for future releases; otherwise use the explicit operator procedure. Never use `stamp` to hide a mismatch.
+Expected release head is `0003_split_hours`. Run this once serially, never per worker startup. If a paid Render service provides a pre-deploy command, use `python -m alembic upgrade head` there for future releases; otherwise use the explicit operator procedure. Never use `stamp` to hide a mismatch. The split-hours migration preserves existing schedules. Its downgrade refuses to remove configured breaks; resolve those schedules explicitly before rollback.
 
 Do not run development seed in production. Provision/review the real Business and existing required configuration using a reviewed administrative procedure. Record the Business UUID privately in the operational configuration. Set `PUBLIC_BUSINESS_ID` to that UUID. Map the real Supabase user UUIDs to `admin_memberships` with `OWNER` or `STAFF` and the same business; inspect the schema's constraints and existing membership rows before writing. Do not create conflicting memberships. Retain table RLS and do not grant anonymous/browser business-table access.
 

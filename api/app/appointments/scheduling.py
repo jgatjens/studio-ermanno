@@ -20,6 +20,8 @@ def check_hours(start, end, zone, hours):
     if (day is None or day.is_closed or start.date() != end.date()
             or start.time() < day.opening_time or end.time() > day.closing_time):
         conflict("outside_business_hours", "Appointment must fit within an open business day.")
+    if day.break_start is not None and start.time() < day.break_end and end.time() > day.break_start:
+        conflict("outside_business_hours", "Appointment must fit within one opening period.")
 
 
 def check_capacity(start, end, barber_id, active_barbers, reservations):

@@ -90,7 +90,7 @@ def appointment(session, catalog, **overrides):
 def test_migration_roundtrip_and_metadata(database):
     connection, schema = database
     assert set(inspect(connection).get_table_names(schema=schema)) == set(Base.metadata.tables) | {"alembic_version"}
-    assert connection.scalar(text(f'SELECT version_num FROM "{schema}".alembic_version')) == "0002_phase7"
+    assert connection.scalar(text(f'SELECT version_num FROM "{schema}".alembic_version')) == "0003_split_hours"
     assert compare_metadata(MigrationContext.configure(connection, opts={"compare_type": True}), Base.metadata) == []
     protected = connection.scalar(text("SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = :schema AND c.relrowsecurity"), {"schema": schema})
     assert protected == 12
@@ -235,3 +235,33 @@ def test_seed_refuses_production(session):
             frontend_origin="https://business.pages.dev", supabase_url="https://project.supabase.co",
             public_business_id=BUSINESS_ID))
     assert session.scalar(select(func.count()).select_from(Business)) == 0
+
+
+@pytest.mark.parametrize('invalid', ['partial', 'reversed', 'at_open', 'at_close', 'closed'])
+def test_split_hours_database_constraint(session, catalog, invalid):
+    row = session.scalar(select(BusinessHours).where(BusinessHours.business_id == BUSINESS_ID, BusinessHours.day_of_week == 0))
+    from datetime import time
+    row.break_start, row.break_end = time(12), time(14)
+    session.flush()
+    if invalid == 'partial': row.break_end = None
+    elif invalid == 'reversed': row.break_end = time(11)
+    elif invalid == 'at_open': row.break_start = row.opening_time
+    elif invalid == 'at_close': row.break_end = row.closing_time
+    else: row.is_closed = True
+    with pytest.raises(IntegrityError):
+        session.flush()
+
+
+def test_split_hours_downgrade_preserves_configured_closure(database, session, catalog):
+    from datetime import time
+    connection, schema = database
+    row = session.scalar(select(BusinessHours).where(BusinessHours.business_id == BUSINESS_ID, BusinessHours.day_of_week == 0))
+    row.break_start, row.break_end = time(12), time(14)
+    session.flush()
+    config = Config('alembic.ini')
+    config.attributes.update(connection=connection, test_schema=schema)
+    with pytest.raises(RuntimeError, match='Cannot downgrade'):
+        command.downgrade(config, '0002_phase7')
+    assert connection.scalar(text(f'SELECT version_num FROM "{schema}".alembic_version')) == '0003_split_hours'
+    session.refresh(row)
+    assert (row.break_start, row.break_end) == (time(12), time(14))

@@ -1,6 +1,6 @@
 # Phase 12 — Deployment preparation verification
 
-Date: 2026-10-05. Status: locally verified preparation; **deployment is not complete**. The user created a separate production Supabase project. No live Cloudflare Pages/Render resources or production migration have been created by this task. Phase 13 remains deferred.
+Date: 2026-10-05. Status: locally verified preparation; **deployment is not complete**. The user created a separate production Supabase project. No live Cloudflare Pages/Render resources have been created yet. Production migrations and initial business configuration are complete. Phase 13 remains deferred.
 
 ## Created and changed
 
@@ -15,7 +15,7 @@ Date: 2026-10-05. Status: locally verified preparation; **deployment is not comp
 - `api/tests/test_deployment.py` and `web/src/deployment.test.ts` cover changed operational behavior. The existing production-seed test fixture now provides valid production configuration so it continues to verify the actual seed guard.
 - Root README, docs index and `docs/deployment-runbook.md` document setup, exact provider settings, migrations, verification and rollback.
 
-No business feature, domain migration, Storage usage, Docker, CI/CD, Redux, provider SDK or new role was added.
+The user explicitly approved a scoped launch fix for split opening periods. Optional midday break fields, validation, appointment exclusion, privacy-safe availability, Owner editing, Staff display and public contact hours were added with migration `0003_split_hours`. Existing schedules remain unchanged. No Storage usage, Docker, CI/CD, provider SDK or new role was added.
 
 ## Verification results
 
@@ -23,11 +23,11 @@ No business feature, domain migration, Storage usage, Docker, CI/CD, Redux, prov
 | --- | --- |
 | Python production runtime | 3.12.14 in an isolated local virtual environment |
 | Node frontend runtime | 22.23.2 |
-| Final default backend suite | 252 passed, 36 PostgreSQL cases explicitly skipped |
-| PostgreSQL regression coverage | All 36 cases pass across the full run and corrected seed-guard rerun; see run details below |
-| Frontend suite | 136 passed across 15 files |
+| Final default backend suite | 268 passed, 42 PostgreSQL cases explicitly skipped |
+| PostgreSQL regression coverage | All 42 current database cases passed across isolated runs: 24 Phase 1, 1 downgrade guard, 17 domain regressions |
+| Frontend suite | 138 passed across 15 files |
 | TypeScript | `npm run typecheck` passed |
-| Frontend build | Passed; 162 modules, JS 643.04 kB / gzip 185.59 kB; existing >500 kB warning remains |
+| Frontend build | Passed; 163 modules, JS 643.65 kB / gzip 185.78 kB; existing >500 kB warning remains |
 | Development database connectivity | `python -m app.db.check` passed under Python 3.12 |
 | Development Alembic connectivity | `python -m alembic current`: `0002_phase7 (head)` |
 | Local live API | `/health` returned `{status: "ok"}` |
@@ -39,7 +39,7 @@ Full PostgreSQL-enabled Python 3.12 run collected 285 cases before the final two
 
 The initial default suite also identified that catching exceptions in development would break rollback tests' error assertions. Production-only sanitization preserved development debugging and rollback verification; subsequent default suites passed. The bundled Python runtime needed sandbox permission for loopback test servers; the permitted rerun passed. Package resolution is constrained to the existing baseline rather than silently upgrading during deployment.
 
-No tests or migrations were run against a production database. PostgreSQL integration checks used disposable schemas on the existing development project.
+PostgreSQL integration tests used disposable schemas on the existing development project. The production migration was then applied serially, verified at `0003_split_hours`, and one confirmed business with seven schedules was provisioned. No sample domain records were copied. A local production-configured API returned the correct public business and hours; `/health` returned 200 with exact Pages-origin CORS.
 
 ## Confirmed decisions and hosting preparation
 
@@ -47,18 +47,18 @@ No tests or migrations were run against a production database. PostgreSQL integr
 - User selected free-tier deployment and a separate production Supabase project.
 - Chrome is signed in to Render, Cloudflare and Supabase. No need to share account passwords in chat.
 - Render form is prepared for public repository deployment as `studio-ermanno-api`, root `api`, documented Uvicorn command, free compute, Frankfurt region. No deploy submitted; no URL allocated yet.
-- Cloudflare Pages Git integration is scoped to `jgatjens/studio-ermanno`. The user approved the displayed permissions; GitHub account reauthentication is still required before installation completes.
+- Cloudflare Pages Git integration is scoped to `jgatjens/studio-ermanno`. The user approved the displayed permissions; GitHub account reauthentication completed and the integration is installed.
 - The user created `studio-ermanno-production`, project `jsgcfmzttoajmbwgbgmt`, in Frankfurt (`eu-central-1`), with Data API and automatic table exposure disabled. Auth remains part of the architecture. Public project URL is `https://jsgcfmzttoajmbwgbgmt.supabase.co`; no password was shared with the agent.
-- Ignored `api/.env.production` is created with mode 0600 and nonsecret project settings. Its database URL is empty; its proposed frontend origin must be replaced by the allocated canonical origin before deployment. A new Business UUID is reserved locally for reviewed setup, not copied from development.
+- Ignored `api/.env.production` is created with mode 0600 and nonsecret project settings. The user saved its private database URL and a production connectivity check passed; its proposed frontend origin must be replaced by the allocated canonical origin before deployment. A new Business UUID is reserved locally for reviewed setup, not copied from development.
 
 Prepared names are proposals, not reserved URLs. Free Render cold starts and feature limits must be verified on the actual deployed service. A custom domain is not required for the first release.
 
-The user confirmed production name **Minati Parrucchieri**, public phone **0461 765351**, Tuesday–Saturday **08:00–12:00 and 14:00–19:00** in Europe/Rome, and use of the supplied photos. Public email can remain blank. The current model supports one continuous opening period per weekday; the lunch closure cannot be represented correctly without a scoped change or an explicitly approved temporary schedule. This is a launch blocker awaiting the user's choice, not grounds to silently configure 08:00–19:00.
+The user confirmed production name **Minati Parrucchieri**, public phone **0461 765351**, Tuesday–Saturday **08:00–12:00 and 14:00–19:00** in Europe/Rome, and use of the supplied photos. Public email can remain blank. The user approved split opening periods before launch. The implementation represents an outer 08:00–19:00 span with a 12:00–14:00 closure; appointments and public availability exclude that closure. Monday and Sunday are assumed closed; currency is EUR.
 
 ## Remaining setup and live acceptance
 
-1. Obtain the new project's production session-pooler URL securely and enter it locally in ignored `api/.env.production`. Do not send the password or complete credential URL in chat.
-2. Resolve the confirmed split opening hours, and provision reviewed business configuration. The supplied address is Via Vittorio Emanuele 114, 38055 Grigno (TN), Italia. Production starts without sample clients, appointments, services or products; real catalog/barber/stock setup remains an Owner task.
+1. Production connection is configured securely and verified. Do not send the password or complete credential URL in chat.
+2. Split opening periods are implemented and tested; provision reviewed business configuration. The supplied address is Via Vittorio Emanuele 114, 38055 Grigno (TN), Italia. Production starts without sample clients, appointments, services or products; real catalog/barber/stock setup remains an Owner task.
 3. Create production Owner/Staff Auth users and memberships for the confirmed Business; provision reviewed business configuration and apply migrations serially.
 4. Finalize frontend/backend URLs, exact-origin CORS and Supabase Auth URLs. Configure runtime/build environments and public Auth key.
 5. Complete Git integration authorization and any browser-required confirmation for credential transmission/public resource exposure at the actual action. Keep integration access limited to the intended repository.
@@ -67,3 +67,7 @@ The user confirmed production name **Minati Parrucchieri**, public phone **0461 
 8. Confirm backup/recovery and application rollback procedure; do not automate destructive database downgrade/restore.
 
 Previously shared development database/password and privileged Supabase key should be rotated by the user. They are not production credentials. No live deployment or end-to-end deployed validation is claimed until these setup steps have evidence.
+
+## Split-hours verification update
+
+The default backend rerun passed 268 tests with 41 database tests skipped before adding one database-only downgrade guard. The Phase 1 database suite passed all 24 cases (309.35 seconds); the additional configured-closure downgrade guard passed separately (37.51 seconds). Frontend tests passed 138 cases; TypeScript and build passed. The remaining 17 database regression cases passed (225.49 seconds). The final default backend run passed 268 with 42 skipped (13.16 seconds): total 310 distinct backend cases verified across runs. Hosting deployment is in progress. Production database connectivity passed. The user explicitly approved sending the production database credential to backend Render environment settings and publishing the free-tier API/frontend; those settings have been entered without displaying credentials.

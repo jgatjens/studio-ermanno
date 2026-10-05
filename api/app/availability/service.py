@@ -72,14 +72,21 @@ def availability(session, start, days):
     for day in dates:
         hours_day = hours.get(day.weekday())
         if hours_day is None or hours_day.is_closed:
-            windows.append(None)
+            windows.append([])
         else:
             left = boundary(day, hours_day.opening_time, zone, True)
             right = boundary(day, hours_day.closing_time, zone, False)
             if right <= left:
                 raise HTTPException(503, 'Availability hours are unavailable')
-            windows.append((left, right))
-    open_windows = [window for window in windows if window]
+            if hours_day.break_start is not None:
+                pause = boundary(day, hours_day.break_start, zone, True)
+                resume = boundary(day, hours_day.break_end, zone, False)
+                if not left < pause < resume < right:
+                    raise HTTPException(503, 'Availability hours are unavailable')
+                windows.append([(left, pause), (resume, right)])
+            else:
+                windows.append([(left, right)])
+    open_windows = [window for periods in windows for window in periods]
     reservations = []
     if open_windows:
         reservations = session.execute(select(Appointment.scheduled_start, Appointment.scheduled_end).where(
@@ -88,15 +95,15 @@ def availability(session, start, days):
             Appointment.scheduled_end > min(window[0] for window in open_windows),
         )).all()
     items = []
-    for day, window in zip(dates, windows):
+    for day, periods in zip(dates, windows):
         intervals = []
-        if window:
-            left, closing = window
-            while left < closing:
-                right = min(left + timedelta(minutes=INTERVAL_MINUTES), closing)
-                state = interval_state(capacity, peak_occupancy(left, right, reservations))
-                intervals.append(dict(start=left, end=right, state=state))
-                left = right
+        if periods:
+            for left, closing in periods:
+                while left < closing:
+                    right = min(left + timedelta(minutes=INTERVAL_MINUTES), closing)
+                    state = interval_state(capacity, peak_occupancy(left, right, reservations))
+                    intervals.append(dict(start=left, end=right, state=state))
+                    left = right
             states = {row['state'] for row in intervals}
             state = 'AVAILABLE' if 'AVAILABLE' in states else 'LIMITED' if 'LIMITED' in states else 'FULL'
         else:

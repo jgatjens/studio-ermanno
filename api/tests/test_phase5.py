@@ -150,7 +150,7 @@ def test_completed_detail_privacy_and_immutable(booking):
 def test_timezone_boundary_and_offsets(booking):
     from app.appointments.scheduling import check_hours
     from types import SimpleNamespace
-    hours=[SimpleNamespace(day_of_week=6,is_closed=False,opening_time=time(1),closing_time=time(4))]
+    hours=[SimpleNamespace(day_of_week=6,is_closed=False,opening_time=time(1),closing_time=time(4),break_start=None,break_end=None)]
     # Both occurrences of 02:30 local are valid explicit instants; duration is elapsed time.
     for start in [datetime(2026,10,25,0,30,tzinfo=timezone.utc),datetime(2026,10,25,1,30,tzinfo=timezone.utc)]:
         check_hours(start,start+timedelta(minutes=15),'Europe/Rome',hours)

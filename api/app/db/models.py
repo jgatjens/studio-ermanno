@@ -261,9 +261,12 @@ class BusinessHours(Identity, Updated, Owned, Base):
         UniqueConstraint("business_id", "day_of_week", name="uq_business_hours_day"),
         CheckConstraint("day_of_week BETWEEN 0 AND 6", name="ck_business_hours_day"),
         CheckConstraint("is_closed OR (opening_time IS NOT NULL AND closing_time IS NOT NULL AND closing_time > opening_time)", name="ck_business_hours_times"),
+        CheckConstraint("(break_start IS NULL AND break_end IS NULL) OR (NOT is_closed AND break_start IS NOT NULL AND break_end IS NOT NULL AND opening_time IS NOT NULL AND closing_time IS NOT NULL AND opening_time < break_start AND break_start < break_end AND break_end < closing_time)", name="ck_business_hours_break"),
     )
     # ISO-style Python weekday: Monday=0, Sunday=6. Times are local to Business.timezone.
     day_of_week: Mapped[int] = mapped_column(Integer)
     opening_time: Mapped[Optional[time]] = mapped_column(Time)
     closing_time: Mapped[Optional[time]] = mapped_column(Time)
+    break_start: Mapped[Optional[time]] = mapped_column(Time)
+    break_end: Mapped[Optional[time]] = mapped_column(Time)
     is_closed: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())

@@ -13,16 +13,24 @@ class DayData(BaseModel):
     day_of_week: int = Field(ge=0, le=6, strict=True)
     opening_time: Optional[time] = None
     closing_time: Optional[time] = None
+    break_start: Optional[time] = None
+    break_end: Optional[time] = None
     is_closed: bool
 
     @model_validator(mode="after")
     def valid_times(self):
         if self.is_closed:
             self.opening_time = self.closing_time = None
+            self.break_start = self.break_end = None
         elif (self.opening_time is None or self.closing_time is None
               or self.opening_time.tzinfo is not None or self.closing_time.tzinfo is not None
               or self.closing_time <= self.opening_time):
             raise ValueError("Open days need local opening and closing times in order")
+        elif self.break_start is not None or self.break_end is not None:
+            if (self.break_start is None or self.break_end is None
+                    or self.break_start.tzinfo is not None or self.break_end.tzinfo is not None
+                    or not self.opening_time < self.break_start < self.break_end < self.closing_time):
+                raise ValueError("Break times must be local and strictly inside opening hours")
         return self
 
 class WeekData(BaseModel):
@@ -53,5 +61,6 @@ def update(data: WeekData, actor: AuthenticatedActor = Depends(require_owner), s
             record = BusinessHours(business_id=actor.business_id, day_of_week=day.day_of_week)
             session.add(record)
         record.opening_time, record.closing_time, record.is_closed = day.opening_time, day.closing_time, day.is_closed
+        record.break_start, record.break_end = day.break_start, day.break_end
     session.commit()
     return read(actor, session)

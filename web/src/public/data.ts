@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { apiRequest } from '@/lib/api'
-export type Business = { name: string; description: string | null; address: string | null; phone: string | null; email: string | null; whatsapp: string | null; instagram: string | null; timezone: string; currency: string; hours: { day_of_week: number; opening_time: string | null; closing_time: string | null; is_closed: boolean }[] }
+import type { DayHours } from '@/lib/business-hours'
+export type Business = { name: string; description: string | null; address: string | null; phone: string | null; email: string | null; whatsapp: string | null; instagram: string | null; timezone: string; currency: string; hours: DayHours[] }
 export type Item = { name: string; description?: string | null; duration_minutes?: number; price?: string; retail_price?: string; brand?: string | null; category?: string | null }
 export type Page<T> = { items: T[]; total: number; limit: number; offset: number }
 export type Review = { name: string; rating: number; comment: string; created_at: string }
