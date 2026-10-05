@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight, Info, RefreshCw, ArrowRight, Phone, Clock } from 'lucide-react'
 import { apiRequest } from '@/lib/api'
 import { formatHours } from '@/lib/business-hours'
-import { gallery, hero } from '@/public/content'
+import { availabilityHero as hero, availabilityHelpImage } from '@/public/content'
 import { contactLinks, usePublic, type Business } from '@/public/data'
 
 type State = 'AVAILABLE' | 'LIMITED' | 'FULL' | 'CLOSED'
@@ -110,7 +110,7 @@ export function AvailabilityPage() {
       </section>
     </section>
     <section className="availability-help" aria-labelledby="availability-help-title">
-      <img src={gallery[2].src} srcSet={gallery[2].srcSet} sizes="(min-width: 768px) 25vw, 100vw" alt={gallery[2].alt} width={gallery[2].width} height={gallery[2].height} loading="lazy" />
+      <img src={availabilityHelpImage.src} srcSet={availabilityHelpImage.srcSet} sizes="(min-width: 768px) 25vw, 100vw" alt={availabilityHelpImage.alt} width={availabilityHelpImage.width} height={availabilityHelpImage.height} loading="lazy" />
       <div><p className="availability-eyebrow">Hai bisogno di aiuto?</p><h2 id="availability-help-title">Preferisci contattarci<br />direttamente?</h2><p>Puoi scriverci, chiamarci o passare in salone. Saremo felici di aiutarti a trovare il momento migliore per te.</p><div className="availability-contact-actions">{contact.map(link => <a href={link.href} key={link.label} {...(link.href.startsWith('https:') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{link.label === 'Call' && <Phone size={16} />}{link.label === 'Call' ? 'Chiama' : link.label}<ArrowRight size={16} /></a>)}</div>{business.error && <p>Contatti non disponibili. <button type="button" onClick={business.retry}>Riprova</button></p>}{!business.data && !business.error && <p role="status">Caricamento contatti…</p>}{business.data && !contact.length && <a href="/contact">Informazioni di contatto <ArrowRight size={16} /></a>}</div>
       <div className="availability-help-hours"><p className="availability-eyebrow"><Clock size={18} /> I nostri orari</p>{business.data?.hours.length ? <dl>{business.data.hours.slice().sort((a, b) => a.day_of_week - b.day_of_week).map(hour => <div key={hour.day_of_week}><dt>{fullWeekdays[hour.day_of_week]}</dt><dd>{hour.is_closed ? 'Chiuso' : formatHours(hour)}</dd></div>)}</dl> : <p>Consulta il salone per gli orari di apertura.</p>}</div>
     </section>

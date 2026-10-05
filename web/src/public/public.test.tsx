@@ -21,7 +21,7 @@ test('Home follows section order, hides empty products/reviews and retains indep
 test('independent section failure retries without losing hero; unknown currency withheld', async () => {
   vi.mocked(apiRequest).mockImplementation(async path => { if (path === '/public/business') throw Error('offline'); if (path.includes('/services')) return { ...page, items: [{ name: 'Cut', price: '12.50', duration_minutes: 30 }] }; return page })
   mount(<HomePage />); await screen.findByText('Cut'); expect(screen.getByText('Price information unavailable')).toBeInTheDocument(); expect(screen.queryByRole('link', {name:'Directions'})).not.toBeInTheDocument()
-  fireEvent.click(screen.getAllByRole('button', {name:'Try again'})[0]); await waitFor(() => expect(vi.mocked(apiRequest).mock.calls.filter(([p]) => p === '/public/business')).toHaveLength(2))
+  fireEvent.click(screen.getAllByRole('button', {name:'Try again'})[0]); await waitFor(() => expect(vi.mocked(apiRequest).mock.calls.filter(([p]) => p === '/public/business')).toHaveLength(3))
 })
 test('catalog paginates, renders public information and currency safely', async () => {
   vi.mocked(apiRequest).mockImplementation(async path => path === '/public/business' ? {...business,currency:'invalid'} : { ...page, total: 13, items: [{ name:'Cut',price:'12.50',duration_minutes:30,description:'Simple cut' }] })
@@ -34,7 +34,7 @@ test('contact links validate hosts/protocols and encode maps address', () => {
   expect(price('12.50',undefined)).toBe('Price information unavailable')
 })
 test('mobile disclosure has controls, Escape returns focus, navigation closes', async () => {
-  mount(<GalleryPage />); const menu=screen.getByRole('button',{name:'Menu'}); fireEvent.click(menu); expect(menu).toHaveAttribute('aria-expanded','true'); fireEvent.keyDown(screen.getByRole('navigation',{name:'Public'}),{key:'Escape'}); expect(menu).toHaveFocus(); expect(menu).toHaveAttribute('aria-expanded','false'); fireEvent.click(menu); fireEvent.click(screen.getByRole('link',{name:'Services'})); await waitFor(()=>expect(menu).toHaveAttribute('aria-expanded','false')); expect(screen.getByText('Skip to content')).toHaveAttribute('href','#public-main')
+  mount(<GalleryPage />); const menu=screen.getByRole('button',{name:'Menu'}); fireEvent.click(menu); expect(menu).toHaveAttribute('aria-expanded','true'); fireEvent.keyDown(screen.getByRole('navigation',{name:'Public'}),{key:'Escape'}); expect(menu).toHaveFocus(); expect(menu).toHaveAttribute('aria-expanded','false'); fireEvent.click(menu); fireEvent.click(screen.getAllByRole('link',{name:'Servizi'})[0]); await waitFor(()=>expect(menu).toHaveAttribute('aria-expanded','false')); expect(screen.getByText('Skip to content')).toHaveAttribute('href','#public-main')
 })
 test('gallery unavailable, FAQ disclosure and route metadata', () => {
   const view=mount(<GalleryPage />,'/gallery'); expect(screen.getAllByRole('img')).toHaveLength(3); for (const image of screen.getAllByRole('img')) { expect(image).toHaveAttribute('alt'); expect(image).toHaveAttribute('width', '960'); expect(image).toHaveAttribute('loading','lazy') }; expect(document.title).toBe('Gallery'); view.unmount(); mount(<FaqPage />,'/faq'); const summary=screen.getByText('How do I arrange a visit?'); expect(summary.tagName).toBe('SUMMARY'); expect(document.title).toBe('FAQ')

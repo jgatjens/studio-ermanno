@@ -2,21 +2,84 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { beforeEach, expect, test, vi } from 'vitest'
 import { AvailabilityPage } from './availability'
 import { apiRequest } from '@/lib/api'
-vi.mock('@/lib/api', async original => ({ ...await original<typeof import('@/lib/api')>(), apiRequest: vi.fn() }))
-const data = { timezone: 'Europe/Rome', interval_minutes: 30, start: '2026-10-05', days: 2, items: [
+vi.mock('@/lib/api', () => ({ apiRequest: vi.fn() }))
+const business = { name: 'Studio', timezone: 'Europe/Rome', phone: '+39123456789', whatsapp: '+39123456789', hours: [{ day_of_week: 1, is_closed: false, opening_time: '08:00', closing_time: '19:00', break_start: '12:00', break_end: '14:00' }] }
+const items = [
   { date: '2026-10-05', state: 'AVAILABLE', intervals: [
     { start: '2026-10-05T07:00:00Z', end: '2026-10-05T07:30:00Z', state: 'AVAILABLE' },
     { start: '2026-10-05T07:30:00Z', end: '2026-10-05T08:00:00Z', state: 'LIMITED' },
     { start: '2026-10-05T08:00:00Z', end: '2026-10-05T08:30:00Z', state: 'FULL' },
-  ] }, { date: '2026-10-06', state: 'CLOSED', intervals: [] },
-] }
-beforeEach(() => { vi.resetAllMocks(); vi.mocked(apiRequest).mockResolvedValue(data) })
-test('initial request is anonymous and defaults to backend-local today', async () => { render(<AvailabilityPage />); expect(screen.getByText('Loading availability…')).toBeInTheDocument(); await screen.findByText(/Business timezone: Europe\/Rome/); expect(apiRequest).toHaveBeenCalledWith('/public/availability?days=7', expect.objectContaining({ protected: false, cache: 'no-store' })); expect(screen.queryByText(/book now/i)).not.toBeInTheDocument(); expect(screen.getByText(/does not reserve a time/)).toBeInTheDocument() })
-test('states and times render in business timezone with UTC offsets', async () => { render(<AvailabilityPage />); await screen.findByText(/Business timezone/); const list = within(screen.getByRole('region', { name: 'Selected day' })); expect(list.getByText(/09:00 GMT\+2/)).toHaveTextContent('Available'); expect(list.getByText(/09:30 GMT\+2.*Limited/)).toBeInTheDocument(); expect(list.getByText(/10:00 GMT\+2.*Full/)).toBeInTheDocument() })
-test('selecting closed date shows no open intervals', async () => { render(<AvailabilityPage />); await screen.findByText(/Business timezone/); fireEvent.click(screen.getByRole('button', { name: /Oct 6, 2026.*Closed/ })); expect(screen.getByText('The business is closed on this date.')).toBeInTheDocument(); expect(screen.queryByRole('list')).not.toBeInTheDocument() })
-test('date range form sends bounded explicit dates', async () => { render(<AvailabilityPage />); await screen.findByText(/Business timezone/); fireEvent.change(screen.getByLabelText('Start date (optional)'), { target: { value: '2026-10-25' } }); fireEvent.change(screen.getByLabelText('Days'), { target: { value: '14' } }); fireEvent.click(screen.getByText('Check dates')); await waitFor(() => expect(apiRequest).toHaveBeenCalledWith('/public/availability?days=14&start=2026-10-25', expect.anything())) })
-test('error retry reloads same range and retains inputs', async () => { vi.mocked(apiRequest).mockRejectedValue(new Error('Unavailable')); render(<AvailabilityPage />); await screen.findByText('Unavailable'); expect(screen.queryByRole('region', { name: 'Selected day' })).not.toBeInTheDocument(); vi.mocked(apiRequest).mockResolvedValue(data); fireEvent.click(screen.getByText('Retry availability')); await screen.findByText(/Business timezone/); expect(apiRequest).toHaveBeenCalledTimes(2) })
-test('refresh clears previous intervals while new request is pending', async () => { render(<AvailabilityPage />); await screen.findByText(/Business timezone/); vi.mocked(apiRequest).mockReturnValue(new Promise(() => {})); fireEvent.click(screen.getByText('Refresh availability')); await screen.findByText('Loading availability…'); expect(screen.queryByRole('region', { name: 'Selected day' })).not.toBeInTheDocument() })
-test('empty dates response is explicit', async () => { vi.mocked(apiRequest).mockResolvedValue({ ...data, items: [] }); render(<AvailabilityPage />); await screen.findByText('No availability dates returned.'); expect(screen.queryByRole('region', { name: 'Selected day' })).not.toBeInTheDocument() })
-test('repeated DST times have distinct displayed offsets', async () => { vi.mocked(apiRequest).mockResolvedValue({ ...data, start: '2026-10-25', items: [{ date: '2026-10-25', state: 'AVAILABLE', intervals: [ { start: '2026-10-25T00:00:00Z', end: '2026-10-25T00:30:00Z', state: 'AVAILABLE' }, { start: '2026-10-25T01:00:00Z', end: '2026-10-25T01:30:00Z', state: 'AVAILABLE' } ] }] }); render(<AvailabilityPage />); await screen.findByText(/02:00 GMT\+2/); expect(screen.getByText(/02:00 GMT\+1/)).toBeInTheDocument() })
-test('old request is aborted and cannot replace newer availability', async () => { let resolveOld: (value: typeof data) => void = () => {}; vi.mocked(apiRequest).mockImplementationOnce(() => new Promise(resolve => { resolveOld = resolve })); render(<AvailabilityPage />); fireEvent.change(screen.getByLabelText('Start date (optional)'), { target: { value: '2026-10-06' } }); fireEvent.click(screen.getByText('Check dates')); await screen.findByText(/Business timezone/); const signal = vi.mocked(apiRequest).mock.calls[0][1]?.signal; expect(signal?.aborted).toBe(true); resolveOld({ ...data, timezone: 'UTC' }); await waitFor(() => expect(screen.queryByText(/Business timezone: UTC/)).not.toBeInTheDocument()) })
+    { start: '2026-10-05T12:00:00Z', end: '2026-10-05T12:30:00Z', state: 'AVAILABLE' },
+  ] },
+  { date: '2026-10-06', state: 'CLOSED', intervals: [] },
+  { date: '2026-10-07', state: 'FULL', intervals: [{ start: '2026-10-07T07:00:00Z', end: '2026-10-07T07:30:00Z', state: 'FULL' }] },
+]
+function response(path: string, dates = items) {
+  const query = new URLSearchParams(path.split('?')[1])
+  const start = query.get('start') || '2026-10-05'
+  const days = Number(query.get('days'))
+  const end = new Date(`${start}T12:00:00Z`); end.setUTCDate(end.getUTCDate() + days)
+  return { timezone: 'Europe/Rome', interval_minutes: 30, start, days, items: dates.filter(day => day.date >= start && day.date < end.toISOString().slice(0, 10)) }
+}
+beforeEach(() => { vi.resetAllMocks(); vi.mocked(apiRequest).mockImplementation(async path => path === '/public/business' ? business : response(path)) })
+async function loaded() { await screen.findByText('09:00') }
+test('uses backend-local today and bounded anonymous month requests', async () => {
+  render(<AvailabilityPage />); expect(screen.getByText('Caricamento disponibilità…')).toBeInTheDocument(); await loaded()
+  for (const [path, options] of vi.mocked(apiRequest).mock.calls) {
+    expect(options).toMatchObject({ protected: false, cache: 'no-store' })
+    if (path.includes('availability')) expect(Number(new URLSearchParams(path.split('?')[1]).get('days'))).toBeLessThanOrEqual(14)
+  }
+  for (const query of ['days=14&start=2026-10-01', 'days=14&start=2026-10-15', 'days=3&start=2026-10-29']) expect(apiRequest).toHaveBeenCalledWith(`/public/availability?${query}`, expect.anything())
+  expect(screen.getByRole('button', { name: 'Mese precedente' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: /^domenica 4 ottobre 2026/ })).toBeDisabled()
+})
+test('only available spots are displayed as read-only times, including split hours', async () => {
+  render(<AvailabilityPage />); await loaded()
+  const times = within(screen.getByRole('region', { name: /lunedì 5 ottobre/ }))
+  expect(times.getByText('09:30')).toBeInTheDocument(); expect(times.getByText('14:00')).toBeInTheDocument()
+  expect(times.queryByText('10:00')).not.toBeInTheDocument()
+  expect(times.getAllByRole('list')).toHaveLength(2)
+  expect(screen.queryByRole('button', { name: /09:00|Continua/ })).not.toBeInTheDocument()
+  expect(screen.getByText(/non riservano un appuntamento/)).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'WhatsApp' })).toHaveAttribute('href', 'https://wa.me/39123456789')
+  expect(screen.getByText('08:00–12:00 · 14:00–19:00')).toBeInTheDocument()
+})
+test('browsing closed and full dates explains absence of available times', async () => {
+  render(<AvailabilityPage />); await loaded()
+  fireEvent.click(screen.getByRole('button', { name: /6 ottobre 2026 · Chiuso/ })); expect(screen.getByText('Il salone è chiuso in questa data.')).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: /7 ottobre 2026 · Completo/ })); expect(screen.getByText('Non ci sono orari disponibili per questa data.')).toBeInTheDocument()
+  expect(screen.queryByText('09:00')).not.toBeInTheDocument()
+})
+test('failed availability can retry while general contacts remain usable', async () => {
+  vi.mocked(apiRequest).mockImplementation(async path => { if (path === '/public/business') return business; throw Error('offline') })
+  render(<AvailabilityPage />); await screen.findByRole('alert'); expect(screen.getByRole('link', { name: 'Chiama' })).toBeInTheDocument()
+  vi.mocked(apiRequest).mockImplementation(async path => path === '/public/business' ? business : response(path))
+  fireEvent.click(screen.getByRole('button', { name: 'Riprova' })); await loaded()
+})
+test('refresh clears old times and revalidates the viewed date', async () => {
+  render(<AvailabilityPage />); await loaded()
+  vi.mocked(apiRequest).mockReturnValue(new Promise(() => {}))
+  fireEvent.click(screen.getByRole('button', { name: 'Aggiorna disponibilità' }))
+  await screen.findByText('Caricamento disponibilità…'); expect(screen.queryByText('09:00')).not.toBeInTheDocument()
+})
+test('empty and missing date data are explicit and not treated as full', async () => {
+  vi.mocked(apiRequest).mockImplementation(async path => path === '/public/business' ? business : response(path, []))
+  render(<AvailabilityPage />); await screen.findByText('Nessuna data disponibile.')
+  expect(screen.getByRole('button', { name: /^lunedì 5 ottobre 2026 · Dati non disponibili/ })).toBeDisabled()
+})
+test('repeated DST times have distinct offsets', async () => {
+  const dates = [{ date: '2026-10-25', state: 'AVAILABLE', intervals: [{ start: '2026-10-25T00:00:00Z', end: '2026-10-25T00:30:00Z', state: 'AVAILABLE' }, { start: '2026-10-25T01:00:00Z', end: '2026-10-25T01:30:00Z', state: 'AVAILABLE' }] }]
+  vi.mocked(apiRequest).mockImplementation(async path => path === '/public/business' ? business : response(path, dates))
+  render(<AvailabilityPage />); await screen.findByText(/02:00 GMT\+2/); expect(screen.getByText(/02:00 GMT\+1/)).toBeInTheDocument()
+})
+test('month navigation aborts old chunks and stale results cannot overwrite the new month', async () => {
+  render(<AvailabilityPage />); await loaded()
+  let resolveOld: (value: unknown) => void = () => {}
+  vi.mocked(apiRequest).mockImplementation(path => path.includes('start=2026-11') ? new Promise(resolve => { resolveOld = resolve }) : Promise.resolve(response(path)))
+  fireEvent.click(screen.getByRole('button', { name: 'Mese successivo' }))
+  await waitFor(() => expect(apiRequest).toHaveBeenCalledWith('/public/availability?days=14&start=2026-11-01', expect.anything()))
+  const oldSignal = vi.mocked(apiRequest).mock.calls.find(([path]) => path.includes('start=2026-11-01'))?.[1]?.signal
+  fireEvent.click(screen.getByRole('button', { name: 'Mese precedente' })); await loaded()
+  expect(oldSignal?.aborted).toBe(true); resolveOld(response('/public/availability?days=14&start=2026-11-01'))
+  expect(screen.getByRole('heading', { name: 'ottobre 2026' })).toBeInTheDocument()
+})

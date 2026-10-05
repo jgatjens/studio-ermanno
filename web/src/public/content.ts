@@ -6,6 +6,9 @@ export const gallery: GalleryImage[] = [
   { src: '/images/street-detail-960.webp', srcSet: '/images/street-detail-480.webp 480w, /images/street-detail-960.webp 960w', alt: 'A scooter beside planters and a bench on a village street', caption: 'A street detail', width: 960, height: 1280, source: 'User-supplied mobile photograph 3, authorized for this website in chat' },
 ]
 export const hero = gallery[1]
+// Independent availability assets; replace these approved photos when dedicated salon images are supplied.
+export const availabilityHero = gallery[1]
+export const availabilityHelpImage = gallery[2]
 export const faq = [
   { question: 'How do I arrange a visit?', answer: 'Check the informational availability view, then contact the business to arrange your visit. The website does not book appointments.' },
   { question: 'Where can I find prices and durations?', answer: 'The Services page lists published prices and durations. Contact the business for guidance on choosing a service.' },

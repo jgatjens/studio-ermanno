@@ -1,6 +1,6 @@
 # Public availability redesign plan
 
-Status: proposed implementation plan, 5 October 2026. No application changes made.
+Status: implemented locally, 5 October 2026. Public header/footer and read-only availability redesign are complete. Dedicated reference photography remains a future asset replacement; existing approved photographs are used through independent availability image exports. No deployment performed.
 
 ## Goal and reference
 
@@ -99,3 +99,12 @@ Done when checks pass, responsive screenshots are reviewable, real business cont
 Recommended reviewable changes: (1) shared public styles/header/footer, (2) availability layout/assets, (3) calendar integration/read-only time display and relevant verification. These can be consecutive commits within one feature branch. Keep the existing admin/client changes separate. Start with the shared foundation because it determines page width, typography and navigation; then build the page-specific hero and calendar.
 
 Open content decisions: exact logo assets, reference-matching photographs, font, final navigation labels, and Italian rollout scope for other pages. Recommended defaults: preserve existing route access, localize the new shell/availability UI, and show available times with general contact options.
+
+## Implementation verification
+
+- TypeScript validation, all 156 frontend tests, and production build passed. Vite reports its existing large JavaScript chunk advisory.
+- Browser checks used the local API: read-only slots, business contact/hours, mobile menu, and responsive layouts at 320, 375, 768, 1024 and 1440px; no horizontal page overflow observed.
+- Shared header/footer smoke-checked on Home, Services, Products, Gallery, Contact, FAQ and Feedback.
+- Availability requests remain anonymous, bounded to 14 days per request, and cancel stale month results. Full/closed time intervals are omitted; selecting a calendar date only changes the displayed day.
+- Tests cover available-only filtering, split hours, business-local dates, DST offsets, empty/error states, refresh and month-navigation races.
+- Local business data currently identifies itself as “Sample Hair Studio”; brand, hours and contact links follow the configured public business response.

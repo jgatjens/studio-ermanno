@@ -215,6 +215,10 @@ The public availability calendar is informational only.
 
 Customers can check whether the business has availability, but they cannot create or modify appointments.
 
+The redesigned `/availability` page uses a Monday-first month calendar. Choosing a date displays only Available and Limited intervals as read-only time spots in the business timezone. Full and Closed intervals are omitted from the time grid. There is no time selection, appointment summary, or Continue action. General contact links and business opening hours remain available below the calendar.
+
+Month data is fetched through anonymous requests of at most 14 days each. Loading, missing data, retry, refresh, and dates with no available spots must be explicit. The page explains that displayed availability is indicative and requires confirmation from the salon.
+
 Public availability is aggregated across active barbers and never exposes individual barber names.
 
 ## Public Availability Information
