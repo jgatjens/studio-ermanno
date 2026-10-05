@@ -1,3 +1,4 @@
+import { ContactHelp } from './contact-help'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { formatHours } from '@/lib/business-hours'
@@ -33,7 +34,7 @@ function Cards({ items, business }: { items: Item[]; business?: Business }) {
           {item.category && <p>{item.category}</p>}
           <p>{item.description}</p>
           {item.duration_minutes !== undefined && <p>{item.duration_minutes} minutes</p>}
-          <p>{price(item.price ?? item.retail_price, business?.currency)}</p>
+          {/* <p>{price(item.price ?? item.retail_price, business?.currency)}</p> */}
         </article>
       ))}
     </div>
@@ -103,7 +104,7 @@ export function Contact({ business }: { business: Business }) {
               <dt>
                 {
                   ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][
-                    hour.day_of_week
+                  hour.day_of_week
                   ]
                 }
               </dt>
@@ -233,7 +234,7 @@ export function HomePage() {
           </div>
         </section>
         <div className="home-more">
-          <section className="public-callout">
+          {/* <section className="public-callout">
             <h2>Plan your visit</h2>
             <p>Explore informational availability, then contact us to arrange a visit.</p>
             <Link to="/availability">Check availability</Link>
@@ -242,7 +243,7 @@ export function HomePage() {
             <h2>A look around</h2>
             <Gallery />
             <Link to="/gallery">View gallery</Link>
-          </section>
+          </section> */}
           {(!products.data || products.data.items.length > 0) && (
             <section>
               <h2>Featured products</h2>
@@ -275,17 +276,13 @@ export function HomePage() {
             </section>
           )}
           <section>
-            <h2>Location and contact</h2>
-            {business.data ? <Contact business={business.data} /> : <State {...business} />}
-            <Link to="/contact">Contact us</Link>
-          </section>
-          <section>
             <h2>Questions before your visit</h2>
             <Faq />
             <Link to="/faq">View FAQ</Link>
           </section>
         </div>
       </div>
+      <ContactHelp business={business} />
     </>
   )
 }

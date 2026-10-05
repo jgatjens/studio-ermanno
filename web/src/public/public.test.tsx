@@ -44,8 +44,8 @@ test('Home follows section order, hides empty products/reviews and retains indep
     'Servizi essenziali.Risultati straordinari.',
     'Plan your visit',
     'A look around',
-    'Location and contact',
     'Questions before your visit',
+    'Preferisci contattarcidirettamente?',
   ])
   expect(screen.queryByText('API Status: Connected')).not.toBeInTheDocument()
   expect(screen.getAllByRole('link', { name: 'Check availability' })[0]).toHaveAttribute(
@@ -68,7 +68,7 @@ test('business failure retries independently while live services and hero remain
   await screen.findByText('Cut')
   expect(screen.getByText('30 min')).toBeInTheDocument()
   expect(screen.queryByRole('link', { name: 'Directions' })).not.toBeInTheDocument()
-  fireEvent.click(screen.getAllByRole('button', { name: 'Try again' })[0])
+  fireEvent.click(await screen.findByRole('button', { name: 'Riprova' }))
   await waitFor(() =>
     expect(vi.mocked(apiRequest).mock.calls.filter(([p]) => p === '/public/business')).toHaveLength(
       3,

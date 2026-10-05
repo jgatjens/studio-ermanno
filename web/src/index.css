@@ -1034,6 +1034,7 @@ body {
 
 /* Editorial public shell and informational availability. All rules are public scoped. */
 .public-site {
+  --public-content-gutter: max(1rem, calc((100% - 1160px) / 2));
   --public-paper: #faf7f2;
   --public-ink: #191c19;
   --public-line: #e1dbd3;
@@ -1482,6 +1483,9 @@ body {
   color: var(--public-ink);
 }
 @media (max-width: 1023px) {
+  .public-site {
+    --public-content-gutter: 1.5rem;
+  }
   .public-header {
     padding-inline: 1.5rem;
   }
@@ -1500,6 +1504,9 @@ body {
   }
 }
 @media (max-width: 767px) {
+  .public-site {
+    --public-content-gutter: 1.25rem;
+  }
   .public-header {
     padding: 1rem 1.25rem;
     min-height: 78px;
@@ -2738,8 +2745,9 @@ body {
 }
 .home-hero-copy {
   position: relative;
-  padding: 64px 5vw;
-  max-width: 740px;
+  padding: 64px 0;
+  margin-left: var(--public-content-gutter);
+  width: min(600px, calc(100% - 2 * var(--public-content-gutter)));
 }
 .home-hero h1 {
   font-size: clamp(4rem, 6.8vw, 7rem);
@@ -2775,8 +2783,7 @@ body {
   text-shadow: 0 1px 5px #000;
 }
 .home-content {
-  max-width: 1440px;
-  padding: 48px 5vw 0;
+  padding: 48px var(--public-content-gutter) 0;
   margin: auto;
 }
 .home-studio {
@@ -2910,7 +2917,9 @@ body {
     top: auto;
   }
   .home-hero-copy {
-    padding: 32px 6vw 28px;
+    padding: 32px var(--public-content-gutter) 28px;
+    margin-left: 0;
+    width: 100%;
     background: #e8e1d7;
   }
   .home-hero h1 {
@@ -2932,7 +2941,7 @@ body {
     right: 6vw;
   }
   .home-content {
-    padding: 32px 6vw 0;
+    padding: 32px var(--public-content-gutter) 0;
   }
   .home-studio,
   .home-services {
@@ -2996,4 +3005,7 @@ body {
     position: relative;
     order: -1;
   }
+}
+.public-main.public-main-home > .availability-help {
+  margin-bottom: 0;
 }
