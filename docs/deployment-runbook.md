@@ -135,6 +135,20 @@ Record actual deployed URLs/revision, runtime versions, test counts, migration h
 
 ## Rollback
 
+The free Supabase tier requires an operator-managed off-site backup process; see [official backup guidance](https://supabase.com/docs/guides/platform/backups). This release includes a native-client application backup command, with no Docker, provider SDK or background scheduler. Install PostgreSQL client tools through a trusted package manager, using a client version at least as new as the server. From `api/`, create a private ignored `.backups/` directory and run:
+
+```sh
+mkdir -p .backups
+chmod 700 .backups
+APP_ENV_FILE=.env.production python scripts/backup_database.py .backups/production-YYYY-MM-DD.dump --pg-dump /path/to/pg_dump
+```
+
+The command passes credentials through the subprocess environment, keeps them out of arguments/output, refuses to overwrite a file, writes with mode 0600, and removes a failed partial dump. Backups include the application `public` schema and Alembic checkpoint, without source ownership or grants. Preserve the tested migration source to restore grants/RLS configuration. Keep backups private and copy them to an approved encrypted off-site location; no off-site destination is configured by this task.
+
+This is an **application database backup**, not a complete Supabase project backup: managed Auth identities/passwords and dashboard settings are not included. Preserve those through the provider's supported recovery procedures; after recreating identities, explicitly review and remap membership UUIDs. Record Auth origin/audience, business UUID, migration revision and application release privately alongside the recovery procedure. See [official project backup/restore instructions](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore).
+
+Restore into a new isolated target first, using the same tested migrations and native `pg_restore` client. Check business data, roles, hours, counts, foreign keys, RLS and the Alembic checkpoint before switching application configuration. An isolated schema rehearsal must redirect statement targets and never import the archived `public` schema over an existing database. Do not use an unreviewed text replacement for arbitrary backup contents. Full production restore requires coordinated downtime, a separately approved target and reconciliation of writes made after the backup.
+
 Retain the previous successful provider releases and compatible environment settings. Restore the previous frontend/backend release when an application regression requires it; recheck compiled API URL, CORS, Auth origin and caching. For first launch with no prior live release, stop exposure and fix configuration instead of pretending a rollback exists.
 
 Do not automatically downgrade the database or overwrite new business writes with a backup. Prefer a forward fix. Database recovery requires an explicit backup/restore decision, coordinated downtime and write reconciliation. Keep backup restoration instructions available to the operator.

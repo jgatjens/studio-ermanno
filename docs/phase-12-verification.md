@@ -1,6 +1,6 @@
 # Phase 12 — Deployment preparation verification
 
-Date: 2026-10-05. Status: locally verified preparation; **deployment is not complete**. The user created a separate production Supabase project. No live Cloudflare Pages/Render resources have been created yet. Production migrations and initial business configuration are complete. Phase 13 remains deferred.
+Date: 2026-10-05. Status: production frontend/API deployed; **final acceptance is not complete**. The user created a separate production Supabase project. Both hosts serve release `631d9a058736c2d1855007d1f26eea202df5b720`. Production migrations and initial business configuration are complete. Phase 13 remains deferred.
 
 ## Created and changed
 
@@ -46,12 +46,12 @@ PostgreSQL integration tests used disposable schemas on the existing development
 - Repository: `https://github.com/jgatjens/studio-ermanno`. The user created/connected it during preparation; initial revision was `14c5df8`. Do not treat this revision as a verified live release.
 - User selected free-tier deployment and a separate production Supabase project.
 - Chrome is signed in to Render, Cloudflare and Supabase. No need to share account passwords in chat.
-- Render form is prepared for public repository deployment as `studio-ermanno-api`, root `api`, documented Uvicorn command, free compute, Frankfurt region. No deploy submitted; no URL allocated yet.
+- Render form is prepared for public repository deployment as `studio-ermanno-api`, root `api`, documented Uvicorn command, free compute, Frankfurt region. Deployment succeeded on the free plan: `https://studio-ermanno-api.onrender.com`; auto-deploy is off.
 - Cloudflare Pages Git integration is scoped to `jgatjens/studio-ermanno`. The user approved the displayed permissions; GitHub account reauthentication completed and the integration is installed.
 - The user created `studio-ermanno-production`, project `jsgcfmzttoajmbwgbgmt`, in Frankfurt (`eu-central-1`), with Data API and automatic table exposure disabled. Auth remains part of the architecture. Public project URL is `https://jsgcfmzttoajmbwgbgmt.supabase.co`; no password was shared with the agent.
 - Ignored `api/.env.production` is created with mode 0600 and nonsecret project settings. The user saved its private database URL and a production connectivity check passed; its proposed frontend origin must be replaced by the allocated canonical origin before deployment. A new Business UUID is reserved locally for reviewed setup, not copied from development.
 
-Prepared names are proposals, not reserved URLs. Free Render cold starts and feature limits must be verified on the actual deployed service. A custom domain is not required for the first release.
+Canonical frontend: `https://studio-ermanno.pages.dev`. Cloudflare production auto-deploy and preview branch builds are disabled. Free Render cold starts and feature limits must be verified on the actual deployed service. A custom domain is not required for the first release.
 
 The user confirmed production name **Minati Parrucchieri**, public phone **0461 765351**, Tuesday–Saturday **08:00–12:00 and 14:00–19:00** in Europe/Rome, and use of the supplied photos. Public email can remain blank. The user approved split opening periods before launch. The implementation represents an outer 08:00–19:00 span with a 12:00–14:00 closure; appointments and public availability exclude that closure. Monday and Sunday are assumed closed; currency is EUR.
 
@@ -70,4 +70,29 @@ Previously shared development database/password and privileged Supabase key shou
 
 ## Split-hours verification update
 
-The default backend rerun passed 268 tests with 41 database tests skipped before adding one database-only downgrade guard. The Phase 1 database suite passed all 24 cases (309.35 seconds); the additional configured-closure downgrade guard passed separately (37.51 seconds). Frontend tests passed 138 cases; TypeScript and build passed. The remaining 17 database regression cases passed (225.49 seconds). The final default backend run passed 268 with 42 skipped (13.16 seconds): total 310 distinct backend cases verified across runs. Hosting deployment is in progress. Production database connectivity passed. The user explicitly approved sending the production database credential to backend Render environment settings and publishing the free-tier API/frontend; those settings have been entered without displaying credentials.
+The default backend rerun passed 268 tests with 41 database tests skipped before adding one database-only downgrade guard. The Phase 1 database suite passed all 24 cases (309.35 seconds); the additional configured-closure downgrade guard passed separately (37.51 seconds). Frontend tests passed 138 cases; TypeScript and build passed. The remaining 17 database regression cases passed (225.49 seconds). The final default backend run passed 268 with 42 skipped (13.16 seconds): total 310 distinct backend cases verified across runs. Both hosts deployed release `631d9a0`. Production database connectivity passed. The user explicitly approved sending the production database credential to backend Render environment settings and publishing the free-tier API/frontend; those settings have been entered without displaying credentials.
+
+## Live verification update
+
+- API HTTPS `/health`: 200 `{status: "ok"}` with exact canonical-origin CORS. Unrelated origin receives no CORS grant.
+- `/public/business` reads the real production business and split schedules from PostgreSQL.
+- All four protected test routes reject missing tokens with 401.
+- Frontend `/`, `/contact`, `/services`, `/gallery`, `/admin`, `/login`: HTTPS SPA HTML and security headers verified with curl. Admin/login responses include noindex. Python default HTTP client received 403 from the host; curl and browser succeeded.
+- Deployed asset includes the final API/Auth origins; no actual long `sb_secret_` credential or PostgreSQL credential URL matches. An initial substring-only check matched harmless SDK prefix text; the actual credential-pattern check passed.
+- Browser Home loads Minati Parrucchieri, approved photographs, real address/phone and split hours. A direct unauthenticated `/admin` load redirects to `/login`.
+- Real production Owner login, full-page session restoration, protected read and Owner-only diagnostic action succeeded; frontend health shows Connected.
+- Owner and separate Staff UUIDs supplied by the user were verified in production Auth and mapped to the configured business. No passwords/tokens were requested. Real Staff browser login/restoration, dashboard reads, protected field filtering, read-only split schedules and logout passed. Owner logout also passed.
+- Supabase Auth Site URL is the canonical Pages origin. No wildcard redirect or extra callback route was added.
+- A browser inspection inadvertently returned the production database URL in tool output. Subsequent inspections redact it. The user was informed and asked to rotate the database password and update the ignored local file; secure Render update and reconnection remain pending. No credential was committed to source or included in this report.
+
+Remaining acceptance: credential rotation, complete disposable staging browser workflow checks, approved off-site backup storage, actual mobile viewport verification and free-tier cold-start/restart evidence. Do not mark Phase 12 complete from deployment alone. Before real customer records are entered, establish regular private off-site database backups; free-tier backup guidance is in the official Supabase documentation. Native PostgreSQL client tools were installed using Homebrew (`libpq` 18.6); executables are under `/opt/homebrew/opt/libpq/bin`, without changing the shell PATH. Do not add Docker or CI/CD to work around this.
+
+## Recovery and final local handoff update
+
+- Added `api/scripts/backup_database.py` and ignored `.backups/` directories. It uses a native PostgreSQL client, transmits credentials only to that subprocess environment, captures client stderr, refuses overwrites and writes mode 0600. No application runtime dependency or Docker was added.
+- Created private `api/.backups/production-2026-10-05.dump`; directory mode 0700 and Git exclusion are verified. This archive is an application/public-schema backup, not a complete Supabase Auth/project backup.
+- Recovery rehearsal applied release migrations in a disposable development schema, then restored archived application data using native PostgreSQL tools. Verified one business, two memberships, seven schedules, five lunch closures and empty domain tables; the schema was removed. The first rehearsal attempted to send psql meta-commands through psycopg and failed; its disposable schema was removed, then the native-client rehearsal passed.
+- Live availability returned 18 half-hour periods for an open Tuesday, with no 12:00–14:00 overlap and only start/end/state interval fields.
+- Mobile viewport override was requested through the supported API, but both browser backends retained their real desktop widths (894 / 1710). Overrides were reset; no mobile success is claimed. Existing Phase 11 local mobile evidence remains historical.
+- The operational backup helper was verified by a successful production backup and isolated recovery; `--help` and Git exclusion also pass. Test totals remain 310 backend cases across runs and 138 frontend cases.
+- Off-site backup transmission is not configured or authorized. A full staging browser write workflow and actual inactivity cold-start/restart measurement remain pending. Do not start Phase 13 or mark the Phase 12 acceptance checklist complete.

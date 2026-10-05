@@ -1,6 +1,6 @@
 # Studio Ermanno
 
-Phases 0–11 provide the React → FastAPI → Supabase PostgreSQL foundation, Supabase email/password login, membership-based authorization, core admin workflows and a responsive public website. `/` is the public Home, `/login` handles sign-in and `/admin` is the operational dashboard. Mobile admin navigation links Dashboard, Clients, Calendar (the existing appointment list), Inventory and More. Access diagnostics are available at `/admin/access`. Deployment remains Phase 12.
+Phases 0–11 provide the React → FastAPI → Supabase PostgreSQL foundation, Supabase email/password login, membership-based authorization, core admin workflows and a responsive public website. `/` is the public Home, `/login` handles sign-in and `/admin` is the operational dashboard. Mobile admin navigation links Dashboard, Clients, Calendar (the existing appointment list), Inventory and More. Access diagnostics are available at `/admin/access`. Phase 12 is deployed at [the public website](https://studio-ermanno.pages.dev) and [the API health endpoint](https://studio-ermanno-api.onrender.com/health); final acceptance and operator actions are tracked in [the verification report](docs/phase-12-verification.md).
 
 Repository: `web/` contains the Vite frontend, `api/` contains the standard FastAPI ASGI application, and `docs/` contains the architecture and planning documents. The Phase 0 source of truth is [docs/plans/phase-0-implementation.md](docs/plans/phase-0-implementation.md).
 
