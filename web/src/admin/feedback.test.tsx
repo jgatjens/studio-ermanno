@@ -170,3 +170,15 @@ test('Staff feedback cards link to reads without private contact or moderation c
   expect(screen.queryByText('private@example.com')).not.toBeInTheDocument()
   expect(screen.queryByRole('link',{name:'Review feedback'})).not.toBeInTheDocument()
 })
+
+ test('cancel review retains the draft without sending a moderation request', async () => {
+  mount('/admin/feedback/one')
+  await screen.findByText('Moderate feedback')
+  fireEvent.change(screen.getByLabelText('Moderation status'), { target: { value: 'APPROVED' } })
+  fireEvent.click(screen.getByText('Review moderation'))
+  expect(screen.getByRole('group', { name: 'Confirm moderation' })).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel review' }))
+  expect(screen.queryByRole('group', { name: 'Confirm moderation' })).not.toBeInTheDocument()
+  expect(screen.getByLabelText('Moderation status')).toHaveValue('APPROVED')
+  expect(vi.mocked(apiRequest).mock.calls.some(([, options]) => options?.method === 'PUT')).toBe(false)
+})

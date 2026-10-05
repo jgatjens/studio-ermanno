@@ -80,3 +80,14 @@ export const faq = [
       'Feedback is reviewed before publication. Only approved, public reviews appear. Your optional email is not displayed publicly.',
   },
 ]
+
+export const homeHero: GalleryImage = {
+  src: '/images/home-haircut-1600.jpg',
+  srcSet: '/images/home-haircut-800.jpg 800w, /images/home-haircut-1600.jpg 1600w',
+  alt: 'Un parrucchiere cura i capelli ricci di un cliente in un salone dalle luci calde',
+  width: 1600,
+  height: 667,
+  caption: '',
+  source:
+    'AI-generated decorative haircut photograph inspired by the user-provided homepage reference',
+}

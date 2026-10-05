@@ -38,9 +38,10 @@ function mount(element: React.ReactNode, path = '/') {
 }
 test('Home follows section order, hides empty products/reviews and retains independent navigation', async () => {
   mount(<HomePage />)
-  await screen.findByRole('heading', { name: 'I Minati Parrucchieri' })
+  await screen.findByRole('heading', { name: 'Capelli. Cura. Identità.' })
   expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
-    'Featured services',
+    'Un taglio non dovrebbe semplicemente seguire uno stile. Dovrebbe appartenerti.',
+    'Servizi essenziali.Risultati straordinari.',
     'Plan your visit',
     'A look around',
     'Location and contact',
@@ -56,7 +57,7 @@ test('Home follows section order, hides empty products/reviews and retains indep
     expect(options?.signal).toBeInstanceOf(AbortSignal)
   }
 })
-test('independent section failure retries without losing hero; unknown currency withheld', async () => {
+test('business failure retries independently while live services and hero remain visible', async () => {
   vi.mocked(apiRequest).mockImplementation(async (path) => {
     if (path === '/public/business') throw Error('offline')
     if (path.includes('/services'))
@@ -65,7 +66,7 @@ test('independent section failure retries without losing hero; unknown currency 
   })
   mount(<HomePage />)
   await screen.findByText('Cut')
-  expect(screen.getByText('Price information unavailable')).toBeInTheDocument()
+  expect(screen.getByText('30 min')).toBeInTheDocument()
   expect(screen.queryByRole('link', { name: 'Directions' })).not.toBeInTheDocument()
   fireEvent.click(screen.getAllByRole('button', { name: 'Try again' })[0])
   await waitFor(() =>
@@ -139,12 +140,12 @@ test('gallery unavailable, FAQ disclosure and route metadata', () => {
     expect(image).toHaveAttribute('width', '960')
     expect(image).toHaveAttribute('loading', 'lazy')
   }
-  expect(document.title).toBe('Gallery | I Minati Parrucchieri')
+  expect(document.title).toBe('Gallery del salone | I Minati Parrucchieri')
   view.unmount()
   mount(<FaqPage />, '/faq')
   const summary = screen.getByText('How do I arrange a visit?')
   expect(summary.tagName).toBe('SUMMARY')
-  expect(document.title).toBe('FAQ | I Minati Parrucchieri')
+  expect(document.title).toBe('Domande frequenti | I Minati Parrucchieri')
 })
 test('contact failure has retry and no fabricated links', async () => {
   vi.mocked(apiRequest).mockRejectedValue(Error('offline'))
@@ -189,4 +190,27 @@ test('empty gallery remains a usable state when assets are unavailable', () => {
   } finally {
     gallery.push(...saved)
   }
+})
+
+test.each([
+  ['/', 'Parrucchieri a Grigno'],
+  ['/services', 'Servizi e prezzi'],
+  ['/products', 'Prodotti per capelli'],
+  ['/gallery', 'Gallery del salone'],
+  ['/availability', 'Disponibilità e orari'],
+  ['/feedback', 'Recensioni dei clienti'],
+  ['/faq', 'Domande frequenti'],
+  ['/contact', 'Contatti e indirizzo'],
+])('public route %s has matching SEO and social metadata', (path, title) => {
+  mount(<FaqPage />, path)
+  expect(document.title).toBe(`${title} | I Minati Parrucchieri`)
+  const description = document.querySelector<HTMLMetaElement>('meta[name="description"]')!.content
+  expect(description).toContain('Grigno')
+  expect(document.querySelector<HTMLMetaElement>('meta[property="og:title"]')!.content).toBe(
+    document.title,
+  )
+  expect(document.querySelector<HTMLMetaElement>('meta[property="og:description"]')!.content).toBe(
+    description,
+  )
+  expect(document.querySelectorAll('meta[property="og:title"]')).toHaveLength(1)
 })

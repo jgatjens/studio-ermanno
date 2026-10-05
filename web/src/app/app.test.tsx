@@ -25,8 +25,8 @@ test('application and public route render with loading status', () => {
       <App />
     </MemoryRouter>,
   )
-  expect(screen.getByRole('heading', { name: 'I Minati Parrucchieri' })).toBeInTheDocument()
-  expect(screen.getAllByRole('status')[0]).toHaveTextContent('Loading')
+  expect(screen.getByRole('heading', { name: 'Capelli. Cura. Identità.' })).toBeInTheDocument()
+  expect(screen.getAllByRole('status')[0]).toHaveTextContent('Caricamento dei servizi')
 })
 test('admin route redirects to login', () => {
   render(

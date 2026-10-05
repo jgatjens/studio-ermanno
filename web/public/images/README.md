@@ -19,3 +19,10 @@ Street-address clarification: the user supplied Via Vittorio Emanuele 114, posta
 `salon-tools-960.jpg`: AI-generated decorative scissors/comb photograph based on the user's contact-strip reference on 5 October 2026. Used only in the availability contact section; it does not depict the actual salon. Generated through the built-in imagegen tool and resized for the website.
 
 `salon-chair-600.jpg` and `salon-chair-1200.jpg`: responsive versions of an AI-generated decorative black-leather salon-chair image based on the user's original full-page availability reference, 5 October 2026. Used only in the availability hero, not the Home hero or business gallery. Not a photograph of the actual business.
+
+### Homepage hero
+
+`home-haircut-1600.jpg` and `home-haircut-800.jpg` are responsive versions of an
+AI-generated decorative haircut scene inspired by the homepage reference supplied
+in chat. This is illustrative imagery, not a photograph of the actual salon or its
+customers. The Studio introduction reuses the existing decorative salon-chair asset.

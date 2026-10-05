@@ -5,6 +5,11 @@ import { formatHours, type DayHours } from '@/lib/business-hours'
 import { useAuth } from '@/auth/auth-provider'
 import { useAdminKey } from './query-provider'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Clock } from 'lucide-react'
 
 type Day = DayHours
 const names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -16,14 +21,15 @@ export function HoursPage() {
     queryFn: ({ signal }) => apiRequest<Day[]>('/business-hours', { signal }),
   })
   return (
-    <section className="space-y-6">
+    <section className="hours-workspace space-y-6">
       <h1 className="text-3xl font-semibold">Business hours</h1>
-      <p>Shared by all active barbers.</p>
-      {query.isPending && <p role="status">Loading business hours…</p>}
+      <p className="text-sm text-muted-foreground">Shared by all active barbers. {actor?.role === 'OWNER' ? 'Set weekly opening times and optional breaks.' : 'Staff access is read only.'}</p>
+      <Card><CardContent className="hours-guidance"><Clock size={20} aria-hidden="true"/><p>Enter times in the business’s local timezone. For split days, set the break closure and reopening times; save the whole week together.</p></CardContent></Card>
+      {query.isPending && <div role="status"><span className="sr-only">Loading business hours…</span><div className="hours-grid" aria-hidden="true">{[1,2,3,4].map(n=><Skeleton key={n} className="h-48 rounded-xl"/>)}</div></div>}
       {query.isError && (
         <div>
           <p role="alert">{query.error.message}</p>
-          <Button onClick={() => void query.refetch()}>Retry</Button>
+          <Button variant="outline" onClick={() => void query.refetch()}>Retry</Button>
         </div>
       )}
       {query.data && <Week initial={query.data} owner={actor?.role === 'OWNER'} />}
@@ -76,7 +82,7 @@ function Week({ initial, owner }: { initial: Day[]; owner: boolean }) {
   }
   function submit(event: FormEvent) {
     event.preventDefault()
-    mutation.mutate()
+    if (!mutation.isPending) mutation.mutate()
   }
   const visibleDays = owner ? days : initial
   function timeInput(
@@ -87,9 +93,8 @@ function Week({ initial, owner }: { initial: Day[]; owner: boolean }) {
     return (
       <label>
         {label}
-        <input
+        <Input
           aria-label={`${names[day.day_of_week]} ${label.toLowerCase()}`}
-          className="block rounded-md border border-input p-2"
           type="time"
           required
           value={day[field]?.slice(0, 5) ?? ''}
@@ -99,13 +104,13 @@ function Week({ initial, owner }: { initial: Day[]; owner: boolean }) {
     )
   }
   return (
-    <form onSubmit={submit} className="space-y-3">
+    <form onSubmit={submit} className="space-y-6"><div className="hours-grid">
       {visibleDays.map((day) => (
-        <fieldset key={day.day_of_week} className="space-y-2 rounded-md border border-input p-4">
-          <legend className="font-semibold">{names[day.day_of_week]}</legend>
+        <fieldset disabled={mutation.isPending} key={day.day_of_week} className="hours-day space-y-4">
+          <legend className="font-semibold">{names[day.day_of_week]}</legend><div className="hours-day-status"><Badge variant="outline">{day.is_closed?'Closed':'Open'}</Badge>{!day.is_closed&&(day.break_start!=null||day.break_end!=null)&&<Badge variant="outline">Split day</Badge>}</div>
           {owner ? (
             <>
-              <label className="flex items-center gap-2">
+              <label className="hours-toggle">
                 <input
                   aria-label={`${names[day.day_of_week]} closed`}
                   type="checkbox"
@@ -124,11 +129,11 @@ function Week({ initial, owner }: { initial: Day[]; owner: boolean }) {
               </label>
               {!day.is_closed && (
                 <>
-                  <div className="flex flex-wrap gap-4">
+                  <div className="hours-time-pair">
                     {timeInput(day, 'opening_time', 'Opening')}
                     {timeInput(day, 'closing_time', 'Final closing')}
                   </div>
-                  <label className="flex items-center gap-2">
+                  <label className="hours-toggle">
                     <input
                       aria-label={`${names[day.day_of_week]} split opening periods`}
                       type="checkbox"
@@ -143,7 +148,7 @@ function Week({ initial, owner }: { initial: Day[]; owner: boolean }) {
                     Split opening periods
                   </label>
                   {(day.break_start != null || day.break_end != null) && (
-                    <div className="flex flex-wrap gap-4">
+                    <div className="hours-time-pair">
                       {timeInput(day, 'break_start', 'Closes for break')}
                       {timeInput(day, 'break_end', 'Reopens')}
                     </div>
@@ -156,10 +161,10 @@ function Week({ initial, owner }: { initial: Day[]; owner: boolean }) {
           )}
         </fieldset>
       ))}
-      {owner && (
-        <Button disabled={mutation.isPending}>
+      </div>{owner && (
+        <div className="hours-save-row"><p className="text-sm text-muted-foreground">Changes apply to the entire weekly schedule.</p><Button type="submit" disabled={mutation.isPending}>
           {mutation.isPending ? 'Saving…' : 'Save week'}
-        </Button>
+        </Button></div>
       )}
       {mutation.isError && <p role="alert">{mutation.error.message}</p>}
       {mutation.isSuccess && <p role="status">Saved.</p>}

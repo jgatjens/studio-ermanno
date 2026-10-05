@@ -10,17 +10,38 @@ const routes = [
   { label: 'Contatti', path: '/contact' },
 ]
 const metadata: Record<string, [string, string]> = {
-  '/': ['Welcome', 'Explore services, availability and contact information.'],
-  '/services': ['Services', 'Published services, prices and durations.'],
-  '/products': ['Products', 'Explore the public product catalog.'],
-  '/gallery': ['Gallery', 'Photographs from the business.'],
-  '/availability': [
-    'Disponibilità',
-    'Consulta gli orari disponibili e contatta il salone per concordare la tua visita.',
+  '/': [
+    'Parrucchieri a Grigno',
+    'I Minati Parrucchieri a Grigno, in Trentino. Scopri il salone, i servizi, gli orari e le disponibilità. Contattaci per concordare la tua visita.',
   ],
-  '/feedback': ['Feedback', 'Read public reviews and leave feedback.'],
-  '/faq': ['FAQ', 'Answers to common questions before your visit.'],
-  '/contact': ['Contact', 'Contact information, location and opening hours.'],
+  '/services': [
+    'Servizi e prezzi',
+    'Scopri i servizi di I Minati Parrucchieri a Grigno, con prezzi e durata. Contatta il salone per scegliere il servizio più adatto a te.',
+  ],
+  '/products': [
+    'Prodotti per capelli',
+    'Esplora i prodotti per capelli di I Minati Parrucchieri a Grigno. Consulta il catalogo e contattaci per informazioni e consigli.',
+  ],
+  '/gallery': [
+    'Gallery del salone',
+    'Dai uno sguardo a I Minati Parrucchieri e ai dintorni del salone a Grigno. Esplora la gallery e scopri dove trovarci.',
+  ],
+  '/availability': [
+    'Disponibilità e orari',
+    'Consulta le disponibilità di I Minati Parrucchieri a Grigno in fasce di 30 minuti. Contattaci per concordare e confermare il tuo appuntamento.',
+  ],
+  '/feedback': [
+    'Recensioni dei clienti',
+    'Leggi le recensioni pubblicate dei clienti di I Minati Parrucchieri a Grigno e condividi la tua esperienza con il salone.',
+  ],
+  '/faq': [
+    'Domande frequenti',
+    'Trova risposte alle domande su servizi, prezzi, disponibilità e contatti di I Minati Parrucchieri a Grigno. Organizza la tua visita al salone.',
+  ],
+  '/contact': [
+    'Contatti e indirizzo',
+    'Trova I Minati Parrucchieri in Via Vittorio Emanuele 114, 38055 Grigno (TN). Consulta gli orari e contatta il salone per concordare la tua visita.',
+  ],
 }
 export function PublicLayout() {
   const [open, setOpen] = useState(false)
@@ -29,10 +50,10 @@ export function PublicLayout() {
   useEffect(() => {
     setOpen(false)
     const [title, description] = metadata[pathname] || [
-      'Page not found',
-      'Return home to explore the website.',
+      'Pagina non trovata',
+      'La pagina richiesta non è disponibile. Esplora i servizi e i contatti di I Minati Parrucchieri.',
     ]
-    document.title = pathname === '/' ? publicBrand.title : `${title} | ${publicBrand.title}`
+    document.title = `${title} | ${publicBrand.title}`
     let meta = document.querySelector<HTMLMetaElement>('meta[name="description"]')
     if (!meta) {
       meta = document.createElement('meta')
@@ -40,6 +61,21 @@ export function PublicLayout() {
       document.head.append(meta)
     }
     meta.content = description
+    for (const [property, content] of Object.entries({
+      'og:title': document.title,
+      'og:description': description,
+      'og:site_name': publicBrand.title,
+      'og:type': 'website',
+      'og:locale': 'it_IT',
+    })) {
+      let tag = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`)
+      if (!tag) {
+        tag = document.createElement('meta')
+        tag.setAttribute('property', property)
+        document.head.append(tag)
+      }
+      tag.content = content
+    }
   }, [pathname])
   const business = usePublic<Business>('/public/business')
   const socials = business.data
@@ -102,7 +138,7 @@ export function PublicLayout() {
       <main
         id="public-main"
         tabIndex={-1}
-        className={`public-main${pathname === '/availability' ? ' public-main-availability' : ''}`}
+        className={`public-main${pathname === '/availability' ? ' public-main-availability' : pathname === '/' ? ' public-main-home' : ''}`}
       >
         <Outlet />
       </main>
