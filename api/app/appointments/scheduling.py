@@ -45,10 +45,10 @@ def check_capacity(start, end, barber_id, active_barbers, reservations):
         if row_start >= end or row_end <= start:
             continue
         if barber_id is not None and row.barber_id == barber_id:
-            conflict("barber_conflict", "This barber already has an appointment at that time.")
+            conflict("barber_conflict", "This hairdresser already has an appointment at that time.")
         events += [(max(start, row_start), 1), (min(end, row_end), -1)]
     occupancy = 0
     for _, delta in sorted(events, key=lambda event: (event[0], event[1])):
         occupancy += delta
         if occupancy > active_barbers:
-            conflict("capacity_full", "No barber capacity remains at that time.")
+            conflict("capacity_full", "No hairdresser capacity remains at that time.")

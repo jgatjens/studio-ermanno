@@ -105,7 +105,7 @@ Create models and migrations for:
 
 - Business
 - Admin User / Business Membership
-- Barber / Service Provider
+- Hairdresser / Service Provider
 - Client
 - Service
 - Appointment
@@ -119,10 +119,10 @@ Create models and migrations for:
 ## Core Rules to Encode
 
 - Business ownership is explicit.
-- A barber is separate from an authenticated admin user.
+- A hairdresser is separate from an authenticated admin user.
 - A client must exist before an appointment can reference them.
 - Appointments can contain multiple services.
-- Barber assignment is optional.
+- Hairdresser assignment is optional.
 - Historical service values are preserved on appointments.
 - Products can be active and separately marked for public visibility.
 - Every inventory change creates an inventory movement.
@@ -134,7 +134,7 @@ Create simple development seed data:
 - One business
 - Two Owner users
 - One Staff user
-- Two Barbers
+- Two Hairdressers
 - A few clients
 - A few services
 - A few products
@@ -218,7 +218,7 @@ Create:
 
 ---
 
-# Phase 3 — Services, Barbers, and Business Hours
+# Phase 3 — Services, Hairdressers, and Business Hours
 
 ## Goal
 
@@ -243,7 +243,7 @@ Service fields:
 - Price
 - Active status
 
-### Barbers
+### Hairdressers
 
 Owner can:
 
@@ -254,8 +254,8 @@ Owner can:
 
 MVP rules:
 
-- All active barbers share business hours.
-- All active barbers can perform all active services.
+- All active hairdressers share business hours.
+- All active hairdressers can perform all active services.
 
 ### Business Hours
 
@@ -271,13 +271,13 @@ Owner can configure:
 Create simple mobile-first screens for:
 
 - Services
-- Barbers
+- Hairdressers
 - Business hours
 
 ## Done When
 
 - Active services can be retrieved for appointment creation.
-- Active barbers can be retrieved for assignment.
+- Active hairdressers can be retrieved for assignment.
 - Shared business hours are available to scheduling logic.
 - Inactive records remain available for historical data.
 
@@ -361,7 +361,7 @@ Require:
 
 Optional:
 
-- Barber
+- Hairdresser
 - Appointment notes
 
 ### Automatic Calculation
@@ -386,12 +386,12 @@ Support:
 - Cancelled
 - No Show
 
-### Barber Rules
+### Hairdresser Rules
 
-- Different barbers can overlap.
-- The same barber cannot have overlapping active appointments.
+- Different hairdressers can overlap.
+- The same hairdresser cannot have overlapping active appointments.
 - An appointment may remain unassigned.
-- An unassigned appointment reserves one generic barber slot.
+- An unassigned appointment reserves one generic hairdresser slot.
 
 ### Admin UI
 
@@ -412,7 +412,7 @@ Build:
 - Multiple services work.
 - Price and duration calculate automatically.
 - Owner overrides work.
-- Barber assignment is optional.
+- Hairdresser assignment is optional.
 - Overlap validation works.
 - Staff can view appointments but cannot modify them.
 
@@ -608,16 +608,16 @@ Expose privacy-safe business availability without online booking.
 Use:
 
 - Shared business hours
-- Active barber count
+- Active hairdresser count
 - Assigned appointments
 - Unassigned appointment capacity
 
 Rules:
 
 - Assigned appointment occupies its barber.
-- Unassigned appointment consumes one generic barber slot.
+- Unassigned appointment consumes one generic hairdresser slot.
 - Business can still have availability if another slot remains.
-- No barber names are exposed publicly.
+- No hairdresser names are exposed publicly.
 
 ### Public States
 
@@ -638,8 +638,8 @@ Build a mobile-friendly availability calendar or date list.
 
 - Public users can see availability.
 - No client data is exposed.
-- No barber names are exposed.
-- Availability reflects overlapping barber capacity.
+- No hairdresser names are exposed.
+- Availability reflects overlapping hairdresser capacity.
 - No booking action exists.
 
 ---
@@ -791,7 +791,7 @@ Run smoke tests for:
 - Login
 - Client creation/search
 - Appointment creation
-- Barber conflict handling
+- Hairdresser conflict handling
 - Appointment completion
 - Inventory update
 - Feedback submission/moderation

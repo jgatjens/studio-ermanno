@@ -23,13 +23,37 @@ export function HoursPage() {
   return (
     <section className="hours-workspace space-y-6">
       <h1 className="text-3xl font-semibold">Business hours</h1>
-      <p className="text-sm text-muted-foreground">Shared by all active barbers. {actor?.role === 'OWNER' ? 'Set weekly opening times and optional breaks.' : 'Staff access is read only.'}</p>
-      <Card><CardContent className="hours-guidance"><Clock size={20} aria-hidden="true"/><p>Enter times in the business’s local timezone. For split days, set the break closure and reopening times; save the whole week together.</p></CardContent></Card>
-      {query.isPending && <div role="status"><span className="sr-only">Loading business hours…</span><div className="hours-grid" aria-hidden="true">{[1,2,3,4].map(n=><Skeleton key={n} className="h-48 rounded-xl"/>)}</div></div>}
+      <p className="text-sm text-muted-foreground">
+        Shared by all active hairdressers.{' '}
+        {actor?.role === 'OWNER'
+          ? 'Set weekly opening times and optional breaks.'
+          : 'Staff access is read only.'}
+      </p>
+      <Card>
+        <CardContent className="hours-guidance">
+          <Clock size={20} aria-hidden="true" />
+          <p>
+            Enter times in the business’s local timezone. For split days, set the break closure and
+            reopening times; save the whole week together.
+          </p>
+        </CardContent>
+      </Card>
+      {query.isPending && (
+        <div role="status">
+          <span className="sr-only">Loading business hours…</span>
+          <div className="hours-grid" aria-hidden="true">
+            {[1, 2, 3, 4].map((n) => (
+              <Skeleton key={n} className="h-48 rounded-xl" />
+            ))}
+          </div>
+        </div>
+      )}
       {query.isError && (
         <div>
           <p role="alert">{query.error.message}</p>
-          <Button variant="outline" onClick={() => void query.refetch()}>Retry</Button>
+          <Button variant="outline" onClick={() => void query.refetch()}>
+            Retry
+          </Button>
         </div>
       )}
       {query.data && <Week initial={query.data} owner={actor?.role === 'OWNER'} />}
@@ -104,67 +128,84 @@ function Week({ initial, owner }: { initial: Day[]; owner: boolean }) {
     )
   }
   return (
-    <form onSubmit={submit} className="space-y-6"><div className="hours-grid">
-      {visibleDays.map((day) => (
-        <fieldset disabled={mutation.isPending} key={day.day_of_week} className="hours-day space-y-4">
-          <legend className="font-semibold">{names[day.day_of_week]}</legend><div className="hours-day-status"><Badge variant="outline">{day.is_closed?'Closed':'Open'}</Badge>{!day.is_closed&&(day.break_start!=null||day.break_end!=null)&&<Badge variant="outline">Split day</Badge>}</div>
-          {owner ? (
-            <>
-              <label className="hours-toggle">
-                <input
-                  aria-label={`${names[day.day_of_week]} closed`}
-                  type="checkbox"
-                  checked={day.is_closed}
-                  onChange={(e) =>
-                    change(day.day_of_week, {
-                      is_closed: e.target.checked,
-                      opening_time: e.target.checked ? null : '09:00',
-                      closing_time: e.target.checked ? null : '18:00',
-                      break_start: null,
-                      break_end: null,
-                    })
-                  }
-                />
-                Closed
-              </label>
-              {!day.is_closed && (
-                <>
-                  <div className="hours-time-pair">
-                    {timeInput(day, 'opening_time', 'Opening')}
-                    {timeInput(day, 'closing_time', 'Final closing')}
-                  </div>
-                  <label className="hours-toggle">
-                    <input
-                      aria-label={`${names[day.day_of_week]} split opening periods`}
-                      type="checkbox"
-                      checked={day.break_start != null || day.break_end != null}
-                      onChange={(e) =>
-                        change(day.day_of_week, {
-                          break_start: e.target.checked ? '' : null,
-                          break_end: e.target.checked ? '' : null,
-                        })
-                      }
-                    />
-                    Split opening periods
-                  </label>
-                  {(day.break_start != null || day.break_end != null) && (
-                    <div className="hours-time-pair">
-                      {timeInput(day, 'break_start', 'Closes for break')}
-                      {timeInput(day, 'break_end', 'Reopens')}
-                    </div>
-                  )}
-                </>
+    <form onSubmit={submit} className="space-y-6">
+      <div className="hours-grid">
+        {visibleDays.map((day) => (
+          <fieldset
+            disabled={mutation.isPending}
+            key={day.day_of_week}
+            className="hours-day space-y-4"
+          >
+            <legend className="font-semibold">{names[day.day_of_week]}</legend>
+            <div className="hours-day-status">
+              <Badge variant="outline">{day.is_closed ? 'Closed' : 'Open'}</Badge>
+              {!day.is_closed && (day.break_start != null || day.break_end != null) && (
+                <Badge variant="outline">Split day</Badge>
               )}
-            </>
-          ) : (
-            <p>{formatHours(day)}</p>
-          )}
-        </fieldset>
-      ))}
-      </div>{owner && (
-        <div className="hours-save-row"><p className="text-sm text-muted-foreground">Changes apply to the entire weekly schedule.</p><Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? 'Saving…' : 'Save week'}
-        </Button></div>
+            </div>
+            {owner ? (
+              <>
+                <label className="hours-toggle">
+                  <input
+                    aria-label={`${names[day.day_of_week]} closed`}
+                    type="checkbox"
+                    checked={day.is_closed}
+                    onChange={(e) =>
+                      change(day.day_of_week, {
+                        is_closed: e.target.checked,
+                        opening_time: e.target.checked ? null : '09:00',
+                        closing_time: e.target.checked ? null : '18:00',
+                        break_start: null,
+                        break_end: null,
+                      })
+                    }
+                  />
+                  Closed
+                </label>
+                {!day.is_closed && (
+                  <>
+                    <div className="hours-time-pair">
+                      {timeInput(day, 'opening_time', 'Opening')}
+                      {timeInput(day, 'closing_time', 'Final closing')}
+                    </div>
+                    <label className="hours-toggle">
+                      <input
+                        aria-label={`${names[day.day_of_week]} split opening periods`}
+                        type="checkbox"
+                        checked={day.break_start != null || day.break_end != null}
+                        onChange={(e) =>
+                          change(day.day_of_week, {
+                            break_start: e.target.checked ? '' : null,
+                            break_end: e.target.checked ? '' : null,
+                          })
+                        }
+                      />
+                      Split opening periods
+                    </label>
+                    {(day.break_start != null || day.break_end != null) && (
+                      <div className="hours-time-pair">
+                        {timeInput(day, 'break_start', 'Closes for break')}
+                        {timeInput(day, 'break_end', 'Reopens')}
+                      </div>
+                    )}
+                  </>
+                )}
+              </>
+            ) : (
+              <p>{formatHours(day)}</p>
+            )}
+          </fieldset>
+        ))}
+      </div>
+      {owner && (
+        <div className="hours-save-row">
+          <p className="text-sm text-muted-foreground">
+            Changes apply to the entire weekly schedule.
+          </p>
+          <Button type="submit" disabled={mutation.isPending}>
+            {mutation.isPending ? 'Saving…' : 'Save week'}
+          </Button>
+        </div>
       )}
       {mutation.isError && <p role="alert">{mutation.error.message}</p>}
       {mutation.isSuccess && <p role="status">Saved.</p>}

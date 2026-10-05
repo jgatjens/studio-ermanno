@@ -565,7 +565,7 @@ Do not implement:
 - Client models
 - Appointment models
 - Services
-- Barbers
+- Hairdressers
 - Products
 - Inventory
 - Feedback

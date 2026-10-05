@@ -54,7 +54,7 @@ Mobile primary destinations:
 | Inventory | `/admin/inventory`                                                                     |
 | More      | `/admin/more`; compact secondary navigation page                                       |
 
-More links to existing Products, Feedback, Services, Barbers, Business hours and Access checks. Put the current probes/HealthStatus on `/admin/access`, with role/session information and logout accessible from the shell or More. Preserve probe functionality and Owner-only controls. No empty Settings link or new Settings editor.
+More links to existing Products, Feedback, Services, Hairdressers, Business hours and Access checks. Put the current probes/HealthStatus on `/admin/access`, with role/session information and logout accessible from the shell or More. Preserve probe functionality and Owner-only controls. No empty Settings link or new Settings editor.
 
 Use visible labels, active-route indications and familiar existing icons only if useful; icons must not replace labels. Detail/create/edit routes highlight their parent section. More highlights its secondary pages. Include useful Back links and a public-site link.
 
@@ -97,7 +97,7 @@ Do not derive an exact next appointment or whole-day count from the first mixed-
 
 ### Content and states
 
-Appointment cards show time, client name, barber or Unassigned, service summary and textual status; link to existing detail. Do not introduce per-row client/detail fetches or private contact fields into the dashboard. Use existing projections and retained appointment snapshots.
+Appointment cards show time, client name, hairdresser or Unassigned, service summary and textual status; link to existing detail. Do not introduce per-row client/detail fetches or private contact fields into the dashboard. Use existing projections and retained appointment snapshots.
 
 Alerts are deliberately limited to unassigned active appointments already loaded in the visible schedule, labeled as visible-page alerts when paginated. Do not claim no whole-day alerts from a partial page. Omit speculative conflict detection and configurable starts-soon thresholds; existing scheduling conflicts remain handled in appointment save responses. No new notification model.
 
@@ -117,7 +117,7 @@ Profile hierarchy: name → permitted contact/general notes → last visit → h
 
 ### Appointment creation/editing and schedule
 
-Keep the logical single-column order: existing client → business-local date/time → services → optional barber → appointment notes → calculated totals → optional Owner overrides → Save. Separate visual Date/Time controls only if existing timezone/DST selection remains intact. Preserve preview calculation, inactive retained items, conflict details, explicit offset selection for ambiguous times and current backend capacity/hours validation.
+Keep the logical single-column order: existing client → business-local date/time → services → optional hairdresser → appointment notes → calculated totals → optional Owner overrides → Save. Separate visual Date/Time controls only if existing timezone/DST selection remains intact. Preserve preview calculation, inactive retained items, conflict details, explicit offset selection for ambiguous times and current backend capacity/hours validation.
 
 Make checkbox/select labels tap-sized, required fields and selected client obvious, and the result/error summary readable. Disable submission during pending mutation or stale preview. Ensure preview displayed and submitted corresponds to the current draft. Retain draft and selected choices after 409/422/network errors. Client-first guidance must not silently discard an appointment draft; either give clear leave confirmation or use a scoped in-memory draft if the existing flow needs it, without a new state library or persisted private data.
 

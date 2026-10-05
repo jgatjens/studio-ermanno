@@ -93,7 +93,7 @@ export function PublicLayout() {
   return (
     <div className="public-site">
       <a className="skip-link" href="#public-main">
-        Skip to content
+        Vai al contenuto
       </a>
       <header
         className="public-header"

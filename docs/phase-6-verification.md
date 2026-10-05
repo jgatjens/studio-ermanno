@@ -26,7 +26,7 @@ No schema/model/migration changes, new dependencies, environment variables, stat
 ## Behavior and assumptions
 
 - Owner completes SCHEDULED/CONFIRMED appointments by confirming their stored service-ID set. Corrections to services/final totals use the existing active edit flow first.
-- Stored services, snapshots, totals, interval, client, barber, and appointment notes remain unchanged by completion. Retained inactive services are valid for confirmation. No completion timestamp is added; last visit remains derived from completed scheduled start with ID tie-breaker.
+- Stored services, snapshots, totals, interval, client, hairdresser, and appointment notes remain unchanged by completion. Retained inactive services are valid for confirmation. No completion timestamp is added; last visit remains derived from completed scheduled start with ID tie-breaker.
 - Existing active products can be recorded as USED/SOLD with positive Decimal quantities of at most 12 digits/3 decimal places. Duplicate product/usage pairs are rejected; one USED and one SOLD entry for the same product are permitted. Product names are snapshotted on first completion.
 - Visit notes are trimmed; blank becomes null. Completed records are immutable except for identical retries, compared by normalized service IDs, product IDs/usage/Decimal quantities, and notes.
 - Identical retries remain safe after catalog rename/deactivation, with no extra product rows. Changed retries return 409. Cancellation/no-show cannot complete; generic status updates cannot bypass completion validation. Unexpected product rows on an active record require review rather than being overwritten.

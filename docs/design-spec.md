@@ -266,7 +266,7 @@ Desktop:
 
 - Fuller calendar view
 
-Never expose barber names or client information.
+Never expose hairdresser names or client information.
 
 ## Feedback
 
@@ -418,7 +418,7 @@ Show:
 
 - Time
 - Client
-- Barber or Unassigned
+- Hairdresser or Unassigned
 - Services
 - Duration
 - Price

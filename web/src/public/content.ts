@@ -47,7 +47,7 @@ export const hero = gallery[1]
 export const availabilityHero: GalleryImage = {
   src: '/images/salon-chair-1200.jpg',
   srcSet: '/images/salon-chair-600.jpg 600w, /images/salon-chair-1200.jpg 1200w',
-  alt: 'Poltrona da barbiere in pelle nera con dettagli in ottone, in un salone dalle luci calde',
+  alt: 'Poltrona da parrucchiere in pelle nera con dettagli in ottone, in un salone dalle luci calde',
   caption: '',
   width: 1200,
   height: 900,
@@ -65,19 +65,19 @@ export const availabilityHelpImage: GalleryImage = {
 }
 export const faq = [
   {
-    question: 'How do I arrange a visit?',
+    question: 'Come posso organizzare una visita?',
     answer:
-      'Check the informational availability view, then contact the business to arrange your visit. The website does not book appointments.',
+      'Consulta le disponibilità indicative, poi contattaci per concordare la tua visita. Il sito non consente di prenotare appuntamenti.',
   },
   {
-    question: 'Where can I find prices and durations?',
+    question: 'Dove trovo prezzi e durata dei servizi?',
     answer:
-      'The Services page lists published prices and durations. Contact the business for guidance on choosing a service.',
+      'Nella pagina Servizi trovi prezzi e durate pubblicati. Contattaci per un consiglio sul servizio più adatto a te.',
   },
   {
-    question: 'How are reviews published?',
+    question: 'Come vengono pubblicate le recensioni?',
     answer:
-      'Feedback is reviewed before publication. Only approved, public reviews appear. Your optional email is not displayed publicly.',
+      'Le recensioni vengono controllate prima della pubblicazione. Sono visibili solo quelle approvate e pubbliche. La tua email facoltativa non viene mostrata.',
   },
 ]
 

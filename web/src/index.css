@@ -3009,3 +3009,294 @@ body {
 .public-main.public-main-home > .availability-help {
   margin-bottom: 0;
 }
+
+/* Homepage editorial sections share the studio/services typography and rhythm. */
+.home-more {
+  padding: 0;
+}
+.home-more > .home-editorial {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 60px;
+  border-top: 1px solid #dedbd4;
+  padding: 48px 0 64px;
+  margin: 0;
+}
+.home-section-heading .eyebrow {
+  margin: 0 0 28px;
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.home-section-heading h2 {
+  font-family: Georgia, serif;
+  font-size: clamp(2.4rem, 3.5vw, 3.8rem);
+  line-height: 1.06;
+  letter-spacing: -0.04em;
+  font-weight: 400;
+  margin: 0 0 24px;
+}
+.home-section-heading > p:not(.eyebrow) {
+  color: #6d6c65;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+.home-section-heading .home-text-link {
+  display: inline-block;
+  line-height: 1.7;
+}
+.home-section-body {
+  min-width: 0;
+}
+.home-products .public-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+.home-products .public-card {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #dedbd4;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 24px 0;
+}
+.home-products .public-card:first-child {
+  padding-top: 0;
+}
+.home-products .public-card h3 {
+  font-family: Georgia, serif;
+  font-size: 1.8rem;
+  font-weight: 400;
+  margin: 0 0 12px;
+}
+.home-products .public-card p {
+  color: #6d6c65;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.home-review-list blockquote {
+  margin: 0;
+  padding: 0 0 28px;
+  border-bottom: 1px solid #dedbd4;
+}
+.home-review-list blockquote + blockquote {
+  padding-top: 28px;
+}
+.home-review-rating {
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  margin-bottom: 18px;
+}
+.home-review-rating span {
+  color: #8b7043;
+}
+.home-review-comment {
+  font-family: Georgia, serif;
+  font-size: clamp(1.5rem, 2.2vw, 2rem);
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0 0 18px;
+}
+.home-review-list cite {
+  font-style: normal;
+  font-size: 0.85rem;
+  color: #6d6c65;
+}
+.home-faq .faq-list details {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #dedbd4;
+  border-radius: 0;
+  padding: 22px 0;
+  margin: 0;
+}
+.home-faq .faq-list details:first-child {
+  padding-top: 0;
+}
+.home-faq .faq-list summary {
+  font-family: Georgia, serif;
+  font-size: 1.35rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.home-faq .faq-list details p {
+  color: #6d6c65;
+  line-height: 1.7;
+  margin: 16px 0 0;
+}
+@media (max-width: 1000px) {
+  .home-more > .home-editorial {
+    gap: 32px;
+  }
+}
+@media (max-width: 640px) {
+  .home-more > .home-editorial {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 36px 0 44px;
+  }
+  .home-section-heading .eyebrow {
+    margin-bottom: 20px;
+  }
+  .home-section-heading h2 {
+    font-size: 2.4rem;
+  }
+}
+.home-faq .faq-list summary {
+  font-weight: 400;
+}
+
+/* Product selection: a full-width collection rather than a sparse list. */
+.home-more > .home-products {
+  grid-template-columns: 1fr;
+  gap: 36px;
+}
+.home-products .home-section-heading {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 60px;
+  align-items: end;
+}
+.home-products .eyebrow {
+  grid-column: 1 / -1;
+}
+.home-products .home-section-heading h2 {
+  grid-row: span 2;
+  margin-bottom: 0;
+}
+.home-products .home-section-heading > p:not(.eyebrow) {
+  max-width: 440px;
+  margin: 0 0 20px;
+}
+.home-products .home-text-link {
+  justify-self: start;
+}
+.home-product-selection {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+.home-product-tile {
+  min-width: 0;
+  background: #eeeae1;
+}
+.home-product-emblem {
+  min-height: 160px;
+  background: #e5e0d5;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #685943;
+}
+.home-product-emblem > span {
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+}
+.home-product-tile:nth-child(2) .home-product-emblem {
+  background: #292e28;
+  color: #ede8da;
+}
+.home-product-tile:nth-child(3) .home-product-emblem {
+  background: #bdb09a;
+  color: #322d25;
+}
+.home-product-copy {
+  padding: 28px;
+}
+.home-product-brand {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #6d6c65;
+  margin: 0 0 12px;
+}
+.home-product-copy h3 {
+  font-family: Georgia, serif;
+  font-size: 2rem;
+  font-weight: 400;
+  line-height: 1.15;
+  margin: 0 0 12px;
+  overflow-wrap: anywhere;
+}
+.home-product-category {
+  font-size: 0.8rem;
+  color: #6d6c65;
+  margin: 0 0 16px;
+}
+.home-product-description {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #6d6c65;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 850px) {
+  .home-product-selection {
+    gap: 16px;
+  }
+  .home-product-copy {
+    padding: 20px;
+  }
+  .home-product-copy h3 {
+    font-size: 1.6rem;
+  }
+  .home-product-emblem {
+    padding: 16px;
+  }
+}
+@media (max-width: 640px) {
+  .home-products .home-section-heading {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .home-products .home-section-heading h2 {
+    grid-row: auto;
+    margin-bottom: 24px;
+  }
+  .home-product-selection {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .home-product-emblem {
+    min-height: 130px;
+    padding: 24px;
+  }
+  .home-product-copy {
+    padding: 24px;
+  }
+  .home-product-copy h3 {
+    font-size: 2rem;
+  }
+}
+
+/* Catalog cards use a teal accent and compact, adjacent actions. */
+.hairdressers-workspace .barber-initials {
+  background: #e0f2ef;
+  color: #115e59;
+}
+.services-workspace .service-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+}
+.services-workspace .service-actions button {
+  min-width: 0;
+  flex: 1;
+  padding-inline: 0.75rem;
+  border-color: #99c8c0;
+  color: #115e59;
+  background: #f0fdfa;
+}
+.services-workspace .service-actions button:first-child {
+  background: #115e59;
+  border-color: #115e59;
+  color: #fff;
+}
+.services-workspace .service-actions button:hover {
+  background: #ccfbf1;
+}
+.services-workspace .service-actions button:first-child:hover {
+  background: #134e4a;
+}

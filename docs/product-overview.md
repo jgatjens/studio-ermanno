@@ -129,28 +129,28 @@ The following are not currently required:
 - Staff can see client name, appointment history, services, products used, and appointment notes.
 - Staff cannot see client email, phone, private general notes, or visit notes.
 
-### Barbers
+### Hairdressers
 
-- Barber / Service Provider profiles are separate from admin users.
-- A barber may exist without admin access.
-- All active barbers use the same business hours.
-- All active barbers can perform all active services.
+- Hairdresser / Service Provider profiles are separate from admin users.
+- A hairdresser may exist without admin access.
+- All active hairdressers use the same business hours.
+- All active hairdressers can perform all active services.
 
 ### Appointments
 
 - A client must already exist before an appointment can be created.
 - An appointment can contain multiple services.
-- A barber is optional when an appointment is first created and may be assigned later.
-- Different barbers can have appointments at the same time.
-- The same barber cannot have overlapping active appointments.
-- An unassigned appointment reserves one generic barber slot.
+- A hairdresser is optional when an appointment is first created and may be assigned later.
+- Different hairdressers can have appointments at the same time.
+- The same hairdresser cannot have overlapping active appointments.
+- An unassigned appointment reserves one generic hairdresser slot.
 - Duration and price are calculated from selected services by default.
 - Owners may override the calculated duration or price for a specific appointment.
 
 ### Public Availability
 
 - The public website shows business-level availability only.
-- Individual barber names are not exposed.
-- Availability is based on shared business hours and total barber capacity.
-- Unassigned appointments consume one barber slot.
+- Individual hairdresser names are not exposed.
+- Availability is based on shared business hours and total hairdresser capacity.
+- Unassigned appointments consume one hairdresser slot.
 - Online booking is not part of the MVP.

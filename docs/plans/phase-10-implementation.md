@@ -80,7 +80,7 @@ timezone, currency,
 hours: [{day_of_week, opening_time, closing_time, is_closed}]
 ```
 
-Name/timezone/currency come from Business; optional content is nullable. No business/membership/auth identifiers, internal timestamps, barbers, admin settings or client/contact records. “Contact information” here means the configured Business fields only.
+Name/timezone/currency come from Business; optional content is nullable. No business/membership/auth identifiers, internal timestamps, hairdressers, admin settings or client/contact records. “Contact information” here means the configured Business fields only.
 
 Return seven weekday entries in Monday–Sunday order. Missing stored weekdays are represented as closed, matching Phase 9's missing-hours behavior. Closed entries have null times. Preserve configured local opening/closing times; do not infer holidays, schedules or hours from appointments. Mark the timezone beside hours. Missing address/contact channels remain absent, without invented values. The API is read-only; production business-content setup remains a documented database/configuration task.
 

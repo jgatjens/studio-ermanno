@@ -1,5 +1,6 @@
 import { ContactHelp } from './contact-help'
 import { useState } from 'react'
+import { Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { formatHours } from '@/lib/business-hours'
 import { faq, gallery, homeHero, availabilityHero, publicBrand } from './content'
@@ -16,11 +17,11 @@ import {
 function State({ error, retry }: { error: boolean; retry: () => void }) {
   return error ? (
     <div role="alert">
-      This section could not load. <button onClick={retry}>Try again</button>
+      Non è stato possibile caricare questa sezione. <button onClick={retry}>Riprova</button>
     </div>
   ) : (
     <p role="status" className="public-loading">
-      Loading…
+      Caricamento…
     </p>
   )
 }
@@ -234,51 +235,54 @@ export function HomePage() {
           </div>
         </section>
         <div className="home-more">
-          {/* <section className="public-callout">
-            <h2>Plan your visit</h2>
-            <p>Explore informational availability, then contact us to arrange a visit.</p>
-            <Link to="/availability">Check availability</Link>
-          </section>
-          <section>
-            <h2>A look around</h2>
-            <Gallery />
-            <Link to="/gallery">View gallery</Link>
-          </section> */}
           {(!products.data || products.data.items.length > 0) && (
-            <section>
-              <h2>Featured products</h2>
-              <p>Explore our informational product catalog.</p>
-              {products.data ? (
-                <Cards items={products.data.items} business={business.data} />
-              ) : (
-                <State {...products} />
-              )}
-              <Link to="/products">View products</Link>
+            <section className="home-editorial home-products">
+              <div className="home-section-heading">
+                <p className="eyebrow">03 / Prodotti</p>
+                <h2>La cura continua.<br />Anche a casa.</h2>
+                <p>Scopri i prodotti del salone. Ti aiutiamo a scegliere quelli più adatti alla tua routine.</p>
+                <Link className="home-text-link" to="/products">Esplora i prodotti <span aria-hidden="true">→</span></Link>
+              </div>
+              <div className="home-section-body">
+                {products.data ? <div className="home-product-selection">{products.data.items.map((item, i) => (
+                  <article className="home-product-tile" key={`${item.name}-${i}`}>
+                    <div className="home-product-emblem" aria-hidden="true"><span>{String(i + 1).padStart(2, '0')}</span><Sparkles size={42} strokeWidth={1} /><span>I MINATI</span></div>
+                    <div className="home-product-copy">
+                      {item.brand && <p className="home-product-brand">{item.brand}</p>}
+                      <h3>{item.name}</h3>
+                      {item.category && <p className="home-product-category">{item.category}</p>}
+                      {item.description && <p className="home-product-description">{item.description}</p>}
+                    </div>
+                  </article>
+                ))}</div> : <State {...products} />}
+              </div>
             </section>
           )}
           {(!reviews.data || reviews.data.items.length > 0) && (
-            <section>
-              <h2>Customer feedback</h2>
-              {reviews.data ? (
-                <div className="public-grid">
-                  {reviews.data.items.map((review, i) => (
-                    <blockquote className="public-card" key={i}>
-                      <p>{review.rating} / 5</p>
-                      <p>{review.comment}</p>
-                      <cite>{review.name}</cite>
-                    </blockquote>
-                  ))}
-                </div>
-              ) : (
-                <State {...reviews} />
-              )}
-              <Link to="/feedback">Read reviews and leave feedback</Link>
+            <section className="home-editorial home-reviews">
+              <div className="home-section-heading">
+                <p className="eyebrow">04 / Esperienze</p>
+                <h2>Le vostre esperienze</h2>
+                <Link className="home-text-link" to="/feedback">Leggi e condividi la tua esperienza <span aria-hidden="true">→</span></Link>
+              </div>
+              <div className="home-section-body">
+                {reviews.data ? <div className="home-review-list">{reviews.data.items.map((review, i) => (
+                  <blockquote key={i}>
+                    <p className="home-review-rating"><span aria-hidden="true">★</span> {review.rating} / 5</p>
+                    <p className="home-review-comment">{review.comment}</p>
+                    <cite>{review.name}</cite>
+                  </blockquote>
+                ))}</div> : <State {...reviews} />}
+              </div>
             </section>
           )}
-          <section>
-            <h2>Questions before your visit</h2>
-            <Faq />
-            <Link to="/faq">View FAQ</Link>
+          <section className="home-editorial home-faq">
+            <div className="home-section-heading">
+              <p className="eyebrow">05 / Domande</p>
+              <h2>Prima di venirci a trovare</h2>
+              <Link className="home-text-link" to="/faq">Tutte le risposte <span aria-hidden="true">→</span></Link>
+            </div>
+            <div className="home-section-body"><Faq /></div>
           </section>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { AvailabilityPage } from '@/routes/availability'
 import { PublicFeedbackPage } from '@/routes/feedback'
@@ -63,7 +63,11 @@ export function App() {
           path="/admin/services"
           element={<CatalogPage key="services" resource="services" />}
         />
-        <Route path="/admin/barbers" element={<CatalogPage key="barbers" resource="barbers" />} />
+        <Route
+          path="/admin/hairdressers"
+          element={<CatalogPage key="barbers" resource="barbers" />}
+        />
+        <Route path="/admin/barbers" element={<Navigate to="/admin/hairdressers" replace />} />
         <Route path="/admin/business-hours" element={<HoursPage />} />
         <Route path="/admin/clients" element={<ClientsPage />} />
         <Route path="/admin/clients/new" element={<ClientFormPage />} />

@@ -82,7 +82,7 @@ User explicitly requested client deletion, extending the historical Phase 4 boun
 
 - shadcn responsive service cards with duration, price and active/inactive badges; local search of the existing complete catalog by name/description, with clear and empty states.
 - Owner Create service action focuses the existing shared editor; Edit preloads fields, Cancel restores the create form without writing. Grouped name/description and duration/price fields, black Save action and disabled pending controls.
-- Preserve service POST/PUT/deactivation payloads, actor-scoped cache refresh, server authorization and Staff read-only access. Barbers retain their existing layout.
+- Preserve service POST/PUT/deactivation payloads, actor-scoped cache refresh, server authorization and Staff read-only access. Hairdressers retain their existing layout.
 - No backend changes or real service mutations during browser QA; publication remains separate.
 
 ## Increment 9 — Products catalog (implemented locally)
@@ -91,7 +91,7 @@ User explicitly requested client deletion, extending the historical Phase 4 boun
 - Catalog cards add description previews, active status, Owner-only public/private visibility and retail price. Black Owner Edit product action and secondary Manage stock action link to existing routes; Staff retain read-only history links without financial/settings fields.
 - No backend changes, new product behavior or real mutations; existing inventory presentation remains intact.
 
-## Increment 10 — Barbers catalog (implemented locally)
+## Increment 10 — Hairdressers catalog (implemented locally)
 
 - Extend the existing shadcn catalog layout to `/admin/barbers`: name search/clear, initials, active/inactive badges and responsive cards.
 - Owner create/edit form has required name, active flag and black Save action. Existing POST/PUT payloads contain only name/status; editing focuses the form and cancel does not write.
@@ -179,7 +179,7 @@ Full frontend suite: 171 passed, one failed out of 172. All 19 product tests pas
 
 ### Increment 10 verification — 2026-10-05
 
-173 frontend tests passed, one previously reported public-heading test failed out of 174. All 13 catalog/admin tests passed, including two new barber search/edit-payload and Staff read-only checks. TypeScript/build passed with the existing bundle-size warning. Desktop local Owner cards/form visually inspected. Further browser interaction and mobile/tablet checks could not finish after localhost stopped responding; restarting reported port 5173 already in use. Responsive layout reuses the previously inspected service grid. No real records changed and no deployment performed; backend unchanged.
+173 frontend tests passed, one previously reported public-heading test failed out of 174. All 13 catalog/admin tests passed, including two new hairdresser search/edit-payload and Staff read-only checks. TypeScript/build passed with the existing bundle-size warning. Desktop local Owner cards/form visually inspected. Further browser interaction and mobile/tablet checks could not finish after localhost stopped responding; restarting reported port 5173 already in use. Responsive layout reuses the previously inspected service grid. No real records changed and no deployment performed; backend unchanged.
 
 ### Increment 11 verification — 2026-10-05
 

@@ -31,8 +31,9 @@ const blank: Draft = { name: '', is_active: true, description: '', duration: '30
 
 export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) {
   const services = resource === 'services'
-  const title = services ? 'Services' : 'Barbers'
-  const singular = services ? 'service' : 'barber'
+  const title = services ? 'Services' : 'Hairdressers'
+  const plural = services ? 'services' : 'hairdressers'
+  const singular = services ? 'service' : 'hairdresser'
   const { actor } = useAuth()
   const owner = actor?.role === 'OWNER'
   const key = useAdminKey(resource)
@@ -113,7 +114,9 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
         .includes(search.trim().toLowerCase()),
     )
     return (
-      <section className="services-workspace space-y-6">
+      <section
+        className={`services-workspace space-y-6${services ? '' : ' hairdressers-workspace'}`}
+      >
         <div className="services-heading">
           <div>
             <h1>{title}</h1>
@@ -137,7 +140,7 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
         <Card>
           <CardContent>
             <Field>
-              <FieldLabel htmlFor="services-search">Search {resource}</FieldLabel>
+              <FieldLabel htmlFor="services-search">Search {plural}</FieldLabel>
               <div className="relative">
                 <Search
                   size={18}
@@ -148,7 +151,7 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                   id="services-search"
                   type="search"
                   className="pl-10 pr-12"
-                  placeholder={services ? 'Name or description…' : 'Barber name…'}
+                  placeholder={services ? 'Name or description…' : 'Hairdresser name…'}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -168,7 +171,7 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
         </Card>
         {query.isPending && (
           <div role="status" className="services-grid">
-            <span className="sr-only">Loading {resource}…</span>
+            <span className="sr-only">Loading {plural}…</span>
             {[1, 2, 3].map((n) => (
               <Skeleton key={n} className="h-48 rounded-xl" />
             ))}
@@ -185,7 +188,7 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
         {query.data && (
           <>
             <p className="text-sm text-muted-foreground">
-              {matches?.length} matching {resource}
+              {matches?.length} matching {plural}
             </p>
             {matches?.length ? (
               <ul className="services-grid">
@@ -233,14 +236,16 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                             <Button
                               variant="outline"
                               disabled={mutation.isPending}
+                              aria-label={`Edit ${record.name}`}
                               onClick={() => openEditor(record)}
                             >
                               <Pencil size={16} aria-hidden="true" />
-                              Edit {record.name}
+                              Edit
                             </Button>
                             <Button
                               variant="outline"
                               disabled={mutation.isPending}
+                              aria-label={`${record.is_active ? 'Deactivate' : 'Activate'} ${record.name}`}
                               onClick={() => {
                                 setNotice('')
                                 mutation.mutate({
@@ -249,7 +254,7 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                                 })
                               }}
                             >
-                              {record.is_active ? 'Deactivate' : 'Activate'} {record.name}
+                              {record.is_active ? 'Deactivate' : 'Activate'}
                             </Button>
                           </div>
                         )}
@@ -263,7 +268,7 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                 <CardContent className="service-empty">
                   <Scissors size={30} aria-hidden="true" />
                   <h2>
-                    {query.data.length === 0 ? `No ${resource} yet.` : `No matching ${resource}.`}
+                    {query.data.length === 0 ? `No ${plural} yet.` : `No matching ${plural}.`}
                   </h2>
                   <p className="text-sm text-muted-foreground">
                     {search

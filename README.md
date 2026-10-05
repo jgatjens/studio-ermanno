@@ -1,6 +1,6 @@
 # Studio Ermanno
 
-Studio Ermanno is a responsive website and admin platform for a barber business. The public website presents business information, services, products, availability, and feedback. The staff-facing admin supports business operations such as appointments, clients, services, barbers, business hours, products, inventory, and feedback moderation.
+Studio Ermanno is a responsive website and admin platform for a hairdresser business. The public website presents business information, services, products, availability, and feedback. The staff-facing admin supports business operations such as appointments, clients, services, hairdressers, business hours, products, inventory, and feedback moderation.
 
 The project is organized as:
 

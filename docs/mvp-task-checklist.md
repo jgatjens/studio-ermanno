@@ -44,7 +44,7 @@
 
 - [ ] Create Business model
 - [ ] Create Admin User / Business Membership model
-- [ ] Create Barber / Service Provider model
+- [ ] Create Hairdresser / Service Provider model
 - [ ] Create Client model
 - [ ] Create Service model
 - [ ] Create Appointment model
@@ -95,7 +95,7 @@
 
 ---
 
-## Phase 3 — Services, Barbers & Business Hours
+## Phase 3 — Services, Hairdressers & Business Hours
 
 **Depends on:** Phase 2
 
@@ -103,18 +103,18 @@
 
 - [ ] Build Service CRUD
 - [ ] Add service activate/deactivate
-- [ ] Build Barber CRUD
-- [ ] Add barber activate/deactivate
+- [ ] Build Hairdresser CRUD
+- [ ] Add hairdresser activate/deactivate
 - [ ] Build Business Hours management
 - [ ] Build mobile-first admin screens for services
-- [ ] Build mobile-first admin screens for barbers
+- [ ] Build mobile-first admin screens for hairdressers
 - [ ] Build business-hours settings screen
 
 ### Completion Criteria
 
 - [ ] Active services can be retrieved
-- [ ] Active barbers can be retrieved
-- [ ] All barbers use shared business hours
+- [ ] Active hairdressers can be retrieved
+- [ ] All hairdressers use shared business hours
 - [ ] Inactive records remain valid for history
 
 ---
@@ -157,14 +157,14 @@
 - [ ] Create appointment endpoint
 - [ ] Require existing client
 - [ ] Support multiple services
-- [ ] Support optional barber assignment
+- [ ] Support optional hairdresser assignment
 - [ ] Auto-calculate duration
 - [ ] Auto-calculate price
 - [ ] Allow Owner duration override
 - [ ] Allow Owner price override
 - [ ] Add appointment statuses
-- [ ] Add barber overlap validation
-- [ ] Reserve one generic barber slot for unassigned appointments
+- [ ] Add hairdresser overlap validation
+- [ ] Reserve one generic hairdresser slot for unassigned appointments
 - [ ] Build today view
 - [ ] Build appointment list
 - [ ] Build create appointment UI
@@ -180,9 +180,9 @@
 - [ ] Multiple services work
 - [ ] Duration and price auto-calculate
 - [ ] Owner overrides work
-- [ ] Barber assignment is optional
-- [ ] Same barber cannot overlap active appointments
-- [ ] Different barbers can overlap
+- [ ] Hairdresser assignment is optional
+- [ ] Same hairdresser cannot overlap active appointments
+- [ ] Different hairdressers can overlap
 - [ ] Staff can view but not modify appointments
 
 ---
@@ -284,17 +284,17 @@
 ### Tasks
 
 - [ ] Calculate business availability from business hours
-- [ ] Count active barbers
+- [ ] Count active hairdressers
 - [ ] Apply assigned appointment capacity
 - [ ] Apply unassigned appointment capacity
 - [ ] Return Available / Limited / Full / Closed
-- [ ] Hide barber names
+- [ ] Hide hairdresser names
 - [ ] Hide client data
 - [ ] Build mobile-friendly availability UI
 
 ### Completion Criteria
 
-- [ ] Availability reflects actual barber capacity
+- [ ] Availability reflects actual hairdresser capacity
 - [ ] Unassigned appointments consume one slot
 - [ ] Public response contains no private data
 - [ ] No booking action exists
@@ -385,7 +385,7 @@
 - [ ] Login
 - [ ] Client create/search
 - [ ] Appointment creation
-- [ ] Barber conflict handling
+- [ ] Hairdresser conflict handling
 - [ ] Appointment completion
 - [ ] Inventory update
 - [ ] Feedback submission

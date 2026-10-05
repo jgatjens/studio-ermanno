@@ -786,7 +786,7 @@ Do not implement in Phase 2:
 
 - Client CRUD
 - Service CRUD
-- Barber CRUD
+- Hairdresser CRUD
 - Business Hours CRUD
 - Appointment CRUD
 - Appointment overlap logic

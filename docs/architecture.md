@@ -392,12 +392,12 @@ Staff cannot modify admin data.
 
 Barbers/service providers are represented as staff profiles separate from authenticated admin users.
 
-A barber may exist without having admin access.
+A hairdresser may exist without having admin access.
 
 For the MVP:
 
-- All barbers follow the same business hours.
-- All barbers can perform all active services.
+- All hairdressers follow the same business hours.
+- All hairdressers can perform all active services.
 - Barber-specific working hours are not required.
 - Barber-specific service assignments are not required.
 
@@ -405,7 +405,7 @@ Appointments reference a client and may reference a barber.
 
 The client must already exist before the appointment is created.
 
-A barber may be assigned when the appointment is created or later.
+A hairdresser may be assigned when the appointment is created or later.
 
 ---
 
@@ -444,11 +444,11 @@ Appointment capacity is based on active barbers.
 
 Rules:
 
-- Different barbers may have appointments at the same time.
-- The same barber cannot have overlapping active appointments.
+- Different hairdressers may have appointments at the same time.
+- The same hairdresser cannot have overlapping active appointments.
 - An appointment may be saved without a barber.
-- An unassigned appointment reserves one generic barber slot for its scheduled time.
-- Public availability does not expose barber names.
+- An unassigned appointment reserves one generic hairdresser slot for its scheduled time.
+- Public availability does not expose hairdresser names.
 - Public availability represents business-level capacity across all active barbers.
 
 An appointment may contain multiple services.

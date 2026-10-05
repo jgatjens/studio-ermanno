@@ -48,7 +48,7 @@ The initial data model contains:
 
 - Business
 - Admin Users
-- Barbers / Service Providers
+- Hairdressers / Service Providers
 - Clients
 - Appointments
 - Services
@@ -125,7 +125,7 @@ Owners may:
 - Manage services
 - Manage products and inventory
 - Moderate feedback
-- Manage Barber / Service Provider profiles
+- Manage Hairdresser / Service Provider profiles
 
 ## Staff
 
@@ -156,13 +156,13 @@ Detailed authentication implementation belongs in the architecture and coding ph
 
 ---
 
-# 6. Barbers / Service Providers
+# 6. Hairdressers / Service Providers
 
 Represents people who can perform services and receive appointments.
 
-A barber profile is separate from an authenticated admin user.
+A hairdresser profile is separate from an authenticated admin user.
 
-This allows a barber to exist without admin access.
+This allows a hairdresser to exist without admin access.
 
 ## Main Information
 
@@ -172,8 +172,8 @@ This allows a barber to exist without admin access.
 
 ## MVP Rules
 
-- All active barbers follow the same business hours.
-- All active barbers can perform all active services.
+- All active hairdressers follow the same business hours.
+- All active hairdressers can perform all active services.
 - Barber-specific schedules are not required.
 - Barber-specific service assignments are not required.
 
@@ -227,7 +227,7 @@ Represents a scheduled or completed customer visit.
 
 - Business
 - Client
-- Barber when assigned
+- Hairdresser when assigned
 - Start date and time
 - End date and time
 - Status
@@ -275,24 +275,24 @@ An appointment belongs to:
 
 An appointment may optionally be assigned to:
 
-- One barber
+- One hairdresser
 
 An appointment may contain:
 
 - One or more services
 - Zero or more products
 
-## Barber Assignment Rule
+## Hairdresser Assignment Rule
 
-A barber is optional when the appointment is first created and may be assigned later.
+A hairdresser is optional when the appointment is first created and may be assigned later.
 
 ## Overlap Rule
 
-Different barbers may have appointments at the same time.
+Different hairdressers may have appointments at the same time.
 
-The same barber cannot have two overlapping active appointments.
+The same hairdresser cannot have two overlapping active appointments.
 
-An unassigned appointment reserves one generic barber slot during its scheduled time.
+An unassigned appointment reserves one generic hairdresser slot during its scheduled time.
 
 ## Multiple Services Rule
 
@@ -568,11 +568,11 @@ Represents the normal weekly operating schedule used by the business.
 
 ## MVP Rule
 
-All active barbers follow the same business hours.
+All active hairdressers follow the same business hours.
 
 Per-barber working hours and days off are outside the MVP.
 
-Business hours help determine public availability together with active barber capacity and appointments.
+Business hours help determine public availability together with active hairdresser capacity and appointments.
 
 ---
 
