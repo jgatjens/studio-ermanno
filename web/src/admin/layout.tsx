@@ -93,8 +93,8 @@ function ShellContent() {
                   M
                 </span>
                 <span className="grid text-left">
-                  <span className="font-semibold">Minati Parrucchieri</span>
-                  <span className="text-xs text-muted-foreground">Studio administration</span>
+                  <span className="font-semibold">I Minati Parrucchieri</span>
+                  <span className="text-xs text-muted-foreground">administration</span>
                 </span>
               </Link>
             </SidebarMenuButton>
