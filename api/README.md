@@ -64,4 +64,36 @@ Database-backed tests require the additional setup described in the project veri
 
 ## Formatting
 
-Install development tools with `.venv/bin/python -m pip install -r requirements-dev.txt`. Run `make format` to format Python or `make format-check` to check formatting without editing files. `pyproject.toml` defines the shared Ruff settings; the formatter is a development dependency and is not added to production requirements.
+Ruff formats Python with four-space indentation, double quotes, and a preferred line width of 100 characters. The formatter targets Python 3.9 syntax to match the project's minimum supported version.
+
+From `api/`, install the pinned development tools in the existing virtual environment:
+
+```sh
+.venv/bin/python -m pip install -r requirements-dev.txt
+```
+
+Format files or check them without editing:
+
+```sh
+make format
+make format-check
+```
+
+If `make` is unavailable, run the equivalent commands directly:
+
+```sh
+.venv/bin/python -m ruff format .
+.venv/bin/python -m ruff format --check .
+```
+
+To format a single file from `api/`:
+
+```sh
+.venv/bin/python -m ruff format app/business_hours/router.py
+```
+
+Configuration lives in [`pyproject.toml`](pyproject.toml) and the root [`.editorconfig`](../.editorconfig). Ruff is pinned in [`requirements-dev.txt`](requirements-dev.txt) and is not added to production requirements. This workflow formats Python only; it does not automatically apply lint fixes or reorder imports.
+
+For VS Code, open the repository root and install the recommended **Ruff** extension (`charliermarsh.ruff`). The committed [workspace settings](../.vscode/settings.json) enable format on save for Python. Other editors can use the same Ruff configuration.
+
+Before completing an update, run `make format-check` and `.venv/bin/python -m pytest`. Keep broad formatting changes in a separate commit from feature changes. Frontend files and Markdown documentation use [the web project's Prettier workflow](../web/README.md#formatting).

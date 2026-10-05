@@ -50,4 +50,31 @@ The production build validates deployment environment settings. See `.env.exampl
 
 ## Formatting
 
-Run `npm run format` to format supported files throughout the repository with Prettier, or `npm run format:check` to check without modifying files. The root `.prettierrc.json`, `.prettierignore` and `.editorconfig` define the conventions. Install the recommended VS Code extensions to enable the committed format-on-save settings. Python uses Ruff separately; see the root README.
+Prettier formats TypeScript, TSX, JavaScript, CSS, HTML, JSON, YAML and Markdown. It uses two-space indentation, single quotes, no semicolons, and a preferred line width of 100 characters.
+
+From `web/`, install the pinned formatter with the project dependencies:
+
+```sh
+npm ci
+```
+
+Format files or check them without editing:
+
+```sh
+npm run format
+npm run format:check
+```
+
+These commands cover supported files throughout the repository, including documentation. They exclude dependencies, build output, virtual environments, environment files, and the npm lockfile. Python files use [the API's Ruff workflow](../api/README.md#formatting).
+
+To format a single file from `web/`:
+
+```sh
+npx prettier --write src/routes/availability.tsx
+```
+
+Configuration lives in the repository root: [`.prettierrc.json`](../.prettierrc.json), [`.prettierignore`](../.prettierignore), and [`.editorconfig`](../.editorconfig). Change those files when updating the shared conventions.
+
+For VS Code, open the repository root and install the recommended **Prettier – Code formatter** extension (`esbenp.prettier-vscode`). The committed [workspace settings](../.vscode/settings.json) enable format on save for frontend files. Other editors can use the same Prettier and EditorConfig configuration.
+
+Before completing an update, run `npm run format:check`, `npm run typecheck`, `npm test`, and `npm run build`. Keep broad formatting changes in a separate commit from feature changes.

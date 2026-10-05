@@ -2,6 +2,11 @@
 
 This folder contains the current planning documentation for the MVP.
 
+## Project development guides
+
+- [Web frontend setup and formatting](../web/README.md) — Prettier installation, format/check commands, single-file formatting, and editor support.
+- [API backend setup and formatting](../api/README.md) — Ruff development installation, format/check commands, single-file formatting, and editor support.
+
 ## Documents
 
 - `plans/admin-redesign-implementation.md` — staged shadcn admin redesign; login-02 first, preserving authentication and role boundaries
