@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ChevronLeft, ChevronRight, Info, RefreshCw, ArrowRight, Phone, Clock } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Info, RefreshCw, ArrowRight, Phone, Clock, MessageCircle } from 'lucide-react'
 import { apiRequest } from '@/lib/api'
 import { formatHours } from '@/lib/business-hours'
 import { availabilityHero as hero, availabilityHelpImage } from '@/public/content'
@@ -53,19 +53,45 @@ export function AvailabilityPage() {
       if (controller.signal.aborted) return
       const items = results.flatMap(result => result.items).sort((a, b) => a.date.localeCompare(b.date))
       setData({ ...initial, start: `${target}-01`, days: total, items })
-      setSelected(previous => items.some(day => day.date === previous && day.date >= initial.start) ? previous : items.find(day => day.date >= initial.start && (day.state === 'AVAILABLE' || day.state === 'LIMITED'))?.date || items.find(day => day.date >= initial.start)?.date || '')
+      setSelected(previous => items.some(day => day.date === previous && day.date >= initial.start && day.state !== 'CLOSED') ? previous : items.find(day => day.date >= initial.start && (day.state === 'AVAILABLE' || day.state === 'LIMITED'))?.date || items.find(day => day.date >= initial.start && day.state !== 'CLOSED')?.date || '')
     })().catch(() => { if (!controller.signal.aborted) setError(true) })
     return () => controller.abort()
   }, [month, refresh])
-  const day = data?.items.find(row => row.date === selected)
-  const slots = day?.intervals.filter(interval => interval.state === 'AVAILABLE' || interval.state === 'LIMITED') || []
-  const groups: Interval[][] = []
-  // Group against the full interval sequence so occupied spots don't look like lunch breaks.
+  const isClosed = (date: string, row?: Day) => row?.state === 'CLOSED' || business.data?.hours.some(hour => hour.day_of_week === (dateObject(date).getUTCDay() + 6) % 7 && hour.is_closed) === true
+  const openDays = data?.items.filter(row => row.date >= today && !isClosed(row.date, row)) || []
+  // Hours may arrive after availability, or a refresh may close the viewed date.
+  const day = openDays.find(row => row.date === selected) || openDays.find(row => row.state === 'AVAILABLE' || row.state === 'LIMITED') || openDays[0]
+  const periods: Interval[][] = []
   for (const interval of day?.intervals || []) {
-    if (!groups.length || new Date(interval.start).getTime() !== new Date(groups.at(-1)!.at(-1)!.end).getTime()) groups.push([])
-    groups.at(-1)!.push(interval)
+    if (!periods.length || new Date(interval.start).getTime() !== new Date(periods.at(-1)!.at(-1)!.end).getTime()) periods.push([])
+    periods.at(-1)!.push(interval)
   }
+  // Anchor hourly spots to each opening period and require capacity throughout the hour.
+  const hourMs = 60 * 60 * 1000
+  const groups = periods.map(period => {
+    const hours: Interval[] = []
+    const end = new Date(period.at(-1)!.end).getTime()
+    for (let start = new Date(period[0].start).getTime(); start + hourMs <= end; start += hourMs) {
+      const overlapping = period.filter(interval => new Date(interval.start).getTime() < start + hourMs && new Date(interval.end).getTime() > start)
+      if (overlapping.length && overlapping.every(interval => interval.state === 'AVAILABLE' || interval.state === 'LIMITED')) {
+        hours.push({ start: new Date(start).toISOString(), end: new Date(start + hourMs).toISOString(), state: overlapping.some(interval => interval.state === 'LIMITED') ? 'LIMITED' : 'AVAILABLE' })
+      }
+    }
+    return hours
+  })
+  const slots = groups.flat()
   const contact = business.data ? contactLinks(business.data).filter(link => ['WhatsApp', 'Call'].includes(link.label)) : []
+  const contactActions = ['WhatsApp', 'Call'].map(label => contact.find(link => link.label === label) || (label === 'WhatsApp' ? { label, href: '/contact' } : null)).filter((link): link is { label: string; href: string } => link !== null)
+  const hourGroups: { first: number; last: number; periods: string[]; signature: string }[] = []
+  for (const hour of business.data?.hours.slice().sort((a, b) => a.day_of_week - b.day_of_week) || []) {
+    if (hour.is_closed) continue
+    const short = (value: string | null | undefined) => value?.slice(0, 5) || ''
+    const periods = hour.break_start && hour.break_end ? [`${short(hour.opening_time)} – ${short(hour.break_start)}`, `${short(hour.break_end)} – ${short(hour.closing_time)}`] : [formatHours(hour).replace('–', ' – ')]
+    const signature = periods.join('|')
+    const previous = hourGroups.at(-1)
+    if (previous && previous.last + 1 === hour.day_of_week && previous.signature === signature) previous.last = hour.day_of_week
+    else hourGroups.push({ first: hour.day_of_week, last: hour.day_of_week, periods, signature })
+  }
   const first = month ? dateObject(`${month}-01`) : null
   const padding = first ? (first.getUTCDay() + 6) % 7 : 0
   const count = first ? new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate() : 0
@@ -85,7 +111,8 @@ export function AvailabilityPage() {
               const date = `${month}-${String(index + 1).padStart(2, '0')}`
               const row = data?.items.find(item => item.date === date)
               const past = date < today
-              return <button type="button" className="availability-date" data-state={past ? 'PAST' : row?.state || 'UNKNOWN'} aria-pressed={date === selected && !!data} aria-label={`${dayLabel(date)} · ${past ? 'Data passata' : row ? labels[row.state] : 'Dati non disponibili'}`} disabled={past || !row} onClick={() => setSelected(date)} key={date}><span>{index + 1}</span><span className="availability-dot" aria-hidden="true" /></button>
+              const closed = isClosed(date, row)
+              return <button type="button" className="availability-date" data-state={past ? 'PAST' : closed ? 'CLOSED' : row?.state || 'UNKNOWN'} aria-pressed={date === day?.date && !!data} aria-label={`${dayLabel(date)} · ${past ? 'Data passata' : closed ? 'Chiuso' : row ? labels[row.state] : 'Dati non disponibili'}`} disabled={past || closed || !row} onClick={() => setSelected(date)} key={date}><span>{index + 1}</span><span className="availability-dot" aria-hidden="true" /></button>
             })}
           </div>
         </div>
@@ -94,8 +121,8 @@ export function AvailabilityPage() {
       <section className="availability-times" aria-labelledby="availability-day-title" aria-busy={!data && !error}>
         <div className="availability-times-heading"><p className="availability-eyebrow">2. Consulta gli orari</p><button type="button" className="availability-refresh" aria-label="Aggiorna disponibilità" onClick={() => setRefresh(value => value + 1)}><RefreshCw size={16} /></button></div>
         <h2 id="availability-day-title">{day ? dayLabel(day.date) : 'Orari disponibili'}</h2>
-        {error ? <div className="availability-message" role="alert"><p>Non riusciamo a caricare la disponibilità. Riprova o contattaci direttamente.</p><button type="button" onClick={() => setRefresh(value => value + 1)}>Riprova</button></div> : !data ? <p role="status">Caricamento disponibilità…</p> : !data.items.length ? <p role="status">Nessuna data disponibile.</p> : !day ? <p>Scegli una data per consultare gli orari.</p> : !slots.length ? <p role="status">{day.state === 'CLOSED' ? 'Il salone è chiuso in questa data.' : 'Non ci sono orari disponibili per questa data.'}</p> : <>
-          <p>Orari disponibili per questa data.</p>
+        {error ? <div className="availability-message" role="alert"><p>Non riusciamo a caricare la disponibilità. Riprova o contattaci direttamente.</p><button type="button" onClick={() => setRefresh(value => value + 1)}>Riprova</button></div> : !data ? <p role="status">Caricamento disponibilità…</p> : !data.items.length ? <p role="status">Nessuna data disponibile.</p> : !day ? <p role="status">Nessuna data di apertura disponibile per questo mese.</p> : !slots.length ? <p role="status">{day.state === 'CLOSED' ? 'Il salone è chiuso in questa data.' : 'Non ci sono orari disponibili per questa data.'}</p> : <>
+          <p>Disponibilità in fasce di un’ora per questa data.</p>
           <div className="availability-slot-groups">{groups.map((group, index) => {
             const available = group.filter(interval => interval.state === 'AVAILABLE' || interval.state === 'LIMITED')
             return available.length > 0 && <ul className="availability-slots" aria-label={`Orari disponibili, fascia ${index + 1}`} key={group[0].start}>{available.map(interval => {
@@ -111,8 +138,13 @@ export function AvailabilityPage() {
     </section>
     <section className="availability-help" aria-labelledby="availability-help-title">
       <img src={availabilityHelpImage.src} srcSet={availabilityHelpImage.srcSet} sizes="(min-width: 768px) 25vw, 100vw" alt={availabilityHelpImage.alt} width={availabilityHelpImage.width} height={availabilityHelpImage.height} loading="lazy" />
-      <div><p className="availability-eyebrow">Hai bisogno di aiuto?</p><h2 id="availability-help-title">Preferisci contattarci<br />direttamente?</h2><p>Puoi scriverci, chiamarci o passare in salone. Saremo felici di aiutarti a trovare il momento migliore per te.</p><div className="availability-contact-actions">{contact.map(link => <a href={link.href} key={link.label} {...(link.href.startsWith('https:') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{link.label === 'Call' && <Phone size={16} />}{link.label === 'Call' ? 'Chiama' : link.label}<ArrowRight size={16} /></a>)}</div>{business.error && <p>Contatti non disponibili. <button type="button" onClick={business.retry}>Riprova</button></p>}{!business.data && !business.error && <p role="status">Caricamento contatti…</p>}{business.data && !contact.length && <a href="/contact">Informazioni di contatto <ArrowRight size={16} /></a>}</div>
-      <div className="availability-help-hours"><p className="availability-eyebrow"><Clock size={18} /> I nostri orari</p>{business.data?.hours.length ? <dl>{business.data.hours.slice().sort((a, b) => a.day_of_week - b.day_of_week).map(hour => <div key={hour.day_of_week}><dt>{fullWeekdays[hour.day_of_week]}</dt><dd>{hour.is_closed ? 'Chiuso' : formatHours(hour)}</dd></div>)}</dl> : <p>Consulta il salone per gli orari di apertura.</p>}</div>
+      <div>
+        <p className="availability-eyebrow">Hai bisogno di aiuto?</p>
+        <h2 id="availability-help-title">Preferisci contattarci<br />direttamente?</h2>
+        <p>Puoi scriverci su WhatsApp, chiamarci o passare in salone. Saremo felici di aiutarti a trovare il momento migliore per te.</p>
+        <div className="availability-contact-actions">{contactActions.map(link => <a href={link.href} key={link.label} title={link.href === "/contact" ? "Consulta le informazioni di contatto per WhatsApp" : undefined} {...(link.href.startsWith('https:') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}><span className="availability-contact-label">{link.label === 'Call' ? <Phone size={18} /> : <MessageCircle size={18} />}{link.label === 'Call' ? 'Chiama' : link.label}</span><ArrowRight size={16} /></a>)}</div>{business.error && <p>Contatti non disponibili. <button type="button" onClick={business.retry}>Riprova</button></p>}{!business.data && !business.error && <p role="status">Caricamento contatti…</p>}{business.data && !contact.length && <a href="/contact">Informazioni di contatto <ArrowRight size={16} /></a>}
+      </div>
+      <div className="availability-help-hours"><p className="availability-eyebrow"><Clock size={18} /> I nostri orari</p>{hourGroups.length ? <dl>{hourGroups.map(group => <div key={group.first}><dt>{fullWeekdays[group.first]}{group.first !== group.last && ` — ${fullWeekdays[group.last]}`}</dt><dd>{group.periods.map(period => <span key={period}>{period}</span>)}</dd></div>)}</dl> : <p>Consulta il salone per gli orari di apertura.</p>}</div>
     </section>
   </div>
 }

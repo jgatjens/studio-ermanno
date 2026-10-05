@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { formatHours } from '@/lib/business-hours'
-import { faq, gallery, hero } from './content'
+import { faq, gallery, hero, publicBrand } from './content'
 import { contactLinks, price, usePublic, type Business, type Item, type Page, type Review } from './data'
 
 function State({ error, retry }: { error: boolean; retry: () => void }) { return error ? <div role="alert">This section could not load. <button onClick={retry}>Try again</button></div> : <p role="status" className="public-loading">Loading…</p> }
@@ -12,7 +12,7 @@ export function Contact({ business }: { business: Business }) { return <div clas
 export function HomePage() {
   const business = usePublic<Business>('/public/business'), services = usePublic<Page<Item>>('/public/services?limit=3'), products = usePublic<Page<Item>>('/public/products?limit=3'), reviews = usePublic<Page<Review>>('/public/feedback?limit=3')
   return <>
-    <section className="public-hero"><div><p className="eyebrow">Your next visit starts here</p><h1>{business.data?.name || 'Welcome'}</h1>{business.data ? <p>{business.data.description || 'Explore services and contact us to arrange your visit.'}</p> : <State {...business} />}<div className="public-actions"><Link className="primary-link" to="/availability">Check availability</Link><Link to="/services">View services</Link></div></div>{hero && <img className="hero-photo" src={hero.src} srcSet={hero.srcSet} sizes="(min-width: 768px) 40vw, 100vw" alt={hero.alt} width={hero.width} height={hero.height} loading="eager" fetchPriority="high" />}</section>
+    <section className="public-hero"><div><p className="eyebrow">Your next visit starts here</p><h1>{publicBrand.name}<br /><span className="public-home-brand-descriptor">{publicBrand.descriptor}</span></h1>{business.data ? <p>{business.data.description || 'Explore services and contact us to arrange your visit.'}</p> : <State {...business} />}<div className="public-actions"><Link className="primary-link" to="/availability">Check availability</Link><Link to="/services">View services</Link></div></div>{hero && <img className="hero-photo" src={hero.src} srcSet={hero.srcSet} sizes="(min-width: 768px) 40vw, 100vw" alt={hero.alt} width={hero.width} height={hero.height} loading="eager" fetchPriority="high" />}</section>
     <section><h2>Featured services</h2>{services.data ? services.data.items.length ? <Cards items={services.data.items} business={business.data} /> : <p>Contact us for service information.</p> : <State {...services} />}<Link to="/services">View all services</Link></section>
     <section className="public-callout"><h2>Plan your visit</h2><p>Explore informational availability, then contact us to arrange a visit.</p><Link to="/availability">Check availability</Link></section>
     <section><h2>A look around</h2><Gallery /><Link to="/gallery">View gallery</Link></section>

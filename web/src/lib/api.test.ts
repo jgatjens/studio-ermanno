@@ -79,3 +79,8 @@ test('successful DELETE handles 204 without parsing an empty response', async ()
   await expect(apiRequest<void>('/clients/one', {method:'DELETE'})).resolves.toBeUndefined()
   expect(vi.mocked(fetch).mock.calls[0][1]?.method).toBe('DELETE')
 })
+
+test('validation failures show field reasons without echoing rejected input', async () => {
+  vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({ detail: [{ loc: ['body', 'days', 0, 'break_start'], msg: 'Extra inputs are not permitted', input: 'private value' }] }), { status: 422 }))
+  await expect(apiRequest('/business-hours')).rejects.toThrow('days.0.break_start: Extra inputs are not permitted')
+})

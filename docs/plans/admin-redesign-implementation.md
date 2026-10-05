@@ -62,6 +62,35 @@ User explicitly requested client deletion, extending the historical Phase 4 boun
 - Explicit loading, empty, retry and invalid-range states. Filter changes reset pagination; Reset restores today and all statuses.
 - No backend changes, new scheduling features, or detail/form redesign in this increment.
 
+## Increment 6 — Inventory overview (implemented locally)
+
+- shadcn stock cards emphasize current balance, minimum stock, low-stock and inactive badges.
+- Search, low-stock/inactive filters, clear/reset controls, pagination and loading/error/empty states use the existing authenticated inventory query and actor-scoped cache.
+- Owners have Create product, Manage stock and Edit product links; Staff have read-only history links without financial fields or mutation controls.
+- Responsive one/two/three-column layout; matching-product totals describe the filtered result rather than global inventory health.
+- Existing product detail/forms, stock-change confirmation and retry behavior remain intact. No backend changes or stock records changed during browser checks.
+
+## Increment 7 — Product create/edit form (implemented locally)
+
+- Shared shadcn editor for the requested `/admin/products/:id/edit` route and existing create route, grouping product information, pricing, stock settings and visibility.
+- Description uses a multiline textarea; existing required fields, limits, decimal strings and API payloads remain intact.
+- Current stock is read-only on edit; opening quantity remains create-only. Explicit back/cancel actions return to the appropriate existing product route.
+- Preserve Owner restriction, cache refresh, retained drafts and exact-command retries. Pending saves disable fields, checkboxes and cancellation.
+- No product profile/ledger redesign, backend changes, new business behavior or publication.
+
+## Increment 8 — Services catalog (implemented locally)
+
+- shadcn responsive service cards with duration, price and active/inactive badges; local search of the existing complete catalog by name/description, with clear and empty states.
+- Owner Create service action focuses the existing shared editor; Edit preloads fields, Cancel restores the create form without writing. Grouped name/description and duration/price fields, black Save action and disabled pending controls.
+- Preserve service POST/PUT/deactivation payloads, actor-scoped cache refresh, server authorization and Staff read-only access. Barbers retain their existing layout.
+- No backend changes or real service mutations during browser QA; publication remains separate.
+
+## Increment 9 — Products catalog (implemented locally)
+
+- Reuse the inventory shadcn cards, search/filter controls, loading/error/empty states and pagination for `/admin/products`, preserving existing server queries.
+- Catalog cards add description previews, active status, Owner-only public/private visibility and retail price. Black Owner Edit product action and secondary Manage stock action link to existing routes; Staff retain read-only history links without financial/settings fields.
+- No backend changes, new product behavior or real mutations; existing inventory presentation remains intact.
+
 ## Subsequent increments — planned only
 
 2. Dashboard: cards, skeletons, empty/error states and role-appropriate appointment/stock/feedback actions.
@@ -100,3 +129,19 @@ Backend: 281 passed, 42 skipped (live-database suites require separate configura
 ### Increment 5 verification — 2026-10-05
 
 157 frontend tests passed in 16 files, including four new schedule checks for Staff privacy/action hiding, business-local grouping across UTC midnight, status/pagination reset, and invalid dates suppressing requests. TypeScript/build passed; existing >500 kB bundle warning remains. Local Owner filters/empty state inspected on desktop and 390px mobile; no horizontal overflow. No local appointments were available in the checked 2026 range, so populated cards were verified using fixtures. No records created/changed and no deployment performed. Backend unchanged.
+
+### Increment 6 verification — 2026-10-05
+
+164 frontend tests passed across 16 files, including four new inventory checks for Owner balances/actions, filter/pagination reset, Staff read-only controls and filtered empty-state behavior. TypeScript/build passed; existing >500 kB bundle warning remains. Local Owner inventory inspected on desktop, 390px mobile and 820px tablet; mobile/tablet had no horizontal overflow. Low-stock filtering and reset verified in the browser. Staff behavior checked with fixtures. No stock mutations or deployment performed. Backend unchanged.
+
+### Increment 7 verification — 2026-10-05
+
+168 frontend tests passed across 16 files, including two new editor checks for grouped fields/read-only stock/cancel and pending save controls. TypeScript/build passed; existing >500 kB bundle warning remains. Local Owner inspected the supplied product edit route on desktop, 390px mobile and 820px tablet; mobile/tablet overflow checks passed. Existing creation/edit/retry and Staff denial tests pass. No real product was saved during browser QA; backend unchanged and no deployment performed.
+
+### Increment 8 verification — 2026-10-05
+
+170 frontend tests passed in 16 files, including two new checks for description search/clear and editor focus/cancel without writes. TypeScript/build passed; existing bundle-size warning remains. Local Owner service cards and editor inspected; edit cancelled without saving. Desktop, 390px mobile and 820px tablet layouts verified; narrow-screen overflow checks passed. Staff and existing service mutation behavior fixture-tested. Backend unchanged; no deployment performed.
+
+### Increment 9 verification — 2026-10-05
+
+Full frontend suite: 171 passed, one failed out of 172. All 19 product tests passed, including two new Owner/Staff catalog checks. The unrelated public app loading test still expects the heading “Welcome” while concurrently updated public branding renders “I Minati Parrucchieri”; that work was preserved. TypeScript/build passed with the existing bundle-size warning. Local Owner desktop, 390px mobile and 820px tablet inspected; mobile/tablet overflow checks passed. No product records changed and no deployment performed. Backend unchanged.

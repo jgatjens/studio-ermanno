@@ -34,7 +34,7 @@ def seed_development(session, settings):
             session.add(model(id=identifier, **values))
             session.flush()
 
-    add_missing(Business, "business", name="Sample Hair Studio", timezone=settings.seed_timezone,
+    add_missing(Business, "business", name="I Minati Parrucchieri", timezone=settings.seed_timezone,
                 currency="EUR", email="studio@example.test", phone="+390000000000", address="Sample address")
     lock_business(session, BUSINESS_ID)
     for name, role in (("owner-1", MembershipRole.OWNER), ("owner-2", MembershipRole.OWNER), ("staff-1", MembershipRole.STAFF)):

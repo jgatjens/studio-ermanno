@@ -4,6 +4,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/auth/auth-provider'
 import { apiRequest } from '@/lib/api'
 import { useAdminKey } from './query-provider'
+import { ArrowRight, Package, Plus, Search, X, Pencil, AlertTriangle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Field, FieldLabel, FieldDescription } from '@/components/ui/field'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 
 type Product = { id: string; name: string; brand: string | null; category: string | null; description: string | null; sku: string | null; cost_price: string; retail_price: string; minimum_stock: string; current_stock: string; is_active: boolean; is_public: boolean; low_stock: boolean }
 type Movement = { id: string; movement_type: string; quantity: string; created_at: string; notes?: string | null; appointment_id: string | null }
@@ -17,6 +26,8 @@ function useRefresh() {
   return () => Promise.all(keys.map(queryKey => cache.invalidateQueries({ queryKey })))
 }
 
+function stockQuantity(value:string) { return value.replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1') }
+
 export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
   const owner = useAuth().actor?.role === 'OWNER'
   const [q, setQ] = useState('')
@@ -26,16 +37,26 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
   const resource = inventory ? 'inventory' : 'products'
   const key = useAdminKey(resource)
   const query = useQuery({ queryKey: [...key, q, inactive, low, offset], queryFn: ({ signal }) => apiRequest<Page<Product>>(`/${resource}?q=${encodeURIComponent(q)}${inactive ? (inventory ? '&include_inactive=true' : '') : '&active=true'}${low ? '&low_stock=true' : ''}&limit=25&offset=${offset}`, { signal }) })
-  return <section className="space-y-4"><h1>{inventory ? 'Inventory' : 'Products'}</h1>{owner && <Link to="/admin/products/new">Create product</Link>}
-    <label>Search products<input className={field} maxLength={200} value={q} onChange={e => { setQ(e.target.value); setOffset(0) }} /></label>
-    <label className="block"><input type="checkbox" checked={inactive} onChange={e => { setInactive(e.target.checked); setOffset(0) }} /> Include inactive</label>
-    <label className="block"><input type="checkbox" checked={low} onChange={e => { setLow(e.target.checked); setOffset(0) }} /> Low stock only</label>
-    {query.isPending ? <p role="status">Loading products…</p> : query.isError ? <div role="alert">{query.error.message}<button className={button} onClick={() => void query.refetch()}>Retry</button></div> : <>
-      {!query.data.total && <p>No matching products.</p>}
-      {query.data.items.map(row => <article key={row.id} className="space-y-2 rounded border p-4 break-words"><h2><Link to={`/admin/products/${row.id}`}>{row.name}</Link></h2><p>{row.brand} · {row.category} · {row.is_active ? 'Active' : 'Inactive'}</p><p>Current stock: {row.current_stock} · Minimum: {row.minimum_stock}</p>{row.low_stock && <p className="font-semibold">Low stock</p>}{owner && <Link to={`/admin/products/${row.id}/edit`}>Edit product</Link>}</article>)}
-      <div className="flex gap-3"><button className={button} disabled={!offset} onClick={() => setOffset(offset - 25)}>Previous</button><button className={button} disabled={offset + 25 >= query.data.total} onClick={() => setOffset(offset + 25)}>Next</button></div>
+  return <section className="inventory-workspace space-y-6">
+    <div className="inventory-page-heading"><div><h1>{inventory ? 'Inventory' : 'Products'}</h1><p className="text-sm text-muted-foreground">{inventory ? 'Check stock levels and find products that need attention.' : 'Browse your catalog and manage product information.'}</p></div>{owner&&<Button asChild><Link to="/admin/products/new"><Plus size={18} aria-hidden="true"/>Create product</Link></Button>}</div>
+    <Card><CardContent>
+      <Field><FieldLabel htmlFor="inventory-search">Search products</FieldLabel><div className="relative"><Search size={18} aria-hidden="true" className="pointer-events-none absolute left-3 top-3.5 text-muted-foreground"/><Input id="inventory-search" className="h-11 pl-10 pr-12" type="search" autoComplete="off" maxLength={200} placeholder="Name, brand, category or SKU…" value={q} onChange={e=>{setQ(e.target.value);setOffset(0)}}/>{q&&<Button variant="outline" className="absolute right-0 top-0 min-h-11" aria-label="Clear search" onClick={()=>{setQ('');setOffset(0)}}><X size={16} aria-hidden="true"/></Button>}</div><FieldDescription>{owner ? (inventory ? 'Open a product to record stock changes and review its history.' : 'Open a product for details or edit its catalog information.') : 'Read-only access. Open a product to view permitted movement history.'}</FieldDescription></Field>
+      <div className="inventory-filter-row"><div className="inventory-filter-options"><label htmlFor="inventory-low" className="inventory-filter-pill"><Checkbox id="inventory-low" checked={low} onCheckedChange={value=>{setLow(value===true);setOffset(0)}}/>Low stock only</label><label htmlFor="inventory-inactive" className="inventory-filter-pill"><Checkbox id="inventory-inactive" checked={inactive} onCheckedChange={value=>{setInactive(value===true);setOffset(0)}}/>Include inactive</label></div>{(q||low||inactive)&&<Button variant="outline" onClick={()=>{setQ('');setLow(false);setInactive(false);setOffset(0)}}>Reset filters</Button>}</div>
+    </CardContent></Card>
+    {query.isPending?<div role="status"><span className="sr-only">Loading products…</span><div className="inventory-grid" aria-hidden="true">{Array.from({length:6},(_,i)=><Skeleton key={i} className="h-60 rounded-xl"/>)}</div></div>:query.isError?<div role="alert"><p>{query.error.message}</p><Button variant="outline" onClick={()=>void query.refetch()}>Retry</Button></div>:<>
+      <p className="text-sm text-muted-foreground">{query.data.total} matching products</p>
+      {query.data.items.length>0?<ul className="inventory-grid">{query.data.items.map(row=><li key={row.id}><Card className={`inventory-card ${row.low_stock&&row.is_active?'inventory-card-low':''}`}><CardHeader>
+        <div className="inventory-card-heading"><Link className="inventory-product-link" to={`/admin/products/${row.id}`}><h2>{row.name}</h2><ArrowRight size={17} aria-hidden="true"/></Link><div className="inventory-badges">{(!inventory||!row.is_active)&&<Badge variant="outline">{row.is_active?'Active':'Inactive'}</Badge>}{!inventory&&owner&&<Badge variant="outline">{row.is_public?'Public':'Private'}</Badge>}{row.low_stock?<Badge variant="outline" className="inventory-low-badge"><AlertTriangle size={13} aria-hidden="true"/>Low stock</Badge>:<Badge variant="outline" className="inventory-stock-badge">In stock</Badge>}</div></div>
+        <p className="text-sm text-muted-foreground">{[row.brand,row.category].filter(Boolean).join(' · ')||'No brand or category'}</p>{row.sku&&<p className="text-xs text-muted-foreground break-words">SKU: {row.sku}</p>}
+      </CardHeader><CardContent className="space-y-4">
+        {!inventory&&row.description&&<p className="product-card-description text-sm text-muted-foreground">{row.description}</p>}{!inventory&&owner&&<div className="product-catalog-price"><span>Retail price</span><strong>{row.retail_price}</strong></div>}
+        <div className="inventory-balance"><div><p className="inventory-stock-label">Current stock</p><p className="inventory-stock-number">{stockQuantity(row.current_stock)}</p></div><div><p className="inventory-stock-label">Minimum stock</p><p className="inventory-stock-minimum">{stockQuantity(row.minimum_stock)}</p></div></div>
+        <div className="inventory-card-actions">{owner?<>{!inventory&&<Button asChild><Link className="inventory-manage-link" to={`/admin/products/${row.id}/edit`}><Pencil size={16} aria-hidden="true"/>Edit product</Link></Button>}<Button variant={inventory?'default':'outline'} asChild><Link className={inventory?'inventory-manage-link':undefined} to={`/admin/products/${row.id}`}><Package size={16} aria-hidden="true"/>Manage stock</Link></Button>{inventory&&<Button variant="outline" asChild><Link to={`/admin/products/${row.id}/edit`}><Pencil size={16} aria-hidden="true"/>Edit product</Link></Button>}</>:<Button variant="outline" asChild><Link to={`/admin/products/${row.id}`}>View history<ArrowRight size={16} aria-hidden="true"/></Link></Button>}</div>
+      </CardContent></Card></li>)}</ul>:<Card><CardContent className="inventory-empty"><Package size={32} aria-hidden="true"/><h2>No matching products.</h2><p className="text-sm text-muted-foreground">{q||low||inactive?'Try another search or reset your filters.':owner?'Create a product to start tracking its stock.':'Products added by the Owner will appear here.'}</p>{(q||low||inactive)?<Button variant="outline" onClick={()=>{setQ('');setLow(false);setInactive(false);setOffset(0)}}>Show active products</Button>:owner?<Button asChild><Link to="/admin/products/new"><Plus size={16} aria-hidden="true"/>Create product</Link></Button>:null}</CardContent></Card>}
+      <div className="inventory-pagination"><p className="text-sm text-muted-foreground">Showing {query.data.items.length?offset+1:0}–{query.data.items.length?offset+query.data.items.length:0} of {query.data.total}</p><div className="flex gap-2"><Button variant="outline" disabled={!offset} onClick={()=>setOffset(Math.max(0,offset-25))}>Previous</Button><Button variant="outline" disabled={offset+25>=query.data.total} onClick={()=>setOffset(offset+25)}>Next</Button></div></div>
     </>}
   </section>
+
 }
 
 export function ProductFormPage() {
@@ -56,15 +77,34 @@ function ProductForm({ product }: { product?: Product }) {
   const navigate = useNavigate()
   const refresh = useRefresh()
   const mutation = useMutation({ mutationFn: (body: string) => apiRequest<Product>(product ? `/products/${product.id}` : '/products', { method: product ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body }), onSuccess: async row => { await refresh(); navigate(`/admin/products/${row.id}`) } })
-  function submit() { const body = JSON.stringify({ ...draft, ...(!product ? { opening_quantity: opening, request_id: requestId } : {}) }); setAttempt(body); mutation.mutate(body) }
-  return <form className="space-y-4" onSubmit={e => { e.preventDefault(); submit() }}><h1>{product ? 'Edit product' : 'Create product'}</h1><fieldset disabled={mutation.isPending} className="space-y-3">
-    {(['name', 'brand', 'category', 'description', 'sku', 'cost_price', 'retail_price', 'minimum_stock'] as const).map(key => <label className="block" key={key}>{({ name: 'Name', brand: 'Brand', category: 'Category', description: 'Description', sku: 'SKU', cost_price: 'Cost price', retail_price: 'Retail price', minimum_stock: 'Minimum stock' })[key]}<input className={field} required={['name', 'cost_price', 'retail_price', 'minimum_stock'].includes(key)} maxLength={key === 'description' ? 10000 : key === 'sku' || key === 'category' ? 100 : 200} inputMode={key.includes('price') || key === 'minimum_stock' ? 'decimal' : 'text'} value={draft[key]} onChange={e => { setDraft({ ...draft, [key]: e.target.value }); setAttempt(null) }} /></label>)}
-    <label className="block"><input type="checkbox" checked={draft.is_active} onChange={e => { setDraft({ ...draft, is_active: e.target.checked }); setAttempt(null) }} /> Active</label>
-    <label className="block"><input type="checkbox" checked={draft.is_public} onChange={e => { setDraft({ ...draft, is_public: e.target.checked }); setAttempt(null) }} /> Public visibility</label>
-    {!product && <label>Opening quantity<input className={field} inputMode="decimal" value={opening} onChange={e => { setOpening(e.target.value); setAttempt(null) }} /></label>}
-    <button className={button}>Save product</button></fieldset>
-    {mutation.isPending && <p role="status">Saving product…</p>}{mutation.isError && <div role="alert"><p>{mutation.error.message}</p><p>Your draft is retained.</p>{attempt && <button type="button" className={button} onClick={() => mutation.mutate(attempt)}>Retry same save</button>}</div>}
-  </form>
+  function submit() { if (mutation.isPending) return; const body = JSON.stringify({ ...draft, ...(!product ? { opening_quantity: opening, request_id: requestId } : {}) }); setAttempt(body); mutation.mutate(body) }
+  const back = product ? `/admin/products/${product.id}` : '/admin/products'
+  function input(key: 'name' | 'brand' | 'category' | 'sku' | 'cost_price' | 'retail_price' | 'minimum_stock', label: string) {
+    return <Field><FieldLabel htmlFor={`product-${key}`}>{label}</FieldLabel><Input id={`product-${key}`} required={['name', 'cost_price', 'retail_price', 'minimum_stock'].includes(key)} maxLength={key === 'sku' || key === 'category' ? 100 : 200} inputMode={key.includes('price') || key === 'minimum_stock' ? 'decimal' : 'text'} value={draft[key]} onChange={e => { setDraft({ ...draft, [key]: e.target.value }); setAttempt(null) }} /></Field>
+  }
+  return <section className="product-editor space-y-6">
+    <Button variant="outline" asChild><Link to={back}>Back to {product ? 'product' : 'products'}</Link></Button>
+    <div><h1>{product ? 'Edit product' : 'Create product'}</h1><p className="text-sm text-muted-foreground">{product ? `Update ${product.name} and its catalog settings.` : 'Add a product to your catalog and set its opening stock.'}</p></div>
+    <form onSubmit={e => { e.preventDefault(); submit() }} className="space-y-6"><fieldset disabled={mutation.isPending} className="product-editor-grid">
+      <div className="space-y-6"><Card><CardHeader><h2>Product information</h2><p className="text-sm text-muted-foreground">Name is required. Other details help you find and identify the product.</p></CardHeader><CardContent className="space-y-5">
+        {input('name', 'Name')}<div className="product-editor-pair">{input('brand', 'Brand')}{input('category', 'Category')}</div>{input('sku', 'SKU')}
+        <Field><FieldLabel htmlFor="product-description">Description</FieldLabel><Textarea id="product-description" rows={5} maxLength={10000} value={draft.description} onChange={e => { setDraft({ ...draft, description: e.target.value }); setAttempt(null) }} /></Field>
+      </CardContent></Card>
+      <Card><CardHeader><h2>Pricing</h2><p className="text-sm text-muted-foreground">Enter non-negative amounts using a decimal point.</p></CardHeader><CardContent className="product-editor-pair">{input('cost_price', 'Cost price')}{input('retail_price', 'Retail price')}</CardContent></Card></div>
+      <div className="space-y-6"><Card><CardHeader><h2>Stock settings</h2></CardHeader><CardContent className="space-y-5">
+        {product && <div className="inventory-balance"><div><p className="inventory-stock-label">Current stock</p><p className="inventory-stock-number">{stockQuantity(product.current_stock)}</p></div></div>}
+        {input('minimum_stock', 'Minimum stock')}<p className="text-sm text-muted-foreground">The threshold used to flag low stock.</p>
+        {product ? <p className="text-sm text-muted-foreground">To change the balance, use Manage stock on the product page.</p> : <Field><FieldLabel htmlFor="product-opening">Opening quantity</FieldLabel><Input id="product-opening" inputMode="decimal" value={opening} onChange={e => { setOpening(e.target.value); setAttempt(null) }} /></Field>}
+      </CardContent></Card>
+      <Card><CardHeader><h2>Status and visibility</h2></CardHeader><CardContent className="space-y-5">
+        <div><label htmlFor="product-active" className="product-editor-toggle"><Checkbox disabled={mutation.isPending} id="product-active" checked={draft.is_active} onCheckedChange={value => { setDraft({ ...draft, is_active: value === true }); setAttempt(null) }} />Active</label><p className="text-sm text-muted-foreground">Available for use in new appointments.</p></div>
+        <div><label htmlFor="product-public" className="product-editor-toggle"><Checkbox disabled={mutation.isPending} id="product-public" checked={draft.is_public} onCheckedChange={value => { setDraft({ ...draft, is_public: value === true }); setAttempt(null) }} />Public visibility</label><p className="text-sm text-muted-foreground">Allow this product to appear in the public catalog when active.</p></div>
+      </CardContent></Card></div>
+    </fieldset>
+    {mutation.isPending && <p role="status">Saving product…</p>}{mutation.isError && <div role="alert" className="rounded-lg border border-destructive p-4 space-y-3"><p>{mutation.error.message}</p><p>Your draft is retained.</p>{attempt && <Button type="button" variant="outline" disabled={mutation.isPending} onClick={() => mutation.mutate(attempt)}>Retry same save</Button>}</div>}
+    <div className="product-editor-actions"><Button type="submit" disabled={mutation.isPending}>{mutation.isPending ? 'Saving…' : 'Save product'}</Button><Button type="button" variant="outline" disabled={mutation.isPending} onClick={() => navigate(back)}>Cancel</Button></div>
+    </form>
+  </section>
 }
 
 export function ProductDetailPage() {

@@ -38,3 +38,38 @@ test('Owner saves split opening periods', async () => {
   const call = vi.mocked(apiRequest).mock.calls.find(call => call[1]?.method === 'PUT')
   expect(JSON.parse(call![1]!.body as string).days[1]).toMatchObject({ break_start: '12:00', break_end: '14:00' })
 })
+
+test('closing Monday saves a clean week without unsupported empty break fields', async () => {
+  const week = Array.from({ length: 7 }, (_, day_of_week) => ({ day_of_week, is_closed: day_of_week === 6, opening_time: day_of_week === 6 ? null : '09:00:00', closing_time: day_of_week === 6 ? null : '18:00:00', break_start: null, break_end: null }))
+  vi.mocked(apiRequest).mockImplementation(async (_path, options) => {
+    if (options?.method === 'PUT') {
+      const saved = JSON.parse(String(options.body)).days
+      if (saved.some((day: object) => 'break_start' in day || 'break_end' in day)) throw Error('Extra inputs are not permitted')
+      return saved
+    }
+    return week
+  })
+  render(<AdminQueryProvider><HoursPage /></AdminQueryProvider>)
+  fireEvent.click(await screen.findByLabelText('Monday closed'))
+  fireEvent.click(screen.getByRole('button', { name: 'Save week' }))
+  await screen.findByText('Saved.')
+  const call = vi.mocked(apiRequest).mock.calls.find(call => call[1]?.method === 'PUT')
+  const saved = JSON.parse(String(call?.[1]?.body)).days
+  expect(saved[0]).toEqual({ day_of_week: 0, is_closed: true, opening_time: null, closing_time: null })
+  expect(saved[6]).toEqual({ day_of_week: 6, is_closed: true, opening_time: null, closing_time: null })
+  expect(saved[1]).toMatchObject({ opening_time: '09:00:00', closing_time: '18:00:00', is_closed: false })
+})
+
+test('service search matches descriptions and clear restores catalog',async()=>{
+  vi.mocked(apiRequest).mockResolvedValue([haircut,{...haircut,id:'two',name:'Beard trim',description:'Hot towel'}]);mount();await screen.findByText('Haircut')
+  fireEvent.change(screen.getByLabelText('Search services'),{target:{value:'hot towel'}})
+  expect(screen.queryByText('Haircut')).not.toBeInTheDocument();expect(screen.getByText('Beard trim')).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button',{name:'Clear search'}));expect(screen.getByText('Haircut')).toBeInTheDocument()
+})
+test('service edit focuses editor and cancel preserves catalog without writing',async()=>{
+  Element.prototype.scrollIntoView=vi.fn();mount();await screen.findByText('Haircut')
+  fireEvent.click(screen.getByRole('button',{name:'Edit Haircut'}));expect(screen.getByLabelText('Name')).toHaveValue('Haircut')
+  expect(screen.getByRole('heading',{name:'Edit service'})).toHaveFocus()
+  fireEvent.click(screen.getByRole('button',{name:'Cancel'}));expect(screen.getByLabelText('Name')).toHaveValue('')
+  expect(vi.mocked(apiRequest).mock.calls.some(([,o])=>o?.method)).toBe(false)
+})

@@ -516,7 +516,7 @@ Create one Business.
 Example:
 
 ```text
-Name: Sample Hair Studio
+Name: I Minati Parrucchieri
 Currency: EUR
 ```
 

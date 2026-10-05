@@ -1,3 +1,4 @@
+export const publicBrand = { name: 'I Minati', descriptor: 'Parrucchieri', title: 'I Minati Parrucchieri' }
 export type GalleryImage = { src: string; alt: string; caption: string; width: number; height: number; source: string; srcSet?: string }
 // Add only approved photographs of this business, with usage permission recorded.
 export const gallery: GalleryImage[] = [
@@ -7,8 +8,8 @@ export const gallery: GalleryImage[] = [
 ]
 export const hero = gallery[1]
 // Independent availability assets; replace these approved photos when dedicated salon images are supplied.
-export const availabilityHero = gallery[1]
-export const availabilityHelpImage = gallery[2]
+export const availabilityHero: GalleryImage = { src: '/images/salon-chair-1200.jpg', srcSet: '/images/salon-chair-600.jpg 600w, /images/salon-chair-1200.jpg 1200w', alt: 'Poltrona da barbiere in pelle nera con dettagli in ottone, in un salone dalle luci calde', caption: '', width: 1200, height: 900, source: 'AI-generated decorative salon-chair photograph based on the user-supplied full-page reference, 5 October 2026; not a photograph of the business' }
+export const availabilityHelpImage: GalleryImage = { src: '/images/salon-tools-960.jpg', alt: 'Forbici e pettini su un asciugamano scuro, con luci calde sullo sfondo', caption: '', width: 960, height: 662, source: 'AI-generated decorative salon-tools photograph based on the user-supplied contact-section reference, 5 October 2026; not a photograph of the business' }
 export const faq = [
   { question: 'How do I arrange a visit?', answer: 'Check the informational availability view, then contact the business to arrange your visit. The website does not book appointments.' },
   { question: 'Where can I find prices and durations?', answer: 'The Services page lists published prices and durations. Contact the business for guidance on choosing a service.' },

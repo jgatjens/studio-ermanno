@@ -32,6 +32,12 @@ export async function apiRequest<T>(path: string, options: RequestInit & { prote
       const data = await response.json().catch(() => null)
       throw new ApiError(409, typeof data?.detail?.message === 'string' ? data.detail.message : 'Appointment conflict. Review the details and try again.')
     }
+    if (response.status === 422) {
+      const data = await response.json().catch(() => null)
+      const details = Array.isArray(data?.detail) ? data.detail : []
+      const messages = details.filter((item: { msg?: unknown }) => typeof item.msg === 'string').map((item: { loc?: unknown[]; msg: string }) => `${Array.isArray(item.loc) ? item.loc.filter(part => part !== 'body').join('.') : 'Form'}: ${item.msg}`)
+      throw new ApiError(422, messages.length ? messages.join('; ') : 'Please check the form values and try again.')
+    }
     throw new ApiError(response.status, response.status === 401 ? 'Please sign in again.' : response.status === 403 ? 'Access denied.' : 'API request failed. Please try again.')
   }
   if (response.status === 204) return undefined as T

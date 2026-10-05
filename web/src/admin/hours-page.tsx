@@ -18,7 +18,16 @@ function Week({ initial, owner }: { initial: Day[]; owner: boolean }) {
   const key = useAdminKey('business-hours')
   const client = useQueryClient()
   const [days, setDays] = useState<Day[]>(() => names.map((_, day) => initial.find(item => item.day_of_week === day) ?? { day_of_week: day, is_closed: true, opening_time: null, closing_time: null, break_start: null, break_end: null }))
-  const mutation = useMutation({ mutationFn: () => apiRequest<Day[]>('/business-hours', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ days }) }), onSuccess: async data => { setDays(data); await client.invalidateQueries({ queryKey: key }) } })
+  const mutation = useMutation({ mutationFn: () => apiRequest<Day[]>('/business-hours', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ days: days.map(day => ({
+    day_of_week: day.day_of_week,
+    is_closed: day.is_closed,
+    opening_time: day.is_closed ? null : day.opening_time,
+    closing_time: day.is_closed ? null : day.closing_time,
+    // Omitted optional fields default to null on the API, including when clearing a break.
+    // Older API versions reject break fields even when their values are null.
+    ...(!day.is_closed && day.break_start != null ? { break_start: day.break_start } : {}),
+    ...(!day.is_closed && day.break_end != null ? { break_end: day.break_end } : {}),
+  })) }) }), onSuccess: async data => { setDays(data); await client.invalidateQueries({ queryKey: key }) } })
   function change(index: number, patch: Partial<Day>) { setDays(current => current.map(day => day.day_of_week === index ? { ...day, ...patch } : day)) }
   function submit(event: FormEvent) { event.preventDefault(); mutation.mutate() }
   const visibleDays = owner ? days : initial

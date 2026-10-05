@@ -107,4 +107,4 @@ Open content decisions: exact logo assets, reference-matching photographs, font,
 - Shared header/footer smoke-checked on Home, Services, Products, Gallery, Contact, FAQ and Feedback.
 - Availability requests remain anonymous, bounded to 14 days per request, and cancel stale month results. Full/closed time intervals are omitted; selecting a calendar date only changes the displayed day.
 - Tests cover available-only filtering, split hours, business-local dates, DST offsets, empty/error states, refresh and month-navigation races.
-- Local business data currently identifies itself as “Sample Hair Studio”; brand, hours and contact links follow the configured public business response.
+- Local business data currently identifies itself as “I Minati Parrucchieri”; brand, hours and contact links follow the configured public business response.

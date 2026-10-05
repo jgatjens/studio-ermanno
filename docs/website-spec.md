@@ -215,7 +215,7 @@ The public availability calendar is informational only.
 
 Customers can check whether the business has availability, but they cannot create or modify appointments.
 
-The redesigned `/availability` page uses a Monday-first month calendar. Choosing a date displays only Available and Limited intervals as read-only time spots in the business timezone. Full and Closed intervals are omitted from the time grid. There is no time selection, appointment summary, or Continue action. General contact links and business opening hours remain available below the calendar.
+The redesigned `/availability` page uses a Monday-first month calendar. Choosing a date displays read-only one-hour spots in the business timezone. Each spot requires Available or Limited capacity throughout the entire hour. Hourly spots start at each opening period and do not cross breaks or extend beyond closing. The API may still return finer intervals for capacity calculations. Full and Closed intervals are omitted from the time grid. Closed dates remain visible for calendar alignment but are disabled and never selected automatically. A date is closed if either availability or configured business hours marks it closed; this includes Mondays and Sundays when configured as closed. There is no time selection, appointment summary, or Continue action. General contact links and business opening hours remain available below the calendar.
 
 Month data is fetched through anonymous requests of at most 14 days each. Loading, missing data, retry, refresh, and dates with no available spots must be explicit. The page explains that displayed availability is indicative and requires confirmation from the salon.
 
