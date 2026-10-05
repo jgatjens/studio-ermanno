@@ -73,3 +73,9 @@ test('public 401 never clears an authenticated admin session', async () => {
   await expect(apiRequest('/public/feedback', { protected: false })).rejects.toMatchObject({ status: 401 })
   expect(callback).not.toHaveBeenCalled(); expect(getSession).not.toHaveBeenCalled(); off()
 })
+
+test('successful DELETE handles 204 without parsing an empty response', async () => {
+  vi.mocked(fetch).mockResolvedValue(new Response(null, {status:204}))
+  await expect(apiRequest<void>('/clients/one', {method:'DELETE'})).resolves.toBeUndefined()
+  expect(vi.mocked(fetch).mock.calls[0][1]?.method).toBe('DELETE')
+})

@@ -1,6 +1,7 @@
 from fastapi import HTTPException
-from sqlalchemy import select, func, or_
-from app.db.models import Client, Appointment, AppointmentService, AppointmentProduct, AppointmentStatus, MembershipRole, ProductUsage
+from sqlalchemy import select, func, or_, delete
+from sqlalchemy.exc import IntegrityError
+from app.db.models import Client, Appointment, AppointmentService, AppointmentProduct, AppointmentStatus, MembershipRole, ProductUsage, Feedback
 from .schemas import ClientSummary, OwnerSummary, ClientProfile, OwnerProfile, Visit, OwnerVisit, ServiceSnapshot, ProductSnapshot
 
 
@@ -68,6 +69,34 @@ def save(session, record):
         session.add(record)
         session.commit()
         session.refresh(record)
+    except Exception:
+        session.rollback()
+        raise
+
+
+DELETE_CONFLICT = "Clients with linked appointments or feedback cannot be deleted."
+
+
+def delete_client(session, actor, client_id):
+    # Serialize deletion with PostgreSQL foreign-key checks for concurrent links.
+    record = session.scalar(select(Client).where(
+        Client.business_id == actor.business_id, Client.id == client_id
+    ).with_for_update())
+    if record is None:
+        raise HTTPException(404, "Client not found")
+    for model in (Appointment, Feedback):
+        linked = session.scalar(select(model.id).where(
+            model.business_id == actor.business_id, model.client_id == client_id
+        ).limit(1))
+        if linked is not None:
+            raise HTTPException(409, DELETE_CONFLICT)
+    try:
+        # Bulk delete leaves linked records untouched; FK RESTRICT is the final guard.
+        session.execute(delete(Client).where(Client.business_id == actor.business_id, Client.id == client_id))
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(409, DELETE_CONFLICT) from None
     except Exception:
         session.rollback()
         raise

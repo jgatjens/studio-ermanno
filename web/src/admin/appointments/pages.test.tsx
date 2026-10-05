@@ -1,4 +1,4 @@
-import {fireEvent,render,screen,waitFor} from '@testing-library/react'
+import {fireEvent,render,screen,waitFor,within} from '@testing-library/react'
 import {MemoryRouter,Routes,Route} from 'react-router-dom'
 import {beforeEach,expect,test,vi} from 'vitest'
 import {AdminQueryProvider} from '../query-provider'
@@ -49,4 +49,42 @@ test('late preview cannot replace totals for newer form inputs',async()=>{
 })
 test('creating a client from a dirty appointment requires explicit leave confirmation',async()=>{
   mount('/admin/appointments/new');await screen.findByLabelText('Appointment notes');fireEvent.change(screen.getByLabelText('Appointment notes'),{target:{value:'Keep this draft'}});fireEvent.click(screen.getByRole('link',{name:'Create client first'}));expect(screen.getByRole('group',{name:'Leave appointment draft'})).toBeInTheDocument();fireEvent.click(screen.getByRole('button',{name:'Keep editing appointment'}));expect(screen.getByLabelText('Appointment notes')).toHaveValue('Keep this draft');expect(screen.queryByRole('group',{name:'Leave appointment draft'})).not.toBeInTheDocument()
+})
+
+test('Staff schedule has profile links and no create or private fields', async () => {
+  state.actor.role='STAFF'; mount(); await screen.findByText('Alice Test')
+  expect(screen.getByRole('link',{name:'Alice Test'})).toHaveAttribute('href','/admin/appointments/one')
+  expect(screen.queryByRole('link',{name:'Create appointment'})).not.toBeInTheDocument()
+  expect(screen.queryByText(/private@example/)).not.toBeInTheDocument()
+  expect(screen.queryByText(/Private visit/)).not.toBeInTheDocument()
+})
+test('schedule groups appointments by business-local day and displays time', async () => {
+  const normal=vi.mocked(apiRequest).getMockImplementation()!
+  vi.mocked(apiRequest).mockImplementation((path,options)=>path.startsWith('/appointments?')?Promise.resolve({items:[{...item,scheduled_start:'2026-10-04T22:30:00Z',scheduled_end:'2026-10-04T23:00:00Z'}],total:1}):normal(path,options))
+  mount(); await screen.findByText('Alice Test')
+  expect(screen.getByRole('heading',{name:'Monday, 5 October 2026'})).toBeInTheDocument()
+  expect(screen.getByText('00:30')).toBeInTheDocument()
+  expect(within(screen.getByRole('link',{name:'Alice Test'})).getByText('Scheduled')).toBeInTheDocument()
+})
+test('changing status resets pagination and Reset filters restores today and all statuses', async () => {
+  const normal=vi.mocked(apiRequest).getMockImplementation()!
+  vi.mocked(apiRequest).mockImplementation((path,options)=>path.startsWith('/appointments?')?Promise.resolve({items:[item],total:50}):normal(path,options))
+  mount(); await screen.findByText('Alice Test')
+  const today=(screen.getByLabelText('From date') as HTMLInputElement).value
+  fireEvent.click(screen.getByRole('button',{name:'Next'}))
+  await waitFor(()=>expect(apiRequest).toHaveBeenCalledWith(expect.stringContaining('offset=25'),expect.anything()))
+  fireEvent.change(screen.getByLabelText('Status'),{target:{value:'CONFIRMED'}})
+  await waitFor(()=>expect(apiRequest).toHaveBeenCalledWith(expect.stringMatching(/offset=0.*status=CONFIRMED/),expect.anything()))
+  fireEvent.click(screen.getByRole('button',{name:'Reset filters'}))
+  expect(screen.getByLabelText('Status')).toHaveValue('')
+  expect(screen.getByLabelText('From date')).toHaveValue(today)
+  expect(screen.getByLabelText('Through date')).toHaveValue(today)
+})
+test('invalid date range is explained and does not issue another list request', async () => {
+  mount(); await screen.findByText('Alice Test')
+  const count=vi.mocked(apiRequest).mock.calls.filter(([path])=>path.startsWith('/appointments?')).length
+  fireEvent.change(screen.getByLabelText('From date'),{target:{value:'2099-12-31'}})
+  expect(await screen.findByRole('alert')).toHaveTextContent('End date must follow start date.')
+  expect(screen.getByLabelText('From date')).toHaveAttribute('aria-invalid','true')
+  expect(vi.mocked(apiRequest).mock.calls.filter(([path])=>path.startsWith('/appointments?'))).toHaveLength(count)
 })

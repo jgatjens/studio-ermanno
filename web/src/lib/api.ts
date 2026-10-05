@@ -34,6 +34,7 @@ export async function apiRequest<T>(path: string, options: RequestInit & { prote
     }
     throw new ApiError(response.status, response.status === 401 ? 'Please sign in again.' : response.status === 403 ? 'Access denied.' : 'API request failed. Please try again.')
   }
+  if (response.status === 204) return undefined as T
   return response.json() as Promise<T>
 }
 

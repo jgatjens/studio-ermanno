@@ -1,5 +1,5 @@
 from uuid import UUID
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.orm import Session
 from app.auth.dependencies import AuthenticatedActor, require_authenticated_actor, require_owner
 from app.db.session import get_session
@@ -37,3 +37,9 @@ def update(client_id: UUID, data: ClientWrite, actor: AuthenticatedActor = Depen
 def get_history(client_id: UUID, limit: int = Query(default=25, ge=1, le=100), offset: int = Query(default=0, ge=0), actor: AuthenticatedActor = Depends(require_authenticated_actor), session: Session = Depends(get_session)):
     service.find_client(session, actor, client_id)
     return service.history(session, actor, client_id, limit, offset)
+
+
+@router.delete("/{client_id}", status_code=204)
+def delete_client(client_id: UUID, actor: AuthenticatedActor = Depends(require_owner), session: Session = Depends(get_session)):
+    service.delete_client(session, actor, client_id)
+    return Response(status_code=204)

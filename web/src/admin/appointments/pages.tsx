@@ -7,10 +7,34 @@ import { ApiError, apiRequest } from '@/lib/api'
 import { useAdminKey } from '../query-provider'
 import { displayTime, localStamp, nextDate, timeChoices, toInstant } from './time'
 import type { Appointment, Barber, CatalogService, Client, Context, Page, Totals } from './types'
+import { ArrowRight, CalendarDays, Clock, Plus, Scissors, UserRound } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Field, FieldLabel } from '@/components/ui/field'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 const field = 'block w-full min-w-0 rounded border p-3'
 const action = 'rounded border px-3 py-2'
 function ErrorView({error,retry}:{error:Error;retry:()=>void}) {return <div role="alert"><p>{error instanceof ApiError&&error.status===404?'Appointment not found.':error.message}</p><button type="button" className={action} onClick={retry}>Retry</button></div>}
-function Pagination({offset,total,setOffset}:{offset:number;total:number;setOffset:(n:number)=>void}) {return <div className="flex flex-wrap gap-3"><button className={action} disabled={!offset} onClick={()=>setOffset(Math.max(0,offset-25))}>Previous</button><span>{total} appointments</span><button className={action} disabled={offset+25>=total} onClick={()=>setOffset(offset+25)}>Next</button></div>}
+function Pagination({offset,total,setOffset}:{offset:number;total:number;setOffset:(n:number)=>void}) {
+  return <div className="appointment-pagination"><p className="text-sm text-muted-foreground">{total} appointments</p><div className="flex gap-2"><Button variant="outline" disabled={!offset} onClick={()=>setOffset(Math.max(0,offset-25))}>Previous</Button><Button variant="outline" disabled={offset+25>=total} onClick={()=>setOffset(offset+25)}>Next</Button></div></div>
+}
+const statusNames: Record<string,string> = { SCHEDULED:'Scheduled', CONFIRMED:'Confirmed', COMPLETED:'Completed', CANCELLED:'Cancelled', NO_SHOW:'No-show' }
+function appointmentTime(instant:string, timezone:string) { return new Intl.DateTimeFormat('en-GB',{timeZone:timezone,hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(instant)) }
+function appointmentDate(day:string) { return new Intl.DateTimeFormat('en-GB',{timeZone:'UTC',weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date(day+'T12:00:00Z')) }
+function AppointmentCards({items,context}:{items:Appointment[];context:Context}) {
+  const groups = new Map<string, Appointment[]>()
+  for (const item of items) { const day=localStamp(item.scheduled_start,context.timezone).slice(0,10);groups.set(day,[...(groups.get(day)||[]),item]) }
+  return <div className="space-y-6">{Array.from(groups,([day,appointments])=><section key={day} className="space-y-3"><h2 className="appointment-day-heading">{appointmentDate(day)}</h2><ul className="appointment-list">{appointments.map(item=><li key={item.id}><Card className="appointment-card"><Link className="appointment-card-link" to={`/admin/appointments/${item.id}`} aria-label={`${item.client.first_name} ${item.client.last_name}`}>
+    <div className="appointment-time"><strong>{appointmentTime(item.scheduled_start,context.timezone)}</strong><span>to {appointmentTime(item.scheduled_end,context.timezone)}</span><span className="appointment-duration"><Clock size={14} aria-hidden="true"/>{item.final_duration_minutes} min</span></div>
+    <div className="appointment-card-body"><div className="appointment-card-heading"><h3>{item.client.first_name} {item.client.last_name}</h3><Badge variant="outline" className="appointment-status" data-status={item.status}>{statusNames[item.status]||item.status}</Badge></div>
+      <p className="appointment-service"><Scissors size={16} aria-hidden="true"/><span>{item.main_service?.name||'No service recorded'}</span></p>
+      <div className="appointment-meta"><span className={item.barber?'':'appointment-unassigned'}><UserRound size={16} aria-hidden="true"/>{item.barber?.name||'Unassigned'}</span><span>{item.final_price} {context.currency}</span></div>
+    </div><ArrowRight className="appointment-open-icon" size={18} aria-hidden="true"/>
+  </Link></Card></li>)}</ul></section>)}</div>
+}
 function useContext() {const key=useAdminKey('appointments');return useQuery({queryKey:[...key,'context'],queryFn:({signal})=>apiRequest<Context>('/appointments/context',{signal})})}
 export function AppointmentsPage() {
   const context=useContext()
@@ -26,7 +50,23 @@ function AppointmentList({context}:{context:Context}) {
   try {if(from>to)throw new Error('End date must follow start date.');params.set('from',timeChoices(from+'T00:00',context.timezone)[0]?.instant||toInstant(from+'T00:00',context.timezone));params.set('to',timeChoices(nextDate(to)+'T00:00',context.timezone)[0]?.instant||toInstant(nextDate(to)+'T00:00',context.timezone))}catch(error){dateError=(error as Error).message}
   if(status)params.set('status',status)
   const query=useQuery({queryKey:[...key,'list',params.toString()],enabled:!dateError,queryFn:({signal})=>apiRequest<Page<Appointment>>('/appointments?'+params,{signal})})
-  return <section className="space-y-4"><h1>Appointments</h1><p>Business timezone: {context.timezone}</p>{owner&&<Link to="/admin/appointments/new">Create appointment</Link>}<button className={action} onClick={()=>{setFrom(today);setTo(today);setOffset(0)}}>Today</button><div className="space-y-3"><label>From date<input className={field} type="date" value={from} onChange={e=>{setFrom(e.target.value);setOffset(0)}}/></label><label>Through date<input className={field} type="date" value={to} onChange={e=>{setTo(e.target.value);setOffset(0)}}/></label><label>Status<select className={field} value={status} onChange={e=>{setStatus(e.target.value);setOffset(0)}}><option value="">All statuses</option>{['SCHEDULED','CONFIRMED','COMPLETED','CANCELLED','NO_SHOW'].map(value=><option key={value}>{value}</option>)}</select></label></div>{dateError?<p role="alert">{dateError}</p>:query.isPending?<p role="status">Loading appointments…</p>:query.isError?<ErrorView error={query.error} retry={()=>void query.refetch()}/>:<><ul className="space-y-3">{query.data.items.map(item=><li key={item.id} className="break-words rounded border p-3"><Link to={`/admin/appointments/${item.id}`}>{item.client.first_name} {item.client.last_name}</Link><p>{displayTime(item.scheduled_start,context.timezone)} · {item.status}</p><p>{item.barber?.name||'Unassigned'} · {item.main_service?.name} · {item.final_duration_minutes} minutes · {item.final_price} {context.currency}</p></li>)}</ul>{!query.data.total&&<p>No appointments in this range.</p>}<Pagination offset={offset} total={query.data.total} setOffset={setOffset}/></>}</section>
+  function resetFilters() {setFrom(today);setTo(today);setStatus('');setOffset(0)}
+  return <section className="appointments-workspace space-y-6">
+    <div className="appointment-page-heading"><div><h1>Appointments</h1><p className="text-sm text-muted-foreground">Review the schedule and open an appointment for details.</p></div>{owner&&<Button asChild><Link to="/admin/appointments/new"><Plus size={18} aria-hidden="true"/>Create appointment</Link></Button>}</div>
+    <Card><CardContent>
+      <div className="appointment-filter-heading"><div><p className="font-medium">Schedule filters</p><p className="text-sm text-muted-foreground">Business timezone: {context.timezone}</p></div><Button variant="outline" onClick={()=>{setFrom(today);setTo(today);setOffset(0)}}><CalendarDays size={16} aria-hidden="true"/>Today</Button></div>
+      <div className="appointment-filters"><Field><FieldLabel htmlFor="appointments-from">From date</FieldLabel><Input className="h-11" id="appointments-from" type="date" required value={from} aria-invalid={!!dateError} aria-describedby={dateError?'appointments-date-error':undefined} onChange={e=>{setFrom(e.target.value);setOffset(0)}}/></Field>
+        <Field><FieldLabel htmlFor="appointments-to">Through date</FieldLabel><Input className="h-11" id="appointments-to" type="date" required value={to} aria-invalid={!!dateError} aria-describedby={dateError?'appointments-date-error':undefined} onChange={e=>{setTo(e.target.value);setOffset(0)}}/></Field>
+        <Field><FieldLabel htmlFor="appointments-status">Status</FieldLabel><NativeSelect className="h-11" id="appointments-status" value={status} onChange={e=>{setStatus(e.target.value);setOffset(0)}}><NativeSelectOption value="">All statuses</NativeSelectOption>{Object.entries(statusNames).map(([value,label])=><NativeSelectOption key={value} value={value}>{label}</NativeSelectOption>)}</NativeSelect></Field>
+      </div>
+      <div className="appointment-filter-footer"><p className="text-xs text-muted-foreground">Dates and times follow the business timezone.</p><Button variant="outline" onClick={resetFilters}>Reset filters</Button></div>
+      {dateError&&<p role="alert" id="appointments-date-error">{dateError}</p>}
+    </CardContent></Card>
+    {dateError?null:query.isPending?<div role="status"><span className="sr-only">Loading appointments…</span><div className="space-y-3" aria-hidden="true">{Array.from({length:3},(_,i)=><Skeleton key={i} className="h-32 rounded-xl" />)}</div></div>:query.isError?<ErrorView error={query.error} retry={()=>void query.refetch()}/>:<>
+      {query.data.items.length>0?<AppointmentCards items={query.data.items} context={context}/>:<Card><CardContent className="appointment-empty"><CalendarDays size={32} aria-hidden="true"/><h2>No appointments in this range.</h2><p className="text-sm text-muted-foreground">{status?'Try a different status or reset your filters.':'Choose another date range to explore the schedule.'}</p>{owner&&<Button asChild><Link to="/admin/appointments/new"><Plus size={16} aria-hidden="true"/>Create appointment</Link></Button>}</CardContent></Card>}
+      <Pagination offset={offset} total={query.data.total} setOffset={setOffset}/>
+    </>}
+  </section>
 }
 export function AppointmentDetailPage() {
   const {appointmentId}=useParams();const owner=useAuth().actor?.role==='OWNER';const key=useAdminKey('appointments');const clientsKey=useAdminKey('clients');const cache=useQueryClient();const context=useContext();const location=useLocation();const [confirm,setConfirm]=useState('')

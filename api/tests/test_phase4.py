@@ -37,7 +37,8 @@ def test_search_write_privacy(auth_client):
     assert client.put('/clients/'+a['id'],json=DATA,headers=headers(sign(staff))).status_code==403
     response=client.put('/clients/'+a['id'],json={'first_name':'Changed','last_name':'Name'},headers=headers(sign()))
     assert response.status_code==200 and response.json()['email'] is None
-    assert client.delete('/clients/'+a['id'],headers=headers(sign())).status_code==405
+    # Deletion is now explicitly supported by the client-profile redesign increment.
+    assert client.delete('/clients/'+a['id'],headers=headers(sign(staff))).status_code==403
 
 def test_isolation(auth_client):
     client,sign,_,_,_,_,engine=auth_client
