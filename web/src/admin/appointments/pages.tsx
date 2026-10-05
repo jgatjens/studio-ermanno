@@ -1,3 +1,5 @@
+import type { DayHours } from '@/lib/business-hours'
+import { SchedulePicker } from './schedule-picker'
 import { FormError } from '../form-error'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -7,7 +9,7 @@ import { ApiError, apiRequest } from '@/lib/api'
 import { useAdminKey } from '../query-provider'
 import { displayTime, localStamp, nextDate, timeChoices, toInstant } from './time'
 import type { Appointment, Barber, CatalogService, Client, Context, Page, Totals } from './types'
-import { ArrowRight, CalendarDays, Clock, Plus, Scissors, UserRound } from 'lucide-react'
+import { ArrowRight, CalendarDays, Check, Clock, Plus, Scissors, UserRound } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -392,53 +394,91 @@ export function AppointmentDetailPage() {
   const item = query.data
   const active = ['SCHEDULED', 'CONFIRMED'].includes(item.status)
   return (
-    <section className="space-y-4 break-words">
+    <section className="appointment-detail-workspace break-words">
       <Link to="/admin/appointments">Back to appointments</Link>
-      <h1>Appointment</h1>
+      <div className="appointment-detail-heading">
+        <h1>Appointment</h1>
+        <Badge variant="outline">{item.status}</Badge>
+      </div>
       {location.state?.saved && <p role="status">Appointment saved.</p>}
       {location.state?.completed && <p role="status">Appointment completed.</p>}
-      <Link to={`/admin/clients/${item.client.id}`}>
-        {item.client.first_name} {item.client.last_name}
-      </Link>
-      {owner && (
-        <p>
-          {item.client.email} {item.client.phone}
-        </p>
-      )}
-      <p>
-        {displayTime(item.scheduled_start, context.data.timezone)} –{' '}
-        {displayTime(item.scheduled_end, context.data.timezone)} ({context.data.timezone})
-      </p>
-      <p>
-        {item.status} · {item.barber?.name || 'Unassigned'}
-      </p>
-      <p>
-        Final: {item.final_duration_minutes} minutes · {item.final_price} {context.data.currency}
-      </p>
-      <p>
-        Calculated: {item.calculated_duration_minutes} minutes · {item.calculated_price}{' '}
-        {context.data.currency}
-      </p>
-      <ul>
-        {item.services.map((s) => (
-          <li key={s.service_id}>
-            {s.name} · {s.duration_minutes} minutes · {s.price}
-          </li>
-        ))}
-      </ul>
-      {item.appointment_notes && <p>Appointment notes: {item.appointment_notes}</p>}
-      {owner && item.visit_notes && <p>Visit notes: {item.visit_notes}</p>}
-      <ul>
-        {item.products
-          .filter((p) => owner || p.usage_type === 'USED')
-          .map((p, i) => (
-            <li key={i}>
-              {p.name} · {p.quantity} · {p.usage_type}
-            </li>
-          ))}
-      </ul>
+      <div className="appointment-detail-grid">
+        <section className="appointment-detail-card">
+          <h2>
+            <UserRound size={20} aria-hidden="true" />
+            Client
+          </h2>
+          <Link to={`/admin/clients/${item.client.id}`}>
+            {item.client.first_name} {item.client.last_name}
+          </Link>
+          {owner && (
+            <p>
+              {item.client.email} {item.client.phone}
+            </p>
+          )}
+        </section>
+        <section className="appointment-detail-card">
+          <h2>
+            <CalendarDays size={20} aria-hidden="true" />
+            Schedule
+          </h2>
+          <p>
+            {displayTime(item.scheduled_start, context.data.timezone)} –{' '}
+            {displayTime(item.scheduled_end, context.data.timezone)} ({context.data.timezone})
+          </p>
+          <p>
+            {item.status} · {item.barber?.name || 'Unassigned'}
+          </p>
+        </section>
+        <section className="appointment-detail-card">
+          <h2>
+            <Clock size={20} aria-hidden="true" />
+            Totals
+          </h2>
+          <p>
+            Final: {item.final_duration_minutes} minutes · {item.final_price}{' '}
+            {context.data.currency}
+          </p>
+          <p>
+            Calculated: {item.calculated_duration_minutes} minutes · {item.calculated_price}{' '}
+            {context.data.currency}
+          </p>
+        </section>
+        <section className="appointment-detail-card">
+          <h2>
+            <Scissors size={20} aria-hidden="true" />
+            Services
+          </h2>
+          <ul>
+            {item.services.map((s) => (
+              <li key={s.service_id}>
+                {s.name} · {s.duration_minutes} minutes · {s.price}
+              </li>
+            ))}
+          </ul>
+        </section>
+        <section className="appointment-detail-card appointment-detail-notes">
+          <h2>Notes and products</h2>
+          {!item.appointment_notes &&
+            !(owner && item.visit_notes) &&
+            !item.products.some((p) => owner || p.usage_type === 'USED') && (
+              <p className="text-muted-foreground">No notes or products recorded.</p>
+            )}
+          {item.appointment_notes && <p>Appointment notes: {item.appointment_notes}</p>}
+          {owner && item.visit_notes && <p>Visit notes: {item.visit_notes}</p>}
+          <ul>
+            {item.products
+              .filter((p) => owner || p.usage_type === 'USED')
+              .map((p, i) => (
+                <li key={i}>
+                  {p.name} · {p.quantity} · {p.usage_type}
+                </li>
+              ))}
+          </ul>
+        </section>
+      </div>
       {owner && active && (
-        <div className="flex flex-wrap gap-3">
+        <div className="appointment-detail-actions">
           <Link to={`/admin/appointments/${item.id}/edit`}>Edit appointment</Link>
           <Link to={`/admin/appointments/${item.id}/complete`}>Complete appointment</Link>
           {item.status === 'SCHEDULED' && (
@@ -512,6 +552,10 @@ export function AppointmentFormPage() {
   )
 }
 function AppointmentForm({ context, existing }: { context: Context; existing?: Appointment }) {
+  const hours = useQuery({
+    queryKey: useAdminKey('business-hours'),
+    queryFn: ({ signal }) => apiRequest<DayHours[]>('/business-hours', { signal }),
+  })
   const key = useAdminKey('appointments')
   const clientsKey = useAdminKey('clients')
   const cache = useQueryClient()
@@ -549,9 +593,9 @@ function AppointmentForm({ context, existing }: { context: Context; existing?: A
     return () => clearTimeout(timer)
   }, [search])
   const clients = useQuery({
-    queryKey: [...clientsKey, 'selection', q],
+    queryKey: [...clientsKey, 'selection', 'recent', q],
     queryFn: ({ signal }) =>
-      apiRequest<Page<Client>>(`/clients?q=${encodeURIComponent(q)}&limit=25`, { signal }),
+      apiRequest<Page<Client>>(`/clients?q=${encodeURIComponent(q)}&limit=${q ? 25 : 2}${q ? '' : '&sort=recent'}`, { signal }),
   })
   const services = useQuery({
     queryKey: [...key, 'active-services'],
@@ -617,12 +661,15 @@ function AppointmentForm({ context, existing }: { context: Context; existing?: A
         is_active: false,
       })
   return (
-    <section className="space-y-4">
+    <section className="appointment-form-workspace">
       <Link to={existing ? `/admin/appointments/${existing.id}` : '/admin/appointments'}>Back</Link>
       <h1>{existing ? 'Edit appointment' : 'Create appointment'}</h1>
-      <p>Business timezone: {context.timezone}</p>
+      <p className="appointment-form-intro">
+        Choose a client, services and a time, then review the appointment before saving.
+      </p>
+      <p className="appointment-form-timezone">Business timezone: {context.timezone}</p>
       <form
-        className="space-y-4"
+        className="appointment-editor"
         onSubmit={(event) => {
           event.preventDefault()
           setNotice('')
@@ -635,197 +682,231 @@ function AppointmentForm({ context, existing }: { context: Context; existing?: A
           mutation.mutate()
         }}
       >
-        <label>
-          Search existing client
-          <input
-            className={field}
-            maxLength={200}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </label>
-        <Link
-          to="/admin/clients/new"
-          onClick={(event) => {
-            if (client || local || serviceIds.length || notes || duration || price) {
-              event.preventDefault()
-              setLeaving(true)
-            }
-          }}
-        >
-          Create client first
-        </Link>
-        {leaving && (
-          <div role="group" aria-label="Leave appointment draft">
-            <p>
-              Creating a client leaves this appointment form. Unsaved appointment details will be
-              discarded.
+        <section className="appointment-form-card appointment-client-picker">
+          <h2>
+            <UserRound size={20} aria-hidden="true" />
+            Client
+          </h2>
+          <label>
+            Search existing client
+            <input
+              className={field}
+              maxLength={200}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </label>
+          <Link
+            to="/admin/clients/new"
+            className="appointment-create-client-link"
+            onClick={(event) => {
+              if (client || local || serviceIds.length || notes || duration || price) {
+                event.preventDefault()
+                setLeaving(true)
+              }
+            }}
+          >
+            Create client first
+          </Link>
+          {leaving && (
+            <div role="group" aria-label="Leave appointment draft">
+              <p>
+                Creating a client leaves this appointment form. Unsaved appointment details will be
+                discarded.
+              </p>
+              <button type="button" onClick={() => navigate('/admin/clients/new')}>
+                Leave and create client
+              </button>
+              <button type="button" onClick={() => setLeaving(false)}>
+                Keep editing appointment
+              </button>
+            </div>
+          )}
+          {clients.isPending || search.trim() !== q ? (
+            <p>Loading clients…</p>
+          ) : clients.isError ? (
+            <ErrorView error={clients.error} retry={() => void clients.refetch()} />
+          ) : (
+            <><p className="text-sm text-muted-foreground">{q ? 'Search results' : 'Most recently added clients · Search to find another client'}</p><ul className="appointment-client-options">
+              {clients.data.items.map((c) => (
+                <li key={c.id}>
+                  <button
+                    type="button"
+                    className="appointment-client-option"
+                    aria-pressed={client?.id === c.id}
+                    onClick={() => setClient(c)}
+                  >
+                    {c.first_name} {c.last_name}
+                    {client?.id === c.id && <span className="appointment-client-selected"><Check size={16} aria-hidden="true" />Selected</span>}
+                  </button>
+                </li>
+              ))}
+              {!clients.data.total && <li>No matching clients.</li>}
+            </ul></>
+          )}
+          {client && (
+            <p className="appointment-selected-summary" role="status">
+              Selected client: {client.first_name} {client.last_name}
             </p>
-            <button type="button" onClick={() => navigate('/admin/clients/new')}>
-              Leave and create client
-            </button>
-            <button type="button" onClick={() => setLeaving(false)}>
-              Keep editing appointment
-            </button>
-          </div>
-        )}
-        {clients.isPending || search.trim() !== q ? (
-          <p>Loading clients…</p>
-        ) : clients.isError ? (
-          <ErrorView error={clients.error} retry={() => void clients.refetch()} />
-        ) : (
-          <ul>
-            {clients.data.items.map((c) => (
-              <li key={c.id}>
-                <button type="button" className={action} onClick={() => setClient(c)}>
-                  {c.first_name} {c.last_name}
-                </button>
-              </li>
-            ))}
-            {!clients.data.total && <li>No matching clients.</li>}
-          </ul>
-        )}
-        {client && (
-          <p>
-            Selected client: {client.first_name} {client.last_name}
-          </p>
-        )}
-        <label>
-          Business-local date and time
-          <input
-            className={field}
-            type="datetime-local"
-            required
-            aria-invalid={!!timeError}
-            aria-describedby={timeError ? 'appointment-time-error' : undefined}
+          )}
+        </section>
+        <section className="appointment-form-card">
+          <h2>
+            <CalendarDays size={20} aria-hidden="true" />
+            Schedule
+          </h2>
+          {hours.isError && <ErrorView error={hours.error} retry={() => void hours.refetch()} />}
+          <SchedulePicker
+            hours={hours.data || []}
+            loading={hours.isPending}
             value={local}
-            onChange={(e) => {
-              setLocal(e.target.value)
+            invalid={!!timeError}
+            errorId={timeError ? 'appointment-time-error' : undefined}
+            onChange={(value) => {
+              setLocal(value)
               setOffset('')
             }}
           />
-        </label>
-        {choices.length > 1 && (
+          {choices.length > 1 && (
+            <label>
+              UTC offset
+              <select className={field} value={offset} onChange={(e) => setOffset(e.target.value)}>
+                <option value="">Choose offset</option>
+                {choices.map((c) => (
+                  <option key={c.offset}>{c.offset}</option>
+                ))}
+              </select>
+            </label>
+          )}
+          {timeError && (
+            <p role="alert" id="appointment-time-error">
+              {timeError}
+            </p>
+          )}
           <label>
-            UTC offset
-            <select className={field} value={offset} onChange={(e) => setOffset(e.target.value)}>
-              <option value="">Choose offset</option>
-              {choices.map((c) => (
-                <option key={c.offset}>{c.offset}</option>
+            Hairdresser
+            <select className={field} value={barber} onChange={(e) => setBarber(e.target.value)}>
+              <option value="">Unassigned</option>
+              {barbers.data?.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
               ))}
+              {existing?.barber && !barbers.data?.some((b) => b.id === existing.barber?.id) && (
+                <option value={existing.barber.id}>
+                  {existing.barber.name} (inactive; reassign to reschedule)
+                </option>
+              )}
             </select>
           </label>
-        )}
-        {timeError && (
-          <p role="alert" id="appointment-time-error">
-            {timeError}
-          </p>
-        )}
-        <fieldset className="space-y-2">
-          <legend>Services</legend>
-          {services.isPending ? (
-            <p>Loading services…</p>
-          ) : services.isError ? (
-            <ErrorView error={services.error} retry={() => void services.refetch()} />
-          ) : (
-            options.map((s) => (
-              <label className="block" key={s.id}>
-                <input
-                  type="checkbox"
-                  checked={serviceIds.includes(s.id)}
-                  onChange={(e) =>
-                    setServiceIds(
-                      e.target.checked
-                        ? [...serviceIds, s.id]
-                        : serviceIds.filter((id) => id !== s.id),
-                    )
-                  }
-                />
-                {s.name}
-                {!s.is_active ? ' (retained inactive service)' : ''}
-              </label>
-            ))
+          {barbers.isError && (
+            <ErrorView error={barbers.error} retry={() => void barbers.refetch()} />
           )}
-        </fieldset>
-        <label>
-          Hairdresser
-          <select className={field} value={barber} onChange={(e) => setBarber(e.target.value)}>
-            <option value="">Unassigned</option>
-            {barbers.data?.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
-            {existing?.barber && !barbers.data?.some((b) => b.id === existing.barber?.id) && (
-              <option value={existing.barber.id}>
-                {existing.barber.name} (inactive; reassign to reschedule)
-              </option>
+        </section>
+        <section className="appointment-form-card">
+          <h2>
+            <Scissors size={20} aria-hidden="true" />
+            Services
+          </h2>
+          <fieldset className="space-y-2">
+            <legend className="sr-only">Services</legend>
+            {services.isPending ? (
+              <p>Loading services…</p>
+            ) : services.isError ? (
+              <ErrorView error={services.error} retry={() => void services.refetch()} />
+            ) : (
+              options.map((s) => (
+                <label className="block" key={s.id}>
+                  <input
+                    type="checkbox"
+                    checked={serviceIds.includes(s.id)}
+                    onChange={(e) =>
+                      setServiceIds(
+                        e.target.checked
+                          ? [...serviceIds, s.id]
+                          : serviceIds.filter((id) => id !== s.id),
+                      )
+                    }
+                  />
+                  {s.name}
+                  {!s.is_active ? ' (retained inactive service)' : ''}
+                </label>
+              ))
             )}
-          </select>
-        </label>
-        {barbers.isError && (
-          <ErrorView error={barbers.error} retry={() => void barbers.refetch()} />
-        )}
-        <label>
-          Appointment notes
-          <textarea
-            className={field}
-            maxLength={10000}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-          />
-        </label>
-        {preview.isFetching && <p role="status">Calculating preview…</p>}
-        {preview.isError && <p role="alert">{preview.error.message}</p>}
-        {preview.data && !!instant && (
-          <div aria-label="Appointment preview">
-            <p>
-              Calculated: {preview.data.calculated_duration_minutes} minutes ·{' '}
-              {preview.data.calculated_price} {context.currency}
-            </p>
-            <p>
-              Final: {preview.data.final_duration_minutes} minutes · {preview.data.final_price}{' '}
-              {context.currency}
-            </p>
-            <p>Ends: {displayTime(preview.data.scheduled_end, context.timezone)}</p>
-            <p>Capacity is checked again when saving.</p>
-          </div>
-        )}
-        <label>
-          Duration override (minutes)
-          <input
-            className={field}
-            type="number"
-            min={1}
-            max={1440}
-            step={1}
-            value={duration}
-            onChange={(e) => setDuration(e.target.value)}
-          />
-        </label>
-        <label>
-          Price override
-          <input
-            className={field}
-            type="number"
-            min={0}
-            step="0.01"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-          />
-        </label>
-        <p>
-          Leave overrides blank to use calculated totals. An override equal to its calculated value
-          is not separately remembered.
-        </p>
-        {notice && <FormError message={notice} />}
-        {mutation.isError && <FormError message={mutation.error.message} />}
-        <button
-          className={action}
-          disabled={mutation.isPending || preview.isFetching || !preview.data}
-        >
-          {mutation.isPending ? 'Saving…' : 'Save appointment'}
-        </button>
+          </fieldset>
+          <label>
+            Appointment notes
+            <textarea
+              className={field}
+              maxLength={10000}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
+          </label>
+        </section>
+        <section className="appointment-form-card appointment-review">
+          <h2>
+            <Clock size={20} aria-hidden="true" />
+            Review and totals
+          </h2>
+          {preview.isFetching && <p role="status">Calculating preview…</p>}
+          {preview.isError && <p role="alert">{preview.error.message}</p>}
+          {preview.data && !!instant && (
+            <div aria-label="Appointment preview">
+              <p>
+                Calculated: {preview.data.calculated_duration_minutes} minutes ·{' '}
+                {preview.data.calculated_price} {context.currency}
+              </p>
+              <p>
+                Final: {preview.data.final_duration_minutes} minutes · {preview.data.final_price}{' '}
+                {context.currency}
+              </p>
+              <p>Ends: {displayTime(preview.data.scheduled_end, context.timezone)}</p>
+              <p>Capacity is checked again when saving.</p>
+            </div>
+          )}
+          <label>
+            Duration override (minutes)
+            <input
+              className={field}
+              type="number"
+              min={1}
+              max={1440}
+              step={1}
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+            />
+          </label>
+          <label>
+            Price override
+            <input
+              className={field}
+              type="number"
+              min={0}
+              step="0.01"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+            />
+          </label>
+          <p>
+            Leave overrides blank to use calculated totals. An override equal to its calculated
+            value is not separately remembered.
+          </p>
+        </section>
+        <div className="appointment-form-actions">
+          {notice && <FormError message={notice} />}
+          {mutation.isError && <FormError message={mutation.error.message} />}
+          <button
+            type="submit"
+            className="appointment-save"
+            disabled={mutation.isPending || preview.isFetching || !preview.data}
+          >
+            {mutation.isPending ? 'Saving…' : 'Save appointment'}
+          </button>
+          <Link to={existing ? `/admin/appointments/${existing.id}` : '/admin/appointments'}>
+            Cancel
+          </Link>
+        </div>
       </form>
     </section>
   )

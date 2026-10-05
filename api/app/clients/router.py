@@ -1,4 +1,5 @@
 from uuid import UUID
+from typing import Literal
 from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.orm import Session
 from app.auth.dependencies import AuthenticatedActor, require_authenticated_actor, require_owner
@@ -17,10 +18,12 @@ def list_clients(
     q: str = Query(default="", max_length=200),
     limit: int = Query(default=25, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
+    include_archived: bool = Query(default=False),
+    sort: Literal["name", "recent"] = Query(default="name"),
     actor: AuthenticatedActor = Depends(require_authenticated_actor),
     session: Session = Depends(get_session),
 ):
-    return service.list_clients(session, actor, q, limit, offset)
+    return service.list_clients(session, actor, q, limit, offset, include_archived, sort)
 
 
 @router.post("", status_code=201)

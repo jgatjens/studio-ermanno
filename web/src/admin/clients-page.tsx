@@ -55,6 +55,7 @@ type Client = {
   email?: string | null
   phone?: string | null
   private_notes?: string | null
+  is_archived?: boolean
   last_completed_visit?: Visit | null
 }
 type Page<T> = { items: T[]; total: number; limit: number; offset: number }
@@ -110,6 +111,7 @@ export function ClientsPage() {
   const [search, setSearch] = useState(() => searchParams.get('q') || '')
   const [q, setQ] = useState(() => searchParams.get('q') || '')
   const [offset, setOffset] = useState(() => Math.max(0, Number(searchParams.get('offset')) || 0))
+  const [showArchived, setShowArchived] = useState(false)
   useEffect(() => {
     const timer = setTimeout(() => {
       setQ(search.trim())
@@ -121,18 +123,21 @@ export function ClientsPage() {
     setSearchParams(q || offset ? { q, offset: String(offset) } : {}, { replace: true })
   }, [q, offset, setSearchParams])
   const query = useQuery({
-    queryKey: [...key, 'list', q, offset],
+    queryKey: [...key, 'list', q, offset, showArchived],
     queryFn: ({ signal }) =>
-      apiRequest<Page<Client>>(`/clients?q=${encodeURIComponent(q)}&limit=25&offset=${offset}`, {
-        signal,
-      }),
+      apiRequest<Page<Client>>(
+        `/clients?q=${encodeURIComponent(q)}&limit=25&offset=${offset}${showArchived ? '&include_archived=true' : ''}`,
+        {
+          signal,
+        },
+      ),
   })
   const loading = query.isPending || search.trim() !== q
   return (
     <section className="clients-workspace space-y-6">
-      {location.state?.clientDeleted && (
+      {location.state?.clientArchived && (
         <p role="status" className="client-success">
-          Client deleted.
+          Client archived.
         </p>
       )}
       <div className="client-page-heading">
@@ -189,6 +194,19 @@ export function ClientsPage() {
                 ? 'Select a client to view contact details and previous visits.'
                 : 'Read-only access. Contact details and private notes are hidden.'}
             </FieldDescription>
+            {owner && (
+              <label className="client-archive-filter">
+                <input
+                  type="checkbox"
+                  checked={showArchived}
+                  onChange={(event) => {
+                    setShowArchived(event.target.checked)
+                    setOffset(0)
+                  }}
+                />
+                Show archived clients
+              </label>
+            )}
           </Field>
         </CardContent>
       </Card>
@@ -228,6 +246,9 @@ export function ClientsPage() {
                           <span className="text-xs text-muted-foreground">
                             View profile and history
                           </span>
+                          {client.is_archived && (
+                            <span className="client-archived-badge">Archived</span>
+                          )}
                         </div>
                         <ArrowRight
                           className="shrink-0 text-muted-foreground"
@@ -400,7 +421,7 @@ export function ClientProfilePage() {
       cache.removeQueries({ queryKey: [...key, 'profile', clientId] })
       cache.removeQueries({ queryKey: [...key, 'history', clientId] })
       void cache.invalidateQueries({ queryKey: [...key, 'list'] })
-      navigate(listTo, { replace: true, state: { clientDeleted: true } })
+      navigate(listTo, { replace: true, state: { clientArchived: true } })
     },
   })
   if (profile.isPending)
@@ -536,10 +557,11 @@ export function ClientProfilePage() {
         <Card className="client-danger-zone">
           <CardHeader>
             <CardTitle>
-              <h2>Delete client</h2>
+              <h2>Archive client</h2>
             </CardTitle>
             <CardDescription>
-              Only clients without linked appointments or feedback can be deleted.
+              Archive this client to preserve their profile and history while removing them from the
+              active list.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -552,7 +574,7 @@ export function ClientProfilePage() {
               }}
             >
               <Trash2 size={16} aria-hidden="true" />
-              Delete client
+              Archive client
             </Button>
           </CardContent>
         </Card>
@@ -567,12 +589,11 @@ export function ClientProfilePage() {
           <AlertDialogContent className="client-delete-dialog">
             <AlertDialogHeader>
               <AlertDialogTitle>
-                Delete {client.first_name} {client.last_name}?
+                Archive {client.first_name} {client.last_name}?
               </AlertDialogTitle>
               <AlertDialogDescription>
-                This permanently removes this client’s profile, contact details and private notes.
-                This cannot be undone. Clients with any linked appointments or feedback cannot be
-                deleted.
+                This keeps the client’s profile, contact details and history, but hides them from
+                the active client list. You can show archived clients from the client list.
               </AlertDialogDescription>
             </AlertDialogHeader>
             {deleteError && (
@@ -580,7 +601,7 @@ export function ClientProfilePage() {
                 {deleteError}
               </p>
             )}
-            {remove.isPending && <p role="status">Deleting client…</p>}
+            {remove.isPending && <p role="status">Archiving client…</p>}
             <AlertDialogFooter>
               <AlertDialogCancel disabled={remove.isPending}>Cancel</AlertDialogCancel>
               <AlertDialogAction
@@ -597,7 +618,7 @@ export function ClientProfilePage() {
                   })
                 }}
               >
-                {remove.isPending ? 'Deleting…' : 'Delete permanently'}
+                {remove.isPending ? 'Archiving…' : 'Archive client'}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

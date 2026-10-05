@@ -139,6 +139,7 @@ class Client(Identity, Updated, Owned, Base):
     email: Mapped[Optional[str]] = mapped_column(String(320))
     phone: Mapped[Optional[str]] = mapped_column(String(50))
     private_notes: Mapped[Optional[str]] = mapped_column(Text)
+    is_archived: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     appointments: Mapped[list["Appointment"]] = relationship(
         back_populates="client", foreign_keys="Appointment.client_id"
     )

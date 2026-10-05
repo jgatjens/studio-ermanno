@@ -35,15 +35,17 @@ def find_client(session, actor, client_id):
 def summary(record, actor):
     fields = {
         key: getattr(record, key)
-        for key in ("id", "first_name", "last_name", "created_at", "updated_at")
+        for key in ("id", "first_name", "last_name", "created_at", "updated_at", "is_archived")
     }
     if actor.role == MembershipRole.OWNER:
         return OwnerSummary(**fields, email=record.email, phone=record.phone)
     return ClientSummary(**fields)
 
 
-def list_clients(session, actor, q, limit, offset):
+def list_clients(session, actor, q, limit, offset, include_archived=False, sort="name"):
     filters = [Client.business_id == actor.business_id]
+    if not include_archived:
+        filters.append(Client.is_archived.is_(False))
     q = q.strip()
     if q:
         escaped = q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
@@ -55,7 +57,7 @@ def list_clients(session, actor, q, limit, offset):
     records = session.scalars(
         select(Client)
         .where(*filters)
-        .order_by(Client.last_name, Client.first_name, Client.id)
+        .order_by(*( (Client.created_at.desc(), Client.id.desc()) if sort == "recent" else (Client.last_name, Client.first_name, Client.id) ))
         .limit(limit)
         .offset(offset)
     ).all()
@@ -168,23 +170,9 @@ def delete_client(session, actor, client_id):
     )
     if record is None:
         raise HTTPException(404, "Client not found")
-    for model in (Appointment, Feedback):
-        linked = session.scalar(
-            select(model.id)
-            .where(model.business_id == actor.business_id, model.client_id == client_id)
-            .limit(1)
-        )
-        if linked is not None:
-            raise HTTPException(409, DELETE_CONFLICT)
     try:
-        # Bulk delete leaves linked records untouched; FK RESTRICT is the final guard.
-        session.execute(
-            delete(Client).where(Client.business_id == actor.business_id, Client.id == client_id)
-        )
+        record.is_archived = True
         session.commit()
-    except IntegrityError:
-        session.rollback()
-        raise HTTPException(409, DELETE_CONFLICT) from None
     except Exception:
         session.rollback()
         raise

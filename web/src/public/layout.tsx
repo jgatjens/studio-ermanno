@@ -6,7 +6,7 @@ import { contactLinks, usePublic, type Business } from './data'
 const routes = [
   { label: 'Studio', path: '/' },
   { label: 'Servizi', path: '/services' },
-  { label: 'Gallery', path: '/gallery' },
+  { label: 'Prodotti', path: '/products' },
   { label: 'Contatti', path: '/contact' },
 ]
 const metadata: Record<string, [string, string]> = {
@@ -158,7 +158,6 @@ export function PublicLayout() {
                 <Ellipsis size={16} />
               </summary>
               <nav aria-label="More information">
-                <Link to="/products">Prodotti</Link>
                 <Link to="/availability">Disponibilità</Link>
                 <Link to="/faq">FAQ</Link>
                 <Link to="/feedback">Feedback</Link>

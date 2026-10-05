@@ -22,6 +22,20 @@ DATA = dict(
 )
 
 
+def test_recent_client_selection_is_limited_and_searchable(auth_client):
+    client, sign, *_ = auth_client
+    ids = [create(client, sign, first_name=name)["id"] for name in ("Zulu", "Beta", "Alpha")]
+    with Session(auth_client[-1]) as session:
+        for index, identifier in enumerate(ids):
+            session.get(Client, UUID(identifier)).created_at = datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(days=index)
+        session.commit()
+    response = client.get('/clients?sort=recent&limit=2', headers=headers(sign())).json()
+    assert [row['id'] for row in response['items']] == ids[::-1][:2]
+    assert response['total'] == 3
+    assert client.get('/clients?q=Zulu', headers=headers(sign())).json()['items'][0]['id'] == ids[0]
+    assert client.get('/clients?sort=invalid', headers=headers(sign())).status_code == 422
+
+
 def create(client, sign, **patch):
     response = client.post("/clients", json={**DATA, **patch}, headers=headers(sign()))
     assert response.status_code == 201, response.text

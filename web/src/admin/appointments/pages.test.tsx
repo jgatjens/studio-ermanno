@@ -24,6 +24,18 @@ const customer = {
   email: 'private@example.com',
   phone: 'private phone',
 }
+
+test('appointment client picker requests two recent clients and exposes selected state', async () => {
+  mount('/admin/appointments/new')
+  const choice = await screen.findByRole('button', { name: 'Alice Test' })
+  expect(apiRequest).toHaveBeenCalledWith('/clients?q=&limit=2&sort=recent', expect.anything())
+  expect(choice).toHaveAttribute('aria-pressed', 'false')
+  fireEvent.click(choice)
+  expect(choice).toHaveAttribute('aria-pressed', 'true')
+  expect(within(choice).getByText('Selected')).toBeInTheDocument()
+  fireEvent.change(screen.getByLabelText('Search existing client'), { target: { value: 'Alice' } })
+  await waitFor(() => expect(apiRequest).toHaveBeenCalledWith('/clients?q=Alice&limit=25', expect.anything()))
+})
 const snapshot = {
   service_id: 'service',
   name: 'Historical cut',
@@ -52,6 +64,15 @@ const item = {
 }
 function mockApi() {
   vi.mocked(apiRequest).mockImplementation(async (path, options) => {
+    if (path === '/business-hours')
+      return Array.from({ length: 7 }, (_, day_of_week) => ({
+        day_of_week,
+        is_closed: false,
+        opening_time: '08:00',
+        closing_time: '19:00',
+        break_start: '12:00',
+        break_end: '14:00',
+      }))
     if (path === '/appointments/context') return { timezone: 'Europe/Rome', currency: 'EUR' }
     if (path.startsWith('/clients?')) return { items: [customer], total: 1 }
     if (path === '/services?active=true')
@@ -123,9 +144,10 @@ test('cancel requires deliberate second action and invalidates detail', async ()
 async function fill() {
   await screen.findByRole('button', { name: 'Alice Test' })
   fireEvent.click(screen.getByRole('button', { name: 'Alice Test' }))
-  fireEvent.change(screen.getByLabelText('Business-local date and time'), {
-    target: { value: '2026-10-05T10:00' },
+  fireEvent.change(screen.getByLabelText('Date', { exact: true }), {
+    target: { value: '2026-10-05' },
   })
+  fireEvent.change(screen.getByLabelText('Time', { exact: true }), { target: { value: '10:00' } })
   fireEvent.click(await screen.findByLabelText('Cut'))
   await screen.findByLabelText('Appointment preview')
 }
@@ -157,7 +179,8 @@ test('conflict retains entered draft', async () => {
   fireEvent.click(screen.getByText('Save appointment'))
   await screen.findByText('No capacity remains.')
   expect(screen.getByText('No capacity remains.')).toHaveFocus()
-  expect(screen.getByLabelText('Business-local date and time')).toHaveValue('2026-10-05T10:00')
+  expect(screen.getByLabelText('Date', { exact: true })).toHaveValue('2026-10-05')
+  expect(screen.getByLabelText('Time', { exact: true })).toHaveValue('10:00')
 })
 test('edit retains historical inactive selection and sends PUT', async () => {
   const normal = vi.mocked(apiRequest).getMockImplementation()!

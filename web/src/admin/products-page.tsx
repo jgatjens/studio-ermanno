@@ -248,7 +248,7 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
                         <p className="text-xs text-muted-foreground break-words">SKU: {row.sku}</p>
                       )}
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="inventory-card-content">
                       {!inventory && row.description && (
                         <p className="product-card-description text-sm text-muted-foreground">
                           {row.description}
@@ -669,76 +669,46 @@ export function ProductDetailPage() {
     return (
       <div role="alert">
         {product.error.message}
-        <button className={button} onClick={() => void product.refetch()}>
+          <Button variant="outline" onClick={() => void product.refetch()}>
           Retry
-        </button>
+        </Button>
       </div>
     )
   const row = product.data
   return (
-    <section className="space-y-4 break-words">
-      <Link to="/admin/products">All products</Link>
-      <h1>{row.name}</h1>
-      <p>
-        {row.brand} · {row.category} · SKU: {row.sku || 'None'}
-      </p>
-      <p>{row.description}</p>
-      <p>
-        Cost: {row.cost_price} · Retail: {row.retail_price}
-      </p>
-      <p>
-        {row.is_active ? 'Active' : 'Inactive'} ·{' '}
-        {row.is_public ? 'Public visibility enabled' : 'Private visibility'}
-      </p>
-      <p>
-        Current stock: {row.current_stock} · Minimum: {row.minimum_stock}
-      </p>
-      {row.low_stock && <p>Low stock</p>}
-      {owner && (
-        <>
-          <Link to={`/admin/products/${row.id}/edit`}>Edit product</Link>
-          <StockForm product={row} />
-        </>
-      )}
-      <h2>Movement history</h2>
+    <section className="product-detail-page space-y-6 break-words">
+      <Button variant="outline" asChild><Link to="/admin/products">All products</Link></Button>
+      <header className="product-detail-heading">
+        <div><p className="text-sm text-muted-foreground">Product catalog</p><h1>{row.name}</h1><p className="text-muted-foreground">{[row.brand, row.category].filter(Boolean).join(' · ') || 'No brand or category'} · SKU: {row.sku || 'None'}</p></div>
+        <div className="product-detail-badges"><Badge variant="outline">{row.is_active ? 'Active' : 'Inactive'}</Badge><Badge variant="outline">{row.is_public ? 'Public' : 'Private'}</Badge>{row.low_stock && <Badge variant="outline" className="inventory-low-badge"><AlertTriangle size={13} aria-hidden="true" />Low stock</Badge>}</div>
+      </header>
+      <div className="product-detail-grid">
+        <div className="space-y-6">
+          <Card><CardHeader><h2>Product information</h2></CardHeader><CardContent className="space-y-4"><p className="product-detail-description">{row.description || 'No description provided.'}</p><dl className="product-detail-stats"><div><dt>Retail price</dt><dd>{row.retail_price}</dd></div><div><dt>Cost price</dt><dd>{row.cost_price}</dd></div><div><dt>Minimum stock</dt><dd>{row.minimum_stock}</dd></div></dl></CardContent></Card>
+          <Card><CardHeader><h2>Stock overview</h2></CardHeader><CardContent><div className="product-stock-hero"><strong>{stockQuantity(row.current_stock)}</strong><span>units currently in stock</span></div>{row.low_stock && <p className="product-low-stock-note"><AlertTriangle size={16} aria-hidden="true" />Below the minimum stock level of {stockQuantity(row.minimum_stock)}.</p>}</CardContent></Card>
+        </div>
+        {owner ? <Card><CardContent className="space-y-4"><div className="product-detail-owner-heading"><div><p className="text-sm text-muted-foreground">Owner controls</p><h2>Manage stock</h2></div><Button variant="outline" asChild><Link to={`/admin/products/${row.id}/edit`}><Pencil size={16} aria-hidden="true" />Edit product</Link></Button></div><StockForm product={row} /></CardContent></Card> : <Card><CardContent><p>Staff access is read only.</p><p className="text-sm text-muted-foreground mt-2">Product prices and stock controls are restricted to Owners.</p></CardContent></Card>}
+      </div>
+      <Card><CardHeader><div className="product-history-heading"><div><h2>Movement history</h2><p className="text-sm text-muted-foreground">{owner ? 'Review every stock movement for this product.' : 'Staff history omits sold products and private notes.'}</p></div><Field><FieldLabel htmlFor="movement-type">Movement type</FieldLabel>
+        <select id="movement-type" className={field} value={type} onChange={(e) => { setType(e.target.value); setOffset(0) }}><option value="">All movements</option>{['STOCK_IN', 'ADJUSTMENT', 'DAMAGED', 'USED', ...(owner ? ['SOLD'] : [])].map((value) => <option key={value}>{value}</option>)}</select>
+      </Field></div></CardHeader><CardContent>
       {!owner && (
-        <p>
-          Staff history omits sold products and private notes. This filtered history cannot
-          reconcile the full balance.
-        </p>
+        <p className="product-history-note">This filtered history cannot reconcile the full balance.</p>
       )}
-      <label>
-        Movement type
-        <select
-          className={field}
-          value={type}
-          onChange={(e) => {
-            setType(e.target.value)
-            setOffset(0)
-          }}
-        >
-          <option value="">All</option>
-          {['STOCK_IN', 'ADJUSTMENT', 'DAMAGED', 'USED', ...(owner ? ['SOLD'] : [])].map(
-            (value) => (
-              <option key={value}>{value}</option>
-            ),
-          )}
-        </select>
-      </label>
       {history.isPending ? (
         <p role="status">Loading movements…</p>
       ) : history.isError ? (
         <div role="alert">
           {history.error.message}
-          <button className={button} onClick={() => void history.refetch()}>
+          <Button variant="outline" onClick={() => void history.refetch()}>
             Retry history
-          </button>
+          </Button>
         </div>
       ) : (
         <>
           {!history.data.total && <p>No movements.</p>}
           {history.data.items.map((m) => (
-            <article className="rounded border p-3" key={m.id}>
+            <article className="product-movement-row" key={m.id}>
               <p>
                 {m.movement_type} · {m.quantity} · {new Date(m.created_at).toLocaleString()}
               </p>
@@ -748,20 +718,21 @@ export function ProductDetailPage() {
               )}
             </article>
           ))}
-          <div className="flex gap-3">
-            <button className={button} disabled={!offset} onClick={() => setOffset(offset - 25)}>
+          <div className="flex gap-3 mt-5">
+            <Button variant="outline" disabled={!offset} onClick={() => setOffset(offset - 25)}>
               Previous movements
-            </button>
-            <button
-              className={button}
+            </Button>
+            <Button
+              variant="outline"
               disabled={offset + 25 >= history.data.total}
               onClick={() => setOffset(offset + 25)}
             >
               Next movements
-            </button>
+            </Button>
           </div>
         </>
       )}
+      </CardContent></Card>
     </section>
   )
 }
@@ -857,15 +828,14 @@ function StockForm({ product }: { product: Product }) {
           result: {valid ? (Number(product.current_stock) + delta).toFixed(3) : 'Invalid'}
         </p>
         <p>The server verifies the final balance.</p>
-        <button className={button} disabled={!valid}>
+        <Button type="submit" disabled={!valid}>
           Review stock change
-        </button>
+        </Button>
         {review && (
           <div role="group" aria-label="Confirm stock change">
             <p>Confirm this stock change?</p>
-            <button
+            <Button
               type="button"
-              className={button}
               onClick={() => {
                 const body = JSON.stringify({
                   request_id: requestId,
@@ -878,7 +848,7 @@ function StockForm({ product }: { product: Product }) {
               }}
             >
               Confirm stock change
-            </button>
+            </Button>
           </div>
         )}
       </fieldset>
@@ -889,9 +859,9 @@ function StockForm({ product }: { product: Product }) {
           <p>{mutation.error.message}</p>
           <p>Your command and draft are retained; retrying the same command is safe.</p>
           {attempt && (
-            <button type="button" className={button} onClick={() => mutation.mutate(attempt)}>
+            <Button type="button" variant="outline" onClick={() => mutation.mutate(attempt)}>
               Retry same stock change
-            </button>
+              </Button>
           )}
         </div>
       )}

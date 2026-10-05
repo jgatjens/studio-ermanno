@@ -81,7 +81,7 @@ export function ContactHelp({ business }: { business: BusinessState }) {
           ))}
         </div>
         {business.error && (
-          <p>
+          <p role="alert">
             Contatti non disponibili.{' '}
             <button type="button" onClick={business.retry}>
               Riprova

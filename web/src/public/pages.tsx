@@ -6,7 +6,6 @@ import { formatHours } from '@/lib/business-hours'
 import { faq, gallery, homeHero, availabilityHero, publicBrand } from './content'
 import {
   contactLinks,
-  price,
   usePublic,
   type Business,
   type Item,
@@ -25,21 +24,18 @@ function State({ error, retry }: { error: boolean; retry: () => void }) {
     </p>
   )
 }
-function Cards({ items, business }: { items: Item[]; business?: Business }) {
-  return (
-    <div className="public-grid">
-      {items.map((item, i) => (
-        <article className="public-card" key={`${item.name}-${i}`}>
-          <h3>{item.name}</h3>
-          {item.brand && <p>{item.brand}</p>}
-          {item.category && <p>{item.category}</p>}
-          <p>{item.description}</p>
-          {item.duration_minutes !== undefined && <p>{item.duration_minutes} minutes</p>}
-          {/* <p>{price(item.price ?? item.retail_price, business?.currency)}</p> */}
-        </article>
-      ))}
-    </div>
-  )
+function ProductSelection({ items }: { items: Item[] }) {
+  return (<div className="home-product-selection">{items.map((item, i) => (
+                  <article className="home-product-tile" key={`${item.name}-${i}`}>
+                    <div className="home-product-emblem" aria-hidden="true"><span>{String(i + 1).padStart(2, '0')}</span><Sparkles size={42} strokeWidth={1} /><span>I MINATI</span></div>
+                    <div className="home-product-copy">
+                      {item.brand && <p className="home-product-brand">{item.brand}</p>}
+                      <h3>{item.name}</h3>
+                      {item.category && <p className="home-product-category">{item.category}</p>}
+                      {item.description && <p className="home-product-description">{item.description}</p>}
+                    </div>
+                  </article>
+                ))}</div>)
 }
 export function Faq() {
   return (
@@ -152,9 +148,6 @@ export function HomePage() {
             <Link className="primary-link" to="/availability">
               Scopri disponibilità <span aria-hidden="true">→</span>
             </Link>
-            <a href="#studio">
-              Esplora lo studio <span aria-hidden="true">→</span>
-            </a>
           </div>
         </div>
         <p className="home-hero-signature">
@@ -244,17 +237,7 @@ export function HomePage() {
                 <Link className="home-text-link" to="/products">Esplora i prodotti <span aria-hidden="true">→</span></Link>
               </div>
               <div className="home-section-body">
-                {products.data ? <div className="home-product-selection">{products.data.items.map((item, i) => (
-                  <article className="home-product-tile" key={`${item.name}-${i}`}>
-                    <div className="home-product-emblem" aria-hidden="true"><span>{String(i + 1).padStart(2, '0')}</span><Sparkles size={42} strokeWidth={1} /><span>I MINATI</span></div>
-                    <div className="home-product-copy">
-                      {item.brand && <p className="home-product-brand">{item.brand}</p>}
-                      <h3>{item.name}</h3>
-                      {item.category && <p className="home-product-category">{item.category}</p>}
-                      {item.description && <p className="home-product-description">{item.description}</p>}
-                    </div>
-                  </article>
-                ))}</div> : <State {...products} />}
+                {products.data ? <ProductSelection items={products.data.items} /> : <State {...products} />}
               </div>
             </section>
           )}
@@ -292,55 +275,49 @@ export function HomePage() {
 }
 export function PublicCatalog({ resource }: { resource: 'services' | 'products' }) {
   const [offset, setOffset] = useState(0)
-  const business = usePublic<Business>('/public/business')
   const page = usePublic<Page<Item>>(`/public/${resource}?limit=12&offset=${offset}`)
+  const products = resource === 'products'
   return (
-    <section>
-      <h1>{resource === 'services' ? 'Services' : 'Products'}</h1>
-      <p>
-        {resource === 'products'
-          ? 'An informational catalog. Contact us for product guidance.'
-          : 'Explore published services, prices and durations.'}
-      </p>
-      {business.error && <State {...business} />}
-      {page.data ? (
-        <>
-          {page.data.items.length ? (
-            <Cards items={page.data.items} business={business.data} />
-          ) : (
-            <p>
-              No {resource} are currently published. <Link to="/contact">Contact us</Link> for more
-              information.
-            </p>
-          )}
-          <div className="public-actions">
-            <button disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - 12))}>
-              Previous
-            </button>
-            <span>
-              {page.data.total} {resource}
-            </span>
-            <button
-              disabled={offset + 12 >= page.data.total}
-              onClick={() => setOffset(offset + 12)}
-            >
-              Next
-            </button>
-          </div>
-        </>
-      ) : (
-        <State {...page} />
-      )}
+    <section className={`public-catalog ${products ? 'public-product-catalog' : 'public-service-catalog'}`}>
+      <header className="catalog-intro">
+        <div><p className="eyebrow">I Minati / {products ? 'Prodotti' : 'Servizi'}</p>
+          <h1>{products ? <>La cura continua.<br />Anche a casa.</> : <>Servizi essenziali.<br />Risultati straordinari.</>}</h1>
+        </div>
+        <div><p>{products ? 'Scopri i prodotti del salone. Ti aiutiamo a scegliere quelli più adatti alla tua routine.' : 'Ogni servizio parte dall’ascolto. Trova il trattamento più adatto a te e contattaci per concordare la tua visita.'}</p>
+          <Link className="home-text-link" to="/contact">Parliamone insieme <span aria-hidden="true">→</span></Link>
+        </div>
+      </header>
+      {page.data ? <>
+        {page.data.items.length ? products ? <ProductSelection items={page.data.items} /> : <ol className="catalog-service-list">{page.data.items.map((item, i) => <li key={`${item.name}-${i}`}>
+          <span className="catalog-service-number">{String(offset+i+1).padStart(2,'0')}</span>
+          <div><h2>{item.name}</h2>{item.description && <p>{item.description}</p>}</div>
+          <span className="catalog-service-duration">{item.duration_minutes != null && `${item.duration_minutes} min`}</span>
+        </li>)}</ol> : <div className="catalog-empty"><h2>{products ? 'Il catalogo è in preparazione.' : 'I servizi saranno disponibili presto.'}</h2><p>Contattaci per informazioni e consigli.</p><Link className="home-text-link" to="/contact">Contatta il salone →</Link></div>}
+        <div className="catalog-pagination"><p>{page.data.total} {products ? 'prodotti' : 'servizi'}{page.data.items.length > 0 && ` · ${offset+1}–${offset+page.data.items.length}`}</p><div>
+          <button disabled={offset === 0} onClick={()=>setOffset(Math.max(0,offset-12))}>Precedenti</button>
+          <button disabled={offset+12 >= page.data.total} onClick={()=>setOffset(offset+12)}>Successivi</button>
+        </div></div>
+      </> : <State {...page} />}
+      <aside className="catalog-help"><h2>{products ? 'Una routine su misura per te.' : 'Il prossimo passo, insieme.'}</h2><p>{products ? 'Hai dubbi su quale prodotto scegliere? Chiedici un consiglio.' : 'Consulta le disponibilità indicative e contattaci per confermare il tuo appuntamento.'}</p><Link className="home-text-link" to={products ? '/contact' : '/availability'}>{products ? 'Chiedi un consiglio' : 'Scopri disponibilità'} <span aria-hidden="true">→</span></Link></aside>
     </section>
   )
 }
 export function ContactPage() {
   const business = usePublic<Business>('/public/business')
+  const address = 'Via Vittorio Emanuele 114, 38055 Grigno (TN), Italia'
+  const query = encodeURIComponent(address)
   return (
-    <section>
-      <h1>Contact</h1>
-      {business.data ? <Contact business={business.data} /> : <State {...business} />}
-    </section>
+    <div className="public-contact-page">
+      <header className="contact-intro"><p className="eyebrow">I Minati / Contatti</p><h1>Ci vediamo<br />in salone.</h1><p>Una domanda, un consiglio o il tuo prossimo appuntamento. Siamo qui per te.</p></header>
+      <ContactHelp business={business} />
+      <section className="contact-location" aria-labelledby="contact-location-title">
+        <div className="contact-location-heading"><div><p className="eyebrow">Nel cuore di Grigno</p><h2 id="contact-location-title">Vieni a trovarci.</h2><address>{address}</address></div>
+          <a className="home-text-link" href={`https://www.google.com/maps/dir/?api=1&destination=${query}`} target="_blank" rel="noopener noreferrer">Indicazioni stradali <span aria-hidden="true">→</span></a>
+        </div>
+        <iframe className="contact-map" title="Mappa del salone — Via Vittorio Emanuele 114, Grigno" src={`https://www.google.com/maps?q=${query}&z=17&hl=it&output=embed`} width="1200" height="480" loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen />
+        <p className="contact-map-caption">I Minati Parrucchieri · Grigno, Trentino</p>
+      </section>
+    </div>
   )
 }
 export function GalleryPage() {
