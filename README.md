@@ -1,4 +1,4 @@
-# Barber business data foundation
+# Studio Ermanno
 
 Phases 0–11 provide the React → FastAPI → Supabase PostgreSQL foundation, Supabase email/password login, membership-based authorization, core admin workflows and a responsive public website. `/` is the public Home, `/login` handles sign-in and `/admin` is the operational dashboard. Mobile admin navigation links Dashboard, Clients, Calendar (the existing appointment list), Inventory and More. Access diagnostics are available at `/admin/access`. Deployment remains Phase 12.
 
