@@ -3951,32 +3951,6 @@ body {
   color: var(--muted-foreground);
 }
 
-.public-feedback-page { padding-bottom: 48px; }
-.public-feedback-layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 88px); align-items: start; border-top: 1px solid #dedbd4; padding-top: 48px; }
-.public-feedback-layout .eyebrow { color: #77756d; font-size: 0.7rem; letter-spacing: 0.15em; margin: 0 0 18px; }
-.public-feedback-layout h2 { font-family: Georgia, serif; font-size: clamp(2rem, 3vw, 2.8rem); font-weight: 400; line-height: 1.15; margin: 0 0 24px; letter-spacing: -0.035em; }
-.public-feedback-form { background: #ede9e1; padding: clamp(24px, 4vw, 40px); }
-.public-feedback-form > p:not(.eyebrow), .public-feedback-empty p { color: #6d6c65; line-height: 1.7; }
-.public-feedback-form fieldset { border: 0; padding: 0; margin: 28px 0 0; min-width: 0; }
-.public-feedback-form label { font-size: 0.85rem; font-weight: 500; }
-.public-site .public-feedback-input { display: block; width: 100%; min-width: 0; margin-top: 8px; border: 1px solid #c8c4bb; border-radius: 0; background: #faf8f3; padding: 12px; color: #242620; font: inherit; }
-.public-feedback-input:focus-visible, .public-feedback-button:focus-visible { outline: 2px solid #242620; outline-offset: 3px; }
-.public-feedback-form textarea { resize: vertical; }
-.public-site .public-feedback-button { border: 1px solid #c8c4bb; border-radius: 0; padding: 12px 18px; background: transparent; color: #242620; min-height: 44px; }
-.public-site .public-feedback-submit { width: 100%; background: #242620; color: #faf8f3; border-color: #242620; margin-top: 12px; display: flex; align-items: center; justify-content: space-between; }
-.public-feedback-button:disabled { opacity: 0.5; cursor: not-allowed; }
-.public-feedback-form [role='status'], .public-feedback-form [role='alert'] { margin-top: 20px; }
-.public-feedback-review { border-bottom: 1px solid #dedbd4; padding: 28px 0; overflow-wrap: anywhere; }
-.public-feedback-rating { display: flex; align-items: center; gap: 16px; font-size: 0.8rem; color: #77756d; }
-.public-feedback-rating > span:first-child { color: #746644; font-size: 1.15rem; letter-spacing: 0.12em; }
-.public-feedback-review blockquote { font-family: Georgia, serif; font-size: clamp(1.35rem, 2vw, 1.8rem); font-weight: 400; line-height: 1.5; margin: 20px 0 24px; white-space: pre-wrap; }
-.public-feedback-review-author { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 12px; }
-.public-feedback-review-author h3 { margin: 0; font-size: 0.9rem; font-weight: 500; }
-.public-feedback-review-author time { color: #77756d; font-size: 0.8rem; }
-.public-feedback-empty { padding: 28px 0; }
-.public-feedback-empty h3 { font-family: Georgia, serif; font-size: 1.6rem; font-weight: 400; }
-@media (max-width: 800px) { .public-feedback-layout { grid-template-columns: minmax(0, 1fr); padding-top: 32px; } }
-
 .public-contact-page {
   padding-top: 28px;
 }

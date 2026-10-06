@@ -18,7 +18,11 @@ function draft() {
 test('public form loads empty reviews without auth', async () => {
   render(<PublicFeedbackPage />)
   expect(screen.getByText('Caricamento recensioni…')).toBeInTheDocument()
-  await screen.findByText('Non ci sono ancora recensioni pubblicate. Raccontaci la tua esperienza in salone.')
+  await waitFor(() => expect(screen.queryByText('Caricamento recensioni…')).not.toBeInTheDocument())
+  expect(screen.queryByRole('region', { name: 'Recensioni dei clienti' })).not.toBeInTheDocument()
+  expect(screen.queryByText('Le vostre parole')).not.toBeInTheDocument()
+  expect(screen.queryByText('Esperienze in salone.')).not.toBeInTheDocument()
+  expect(screen.queryByText('La prima parola è tua.')).not.toBeInTheDocument()
   expect(screen.getByLabelText('Email (facoltativa)')).toBeInTheDocument()
   expect(apiRequest).toHaveBeenCalledWith(
     '/public/feedback?limit=25&offset=0',
@@ -27,7 +31,7 @@ test('public form loads empty reviews without auth', async () => {
 })
 test('submission sends visitor fields only and clears after acknowledgement', async () => {
   render(<PublicFeedbackPage />)
-  await screen.findByText('Non ci sono ancora recensioni pubblicate. Raccontaci la tua esperienza in salone.')
+  await waitFor(() => expect(screen.queryByText('Caricamento recensioni…')).not.toBeInTheDocument())
   draft()
   fireEvent.click(screen.getByText('Invia recensione'))
   await screen.findByText(/Grazie! Abbiamo ricevuto/)
@@ -97,5 +101,9 @@ test('review load failure offers retry', async () => {
   await screen.findByText('Le recensioni non sono disponibili al momento.')
   vi.mocked(apiRequest).mockResolvedValue(empty)
   fireEvent.click(screen.getByText('Riprova'))
-  await screen.findByText('Non ci sono ancora recensioni pubblicate. Raccontaci la tua esperienza in salone.')
+  await waitFor(() =>
+    expect(
+      screen.queryByText('Le recensioni non sono disponibili al momento.'),
+    ).not.toBeInTheDocument(),
+  )
 })
