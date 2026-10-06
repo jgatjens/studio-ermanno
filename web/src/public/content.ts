@@ -3,6 +3,10 @@ export const publicBrand = {
   descriptor: 'Parrucchieri',
   title: 'I Minati Parrucchieri',
 }
+export const publicSocialLinks = [
+  { label: 'Instagram', href: 'https://www.instagram.com/iminatiparrucchieri/' },
+  { label: 'WhatsApp', href: 'https://wa.me/393484830998' },
+]
 export type GalleryImage = {
   src: string
   alt: string
@@ -47,12 +51,12 @@ export const hero = gallery[1]
 export const availabilityHero: GalleryImage = {
   src: '/images/salon-chair-1200.jpg',
   srcSet: '/images/salon-chair-600.jpg 600w, /images/salon-chair-1200.jpg 1200w',
-  alt: 'Poltrona da parrucchiere in pelle nera con dettagli in ottone, in un salone dalle luci calde',
+  alt: 'Interno di un salone con poltrone nere, lavatesta e specchi illuminati da luci calde',
   caption: '',
   width: 1200,
   height: 900,
   source:
-    'AI-generated decorative salon-chair photograph based on the user-supplied full-page reference, 5 October 2026; not a photograph of the business',
+    'User-supplied salon interior image, authorized as replacement in chat on 6 October 2026',
 }
 export const availabilityHelpImage: GalleryImage = {
   src: '/images/salon-tools-960.jpg',
@@ -81,7 +85,7 @@ export const faq = [
   },
 ]
 
-export const homeHero: GalleryImage = {
+export const homeHeroPlaceholder: GalleryImage = {
   src: '/images/home-haircut-1600.jpg',
   srcSet: '/images/home-haircut-800.jpg 800w, /images/home-haircut-1600.jpg 1600w',
   alt: 'Un parrucchiere cura i capelli ricci di un cliente in un salone dalle luci calde',
@@ -90,4 +94,15 @@ export const homeHero: GalleryImage = {
   caption: '',
   source:
     'AI-generated decorative haircut photograph inspired by the user-provided homepage reference',
+}
+
+// Prepared alternative; keep homeHero active until the new image is selected.
+export const homeHero: GalleryImage = {
+  src: '/images/home-styling-1600.jpg',
+  srcSet: '/images/home-styling-800.jpg 800w, /images/home-styling-1600.jpg 1600w',
+  alt: 'Un parrucchiere cura capelli lunghi e mossi in un salone dalle luci calde',
+  width: 1600,
+  height: 629,
+  caption: '',
+  source: 'User-supplied homepage hero alternative, authorized in chat on 6 October 2026',
 }

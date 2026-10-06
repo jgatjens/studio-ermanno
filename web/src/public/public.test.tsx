@@ -6,6 +6,7 @@ import { contactLinks, price, type Business } from './data'
 import { HomePage, PublicCatalog, FaqPage, GalleryPage, ContactPage, NotFoundPage } from './pages'
 import { gallery } from './content'
 import { PublicLayout } from './layout'
+import { HistoryPage } from './history'
 vi.mock('@/lib/api', () => ({ apiRequest: vi.fn() }))
 const business: Business = {
   name: 'Studio',
@@ -36,16 +37,43 @@ function mount(element: React.ReactNode, path = '/') {
     </MemoryRouter>,
   )
 }
+test('footer dropdown closes outside and on Escape while inside clicks keep it open', () => {
+  mount(<FaqPage />)
+  const summary = screen.getByLabelText('Altre pagine')
+  const details = summary.closest('details')!
+  fireEvent.click(summary)
+  expect(details.open).toBe(true)
+  fireEvent.pointerDown(summary)
+  expect(details.open).toBe(true)
+  fireEvent.pointerDown(screen.getByRole('heading', { level: 1 }))
+  expect(details.open).toBe(false)
+  fireEvent.click(summary)
+  summary.focus()
+  fireEvent.keyDown(summary, { key: 'Escape' })
+  expect(details.open).toBe(false)
+  expect(summary).toHaveFocus()
+})
+test('history page includes full copy and all photos with links in both navigations', () => {
+  mount(<HistoryPage />, '/history')
+  expect(screen.getByRole('heading', { level: 1, name: 'Una storia di famiglia' })).toBeInTheDocument()
+  expect(screen.getByText(/Nel 1953, a soli 18 anni/)).toBeInTheDocument()
+  expect(screen.getAllByRole('img')).toHaveLength(3)
+  expect(screen.getAllByRole('link', { name: 'La nostra storia' })).toHaveLength(2)
+  for (const link of screen.getAllByRole('link', { name: 'La nostra storia' })) expect(link).toHaveAttribute('href', '/history')
+})
 test('Home follows section order, hides empty products/reviews and retains independent navigation', async () => {
   mount(<HomePage />)
   await screen.findByRole('heading', { name: 'Capelli. Cura. Identità.' })
   expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
-    'Un taglio non dovrebbe semplicemente seguire uno stile. Dovrebbe appartenerti.',
+    'Il tuo stile, la nostra cura.',
+    'Una storia di famiglia',
     'Servizi essenziali.Risultati straordinari.',
     'Prima di venirci a trovare',
     'Preferisci contattarcidirettamente?',
   ])
   expect(screen.queryByText('API Status: Connected')).not.toBeInTheDocument()
+  expect(screen.queryByText(/Nel 1953, a soli 18 anni/)).not.toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'Scopri la nostra storia' })).toHaveAttribute('href', '/history')
   expect(screen.getByRole('link', { name: 'Scopri disponibilità' })).toHaveAttribute(
     'href',
     '/availability',
@@ -69,7 +97,7 @@ test('business failure retries independently while live services and hero remain
   fireEvent.click(await screen.findByRole('button', { name: 'Riprova' }))
   await waitFor(() =>
     expect(vi.mocked(apiRequest).mock.calls.filter(([p]) => p === '/public/business')).toHaveLength(
-      3,
+      2,
     ),
   )
 })
@@ -191,7 +219,21 @@ test('empty gallery remains a usable state when assets are unavailable', () => {
   }
 })
 
+test('footer social links work even when business details fail to load', () => {
+  vi.mocked(apiRequest).mockRejectedValue(Error('offline'))
+  mount(<FaqPage />)
+  expect(screen.getByRole('link', { name: 'Instagram' })).toHaveAttribute(
+    'href',
+    'https://www.instagram.com/iminatiparrucchieri/',
+  )
+  expect(screen.getByRole('link', { name: 'WhatsApp' })).toHaveAttribute(
+    'href',
+    'https://wa.me/393484830998',
+  )
+})
+
 test.each([
+  ['/history', 'Una storia di famiglia'],
   ['/', 'Parrucchieri a Grigno'],
   ['/services', 'Servizi e prezzi'],
   ['/products', 'Prodotti per capelli'],
@@ -215,11 +257,25 @@ test.each([
 })
 
 test('homepage product collection uses Italian navigation and the published catalog content', async () => {
-  vi.mocked(apiRequest).mockImplementation(async path => path === '/public/business' ? business : path.includes('/products') ? { ...page, items: [{ name: 'Olio barba', brand: 'Marca', description: 'Cura quotidiana' }] } : page)
+  vi.mocked(apiRequest).mockImplementation(async (path) =>
+    path === '/public/business'
+      ? business
+      : path.includes('/products')
+        ? {
+            ...page,
+            items: [{ name: 'Olio barba', brand: 'Marca', description: 'Cura quotidiana' }],
+          }
+        : page,
+  )
   mount(<HomePage />)
   await screen.findByRole('heading', { name: 'Olio barba' })
-  expect(screen.getByRole('heading', { name: 'La cura continua. Anche a casa.' })).toBeInTheDocument()
-  expect(screen.getByRole('link', { name: 'Esplora i prodotti' })).toHaveAttribute('href', '/products')
+  expect(
+    screen.getByRole('heading', { name: 'La cura continua. Anche a casa.' }),
+  ).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'Esplora i prodotti' })).toHaveAttribute(
+    'href',
+    '/products',
+  )
   expect(screen.getByText('Cura quotidiana')).toBeInTheDocument()
   expect(screen.queryByText('Featured products')).not.toBeInTheDocument()
 })
@@ -232,6 +288,8 @@ test('contact page shares contact hours and embeds the confirmed Grigno address 
   expect(url.origin).toBe('https://www.google.com')
   expect(url.searchParams.get('q')).toBe('Via Vittorio Emanuele 114, 38055 Grigno (TN), Italia')
   expect(map).toHaveAttribute('loading', 'lazy')
-  const directions = new URL(screen.getByRole('link', { name: 'Indicazioni stradali' }).getAttribute('href')!)
+  const directions = new URL(
+    screen.getByRole('link', { name: 'Indicazioni stradali' }).getAttribute('href')!,
+  )
   expect(directions.searchParams.get('destination')).toBe(url.searchParams.get('q'))
 })

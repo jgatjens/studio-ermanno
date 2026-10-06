@@ -4,13 +4,8 @@ import { AvailabilityPage } from '@/routes/availability'
 import { PublicFeedbackPage } from '@/routes/feedback'
 import { FeedbackPage, FeedbackDetailPage } from '@/admin/feedback-page'
 import { PublicLayout } from '@/public/layout'
-import {
-  HomePage,
-  PublicCatalog,
-  FaqPage,
-  ContactPage,
-  NotFoundPage,
-} from '@/public/pages'
+import { HistoryPage } from '@/public/history'
+import { HomePage, PublicCatalog, FaqPage, ContactPage, NotFoundPage } from '@/public/pages'
 import { AdminPage } from '@/routes/admin'
 import { LoginPage } from '@/routes/login'
 import { CatalogPage } from '@/admin/catalog-page'
@@ -30,6 +25,8 @@ export function App() {
     <Routes>
       <Route element={<PublicLayout />}>
         <Route path="/" element={<HomePage />} />
+        <Route path="/history" element={<HistoryPage />} />
+        <Route path="/storia" element={<Navigate to="/history" replace />} />
         <Route path="/services" element={<PublicCatalog key="services" resource="services" />} />
         <Route path="/products" element={<PublicCatalog key="products" resource="products" />} />
         <Route path="/gallery" element={<Navigate to="/" replace />} />

@@ -12,14 +12,14 @@ beforeEach(() => {
   vi.mocked(apiRequest).mockResolvedValue(empty)
 })
 function draft() {
-  fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Visitor' } })
-  fireEvent.change(screen.getByLabelText('Comment'), { target: { value: 'Wonderful' } })
+  fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Visitor' } })
+  fireEvent.change(screen.getByLabelText('La tua esperienza'), { target: { value: 'Wonderful' } })
 }
 test('public form loads empty reviews without auth', async () => {
   render(<PublicFeedbackPage />)
-  expect(screen.getByText('Loading reviews…')).toBeInTheDocument()
-  await screen.findByText('No published reviews yet.')
-  expect(screen.getByLabelText('Email (optional)')).toBeInTheDocument()
+  expect(screen.getByText('Caricamento recensioni…')).toBeInTheDocument()
+  await screen.findByText('Non ci sono ancora recensioni pubblicate. Raccontaci la tua esperienza in salone.')
+  expect(screen.getByLabelText('Email (facoltativa)')).toBeInTheDocument()
   expect(apiRequest).toHaveBeenCalledWith(
     '/public/feedback?limit=25&offset=0',
     expect.objectContaining({ protected: false }),
@@ -27,11 +27,11 @@ test('public form loads empty reviews without auth', async () => {
 })
 test('submission sends visitor fields only and clears after acknowledgement', async () => {
   render(<PublicFeedbackPage />)
-  await screen.findByText('No published reviews yet.')
+  await screen.findByText('Non ci sono ancora recensioni pubblicate. Raccontaci la tua esperienza in salone.')
   draft()
-  fireEvent.click(screen.getByText('Submit feedback'))
-  await screen.findByText(/Thank you. Your feedback was received/)
-  expect(screen.getByLabelText('Name')).toHaveValue('')
+  fireEvent.click(screen.getByText('Invia recensione'))
+  await screen.findByText(/Grazie! Abbiamo ricevuto/)
+  expect(screen.getByLabelText('Nome')).toHaveValue('')
   const call = vi.mocked(apiRequest).mock.calls.find(([, o]) => o?.method === 'POST')
   expect(call?.[1]).toMatchObject({ protected: false })
   expect(JSON.parse(String(call?.[1]?.body))).toEqual({
@@ -48,9 +48,9 @@ test('validation failure preserves draft without automatic resubmission', async 
   })
   render(<PublicFeedbackPage />)
   draft()
-  fireEvent.click(screen.getByText('Submit feedback'))
-  await screen.findByText('Check your name, email, rating and comment.')
-  expect(screen.getByLabelText('Comment')).toHaveValue('Wonderful')
+  fireEvent.click(screen.getByText('Invia recensione'))
+  await screen.findByText('Controlla nome, email, valutazione e commento.')
+  expect(screen.getByLabelText('La tua esperienza')).toHaveValue('Wonderful')
   expect(vi.mocked(apiRequest).mock.calls.filter(([, o]) => o?.method === 'POST')).toHaveLength(1)
 })
 test('uncertain transport receipt warns about duplicate and retains draft', async () => {
@@ -60,9 +60,9 @@ test('uncertain transport receipt warns about duplicate and retains draft', asyn
   })
   render(<PublicFeedbackPage />)
   draft()
-  fireEvent.click(screen.getByText('Submit feedback'))
-  await screen.findByText(/Another submission could create a duplicate/)
-  expect(screen.getByLabelText('Name')).toHaveValue('Visitor')
+  fireEvent.click(screen.getByText('Invia recensione'))
+  await screen.findByText(/Un nuovo invio potrebbe creare un duplicato/)
+  expect(screen.getByLabelText('Nome')).toHaveValue('Visitor')
 })
 test('reviews render plain text and pagination never exposes private email', async () => {
   vi.mocked(apiRequest).mockResolvedValue({
@@ -83,7 +83,7 @@ test('reviews render plain text and pagination never exposes private email', asy
   expect(screen.getByText('<script>alert(1)</script>')).toBeInTheDocument()
   expect(container.querySelector('script')).toBeNull()
   expect(screen.queryByText('private@example.com')).not.toBeInTheDocument()
-  fireEvent.click(screen.getByText('Next reviews'))
+  fireEvent.click(screen.getByText('Successive'))
   await waitFor(() =>
     expect(apiRequest).toHaveBeenCalledWith(
       '/public/feedback?limit=25&offset=25',
@@ -94,8 +94,8 @@ test('reviews render plain text and pagination never exposes private email', asy
 test('review load failure offers retry', async () => {
   vi.mocked(apiRequest).mockRejectedValue(new Error('Unavailable'))
   render(<PublicFeedbackPage />)
-  await screen.findByText('Unavailable')
+  await screen.findByText('Le recensioni non sono disponibili al momento.')
   vi.mocked(apiRequest).mockResolvedValue(empty)
-  fireEvent.click(screen.getByText('Retry reviews'))
-  await screen.findByText('No published reviews yet.')
+  fireEvent.click(screen.getByText('Riprova'))
+  await screen.findByText('Non ci sono ancora recensioni pubblicate. Raccontaci la tua esperienza in salone.')
 })
