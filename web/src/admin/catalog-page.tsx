@@ -31,6 +31,12 @@ const blank: Draft = { name: '', is_active: true, description: '', duration: '30
 
 export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) {
   const services = resource === 'services'
+  const primaryButton = services
+    ? 'bg-black! text-white! border-black! hover:bg-neutral-800! hover:border-neutral-800!'
+    : undefined
+  const secondaryButton = services
+    ? 'bg-transparent! text-neutral-900! border-neutral-300! hover:bg-neutral-100! hover:border-neutral-400!'
+    : undefined
   const title = services ? 'Services' : 'Hairdressers'
   const plural = services ? 'services' : 'hairdressers'
   const singular = services ? 'service' : 'hairdresser'
@@ -131,7 +137,11 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
             </p>
           </div>
           {owner && (
-            <Button disabled={mutation.isPending} onClick={() => openEditor()}>
+            <Button
+              className={primaryButton}
+              disabled={mutation.isPending}
+              onClick={() => openEditor()}
+            >
               <Plus size={18} aria-hidden="true" />
               Create {singular}
             </Button>
@@ -158,7 +168,7 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                 {search && (
                   <Button
                     variant="outline"
-                    className="absolute right-0 top-0"
+                    className={`absolute right-0 top-0 ${secondaryButton ?? ''}`}
                     aria-label="Clear search"
                     onClick={() => setSearch('')}
                   >
@@ -180,7 +190,11 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
         {query.isError && (
           <div role="alert">
             <p>{query.error.message}</p>
-            <Button variant="outline" onClick={() => void query.refetch()}>
+            <Button
+              className={secondaryButton}
+              variant="outline"
+              onClick={() => void query.refetch()}
+            >
               Retry
             </Button>
           </div>
@@ -234,6 +248,7 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                         {owner && (
                           <div className="service-actions">
                             <Button
+                              className={primaryButton}
                               variant="outline"
                               disabled={mutation.isPending}
                               aria-label={`Edit ${record.name}`}
@@ -243,6 +258,7 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                               Edit
                             </Button>
                             <Button
+                              className={secondaryButton}
                               variant="outline"
                               disabled={mutation.isPending}
                               aria-label={`${record.is_active ? 'Deactivate' : 'Activate'} ${record.name}`}
@@ -278,7 +294,11 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                         : `${title} added by the Owner will appear here.`}
                   </p>
                   {search && (
-                    <Button variant="outline" onClick={() => setSearch('')}>
+                    <Button
+                      className={secondaryButton}
+                      variant="outline"
+                      onClick={() => setSearch('')}
+                    >
                       Clear search
                     </Button>
                   )}
@@ -360,11 +380,12 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                     Active
                   </label>
                   <div className="service-actions">
-                    <Button type="submit" disabled={mutation.isPending}>
+                    <Button className={primaryButton} type="submit" disabled={mutation.isPending}>
                       {mutation.isPending ? 'Saving…' : 'Save'}
                     </Button>
                     {editing && (
                       <Button
+                        className={secondaryButton}
                         type="button"
                         variant="outline"
                         disabled={mutation.isPending}

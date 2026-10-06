@@ -74,9 +74,9 @@ export const faq = [
       'Consulta le disponibilità indicative, poi contattaci per concordare la tua visita. Il sito non consente di prenotare appuntamenti.',
   },
   {
-    question: 'Dove trovo prezzi e durata dei servizi?',
+    question: 'Dove posso conoscere prezzi e durata dei servizi?',
     answer:
-      'Nella pagina Servizi trovi prezzi e durate pubblicati. Contattaci per un consiglio sul servizio più adatto a te.',
+      'Puoi consultare i servizi disponibili sul sito. Per conoscere prezzi e durata, chiedi direttamente in salone: ti aiuteremo a scegliere il trattamento più adatto alle tue esigenze.',
   },
   {
     question: 'Come vengono pubblicate le recensioni?',

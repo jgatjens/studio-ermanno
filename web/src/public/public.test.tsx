@@ -235,7 +235,7 @@ test('footer social links work even when business details fail to load', () => {
 test.each([
   ['/history', 'Una storia di famiglia'],
   ['/', 'Parrucchieri a Grigno'],
-  ['/services', 'Servizi e prezzi'],
+  ['/services', 'Servizi'],
   ['/products', 'Prodotti per capelli'],
   ['/gallery', 'Gallery del salone'],
   ['/availability', 'Disponibilità e orari'],
