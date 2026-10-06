@@ -1,15 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { ArrowRight, Menu, X, Ellipsis } from 'lucide-react'
-import { publicBrand } from './content'
-import { contactLinks, usePublic, type Business } from './data'
+import { publicBrand, publicSocialLinks } from './content'
 const routes = [
-  { label: 'Studio', path: '/' },
+  { label: 'La nostra storia', path: '/history' },
   { label: 'Servizi', path: '/services' },
   { label: 'Prodotti', path: '/products' },
   { label: 'Contatti', path: '/contact' },
 ]
 const metadata: Record<string, [string, string]> = {
+  '/history': [
+    'Una storia di famiglia',
+    'Scopri la storia di I Minati Parrucchieri a Grigno: una tradizione di famiglia che si tramanda da oltre 70 anni, fino a Fabio.',
+  ],
   '/': [
     'Parrucchieri a Grigno',
     'I Minati Parrucchieri a Grigno, in Trentino. Scopri il salone, i servizi, gli orari e le disponibilità. Contattaci per concordare la tua visita.',
@@ -46,9 +49,31 @@ const metadata: Record<string, [string, string]> = {
 export function PublicLayout() {
   const [open, setOpen] = useState(false)
   const toggle = useRef<HTMLButtonElement>(null)
+  const footerMore = useRef<HTMLDetailsElement>(null)
   const { pathname } = useLocation()
   useEffect(() => {
+    const closeOutside = (event: PointerEvent) => {
+      if (footerMore.current?.open && event.target instanceof Node && !footerMore.current.contains(event.target)) {
+        footerMore.current.open = false
+      }
+    }
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && footerMore.current?.open) {
+        const focusInside = footerMore.current.contains(document.activeElement)
+        footerMore.current.open = false
+        if (focusInside) footerMore.current.querySelector('summary')?.focus()
+      }
+    }
+    document.addEventListener('pointerdown', closeOutside)
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.removeEventListener('pointerdown', closeOutside)
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [])
+  useEffect(() => {
     setOpen(false)
+    if (footerMore.current) footerMore.current.open = false
     const [title, description] = metadata[pathname] || [
       'Pagina non trovata',
       'La pagina richiesta non è disponibile. Esplora i servizi e i contatti di I Minati Parrucchieri.',
@@ -77,13 +102,6 @@ export function PublicLayout() {
       tag.content = content
     }
   }, [pathname])
-  const business = usePublic<Business>('/public/business')
-  const socials = business.data
-    ? contactLinks(business.data).filter((link) => ['Instagram', 'WhatsApp'].includes(link.label))
-    : []
-  const footerSocials = ['Instagram', 'WhatsApp'].map(
-    (label) => socials.find((link) => link.label === label) || { label, href: '/contact' },
-  )
   const brand = (
     <>
       <span>{publicBrand.name}</span>
@@ -138,7 +156,7 @@ export function PublicLayout() {
       <main
         id="public-main"
         tabIndex={-1}
-        className={`public-main${pathname === '/availability' ? ' public-main-availability' : pathname === '/' ? ' public-main-home' : ''}`}
+        className={`public-main${pathname === '/availability' ? ' public-main-availability' : pathname === '/' ? ' public-main-home' : pathname === '/history' ? ' public-main-history' : pathname === '/feedback' ? ' max-w-none! px-[max(1rem,calc((100%-1160px)/2))]!' : ''}`}
       >
         <Outlet />
       </main>
@@ -153,7 +171,7 @@ export function PublicLayout() {
                 {route.label}
               </Link>
             ))}
-            <details className="public-footer-more">
+            <details ref={footerMore} className="public-footer-more">
               <summary aria-label="Altre pagine">
                 <Ellipsis size={16} />
               </summary>
@@ -166,13 +184,11 @@ export function PublicLayout() {
             </details>
           </nav>
           <div className="public-socials">
-            {footerSocials.map((link) => (
+            {publicSocialLinks.map((link) => (
               <a
                 key={link.label}
                 aria-label={link.label}
-                title={
-                  link.href === '/contact' ? `Informazioni di contatto: ${link.label}` : link.label
-                }
+                title={link.label}
                 href={link.href}
                 {...(link.href.startsWith('https:')
                   ? { target: '_blank', rel: 'noopener noreferrer' }

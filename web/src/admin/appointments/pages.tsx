@@ -1,5 +1,6 @@
 import type { DayHours } from '@/lib/business-hours'
 import { SchedulePicker } from './schedule-picker'
+import { dayRange } from './business-day'
 import { FormError } from '../form-error'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -163,17 +164,30 @@ function useContext() {
 }
 export function AppointmentsPage() {
   const context = useContext()
+  const hours = useQuery({
+    queryKey: useAdminKey('business-hours'),
+    queryFn: ({ signal }) => apiRequest<DayHours[]>('/business-hours', { signal }),
+  })
   if (context.isPending) return <p role="status">Loading business timezone…</p>
   if (context.isError)
     return <ErrorView error={context.error} retry={() => void context.refetch()} />
-  return <AppointmentList context={context.data} />
+  if (hours.isPending) return <p role="status">Loading business hours…</p>
+  if (hours.isError) return <ErrorView error={hours.error} retry={() => void hours.refetch()} />
+  return <AppointmentList context={context.data} hours={hours.data} />
 }
-function AppointmentList({ context }: { context: Context }) {
+function AppointmentList({ context, hours }: { context: Context; hours: DayHours[] }) {
   const owner = useAuth().actor?.role === 'OWNER'
   const key = useAdminKey('appointments')
   const today = localStamp(new Date(), context.timezone).slice(0, 10)
-  const [from, setFrom] = useState(today)
-  const [to, setTo] = useState(today)
+  let defaultDate = today
+  let hoursError = ''
+  try {
+    defaultDate = dayRange(new Date(), context.timezone, hours).date
+  } catch (error) {
+    hoursError = (error as Error).message
+  }
+  const [from, setFrom] = useState(defaultDate)
+  const [to, setTo] = useState(defaultDate)
   const [status, setStatus] = useState('')
   const [offset, setOffset] = useState(0)
   let dateError = ''
@@ -196,12 +210,12 @@ function AppointmentList({ context }: { context: Context }) {
   if (status) params.set('status', status)
   const query = useQuery({
     queryKey: [...key, 'list', params.toString()],
-    enabled: !dateError,
+    enabled: !dateError && !hoursError,
     queryFn: ({ signal }) => apiRequest<Page<Appointment>>('/appointments?' + params, { signal }),
   })
   function resetFilters() {
-    setFrom(today)
-    setTo(today)
+    setFrom(defaultDate)
+    setTo(defaultDate)
     setStatus('')
     setOffset(0)
   }
@@ -223,6 +237,13 @@ function AppointmentList({ context }: { context: Context }) {
           </Button>
         )}
       </div>
+      {hoursError && <p role="alert">{hoursError}</p>}
+      {defaultDate !== today && (
+        <p className="text-sm text-muted-foreground">
+          Today is closed. The default schedule is {appointmentDate(defaultDate)}, the next open
+          day.
+        </p>
+      )}
       <Card>
         <CardContent>
           <div className="appointment-filter-heading">
@@ -233,13 +254,13 @@ function AppointmentList({ context }: { context: Context }) {
             <Button
               variant="outline"
               onClick={() => {
-                setFrom(today)
-                setTo(today)
+                setFrom(defaultDate)
+                setTo(defaultDate)
                 setOffset(0)
               }}
             >
               <CalendarDays size={16} aria-hidden="true" />
-              Today
+              {defaultDate === today ? 'Today' : 'Next open day'}
             </Button>
           </div>
           <div className="appointment-filters">
@@ -310,7 +331,7 @@ function AppointmentList({ context }: { context: Context }) {
           )}
         </CardContent>
       </Card>
-      {dateError ? null : query.isPending ? (
+      {dateError || hoursError ? null : query.isPending ? (
         <div role="status">
           <span className="sr-only">Loading appointments…</span>
           <div className="space-y-3" aria-hidden="true">
@@ -595,7 +616,10 @@ function AppointmentForm({ context, existing }: { context: Context; existing?: A
   const clients = useQuery({
     queryKey: [...clientsKey, 'selection', 'recent', q],
     queryFn: ({ signal }) =>
-      apiRequest<Page<Client>>(`/clients?q=${encodeURIComponent(q)}&limit=${q ? 25 : 2}${q ? '' : '&sort=recent'}`, { signal }),
+      apiRequest<Page<Client>>(
+        `/clients?q=${encodeURIComponent(q)}&limit=${q ? 25 : 2}${q ? '' : '&sort=recent'}`,
+        { signal },
+      ),
   })
   const services = useQuery({
     queryKey: [...key, 'active-services'],
@@ -727,22 +751,34 @@ function AppointmentForm({ context, existing }: { context: Context; existing?: A
           ) : clients.isError ? (
             <ErrorView error={clients.error} retry={() => void clients.refetch()} />
           ) : (
-            <><p className="text-sm text-muted-foreground">{q ? 'Search results' : 'Most recently added clients · Search to find another client'}</p><ul className="appointment-client-options">
-              {clients.data.items.map((c) => (
-                <li key={c.id}>
-                  <button
-                    type="button"
-                    className="appointment-client-option"
-                    aria-pressed={client?.id === c.id}
-                    onClick={() => setClient(c)}
-                  >
-                    {c.first_name} {c.last_name}
-                    {client?.id === c.id && <span className="appointment-client-selected"><Check size={16} aria-hidden="true" />Selected</span>}
-                  </button>
-                </li>
-              ))}
-              {!clients.data.total && <li>No matching clients.</li>}
-            </ul></>
+            <>
+              <p className="text-sm text-muted-foreground">
+                {q
+                  ? 'Search results'
+                  : 'Most recently added clients · Search to find another client'}
+              </p>
+              <ul className="appointment-client-options">
+                {clients.data.items.map((c) => (
+                  <li key={c.id}>
+                    <button
+                      type="button"
+                      className="appointment-client-option"
+                      aria-pressed={client?.id === c.id}
+                      onClick={() => setClient(c)}
+                    >
+                      {c.first_name} {c.last_name}
+                      {client?.id === c.id && (
+                        <span className="appointment-client-selected">
+                          <Check size={16} aria-hidden="true" />
+                          Selected
+                        </span>
+                      )}
+                    </button>
+                  </li>
+                ))}
+                {!clients.data.total && <li>No matching clients.</li>}
+              </ul>
+            </>
           )}
           {client && (
             <p className="appointment-selected-summary" role="status">

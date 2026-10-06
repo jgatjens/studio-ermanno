@@ -124,6 +124,34 @@ export function AvailabilityPage() {
     openDays[0]
   const periods: Interval[][] = []
   for (const interval of day?.intervals || []) {
+    const hours = business.data?.hours.find(
+      (row) => row.day_of_week === (dateObject(day!.date).getUTCDay() + 6) % 7,
+    )
+    if (hours && data) {
+      const clock = (instant: string) =>
+        new Intl.DateTimeFormat('en-GB', {
+          timeZone: data.timezone,
+          hour: '2-digit',
+          minute: '2-digit',
+          hourCycle: 'h23',
+        }).format(new Date(instant))
+      const start = clock(interval.start)
+      const end = clock(interval.end)
+      const opening = hours.opening_time?.slice(0, 5)
+      const closing = hours.closing_time?.slice(0, 5)
+      const pause = hours.break_start?.slice(0, 5)
+      const resume = hours.break_end?.slice(0, 5)
+      if (
+        hours.is_closed ||
+        !opening ||
+        !closing ||
+        start < opening ||
+        end > closing ||
+        end <= start ||
+        (pause && resume && start < resume && end > pause)
+      )
+        continue
+    }
     if (
       !periods.length ||
       new Date(interval.start).getTime() !== new Date(periods.at(-1)!.at(-1)!.end).getTime()

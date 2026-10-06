@@ -34,7 +34,9 @@ test('appointment client picker requests two recent clients and exposes selected
   expect(choice).toHaveAttribute('aria-pressed', 'true')
   expect(within(choice).getByText('Selected')).toBeInTheDocument()
   fireEvent.change(screen.getByLabelText('Search existing client'), { target: { value: 'Alice' } })
-  await waitFor(() => expect(apiRequest).toHaveBeenCalledWith('/clients?q=Alice&limit=25', expect.anything()))
+  await waitFor(() =>
+    expect(apiRequest).toHaveBeenCalledWith('/clients?q=Alice&limit=25', expect.anything()),
+  )
 })
 const snapshot = {
   service_id: 'service',
@@ -106,6 +108,39 @@ function mount(path = '/admin/appointments') {
     </MemoryRouter>,
   )
 }
+test('closed days default to the next open day and reset returns to it', async () => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-04T10:00:00Z'))
+  const original = vi.mocked(apiRequest).getMockImplementation()!
+  vi.mocked(apiRequest).mockImplementation(async (path, options) => {
+    if (path === '/business-hours')
+      return Array.from({ length: 7 }, (_, day_of_week) => ({
+        day_of_week,
+        is_closed: [0, 6].includes(day_of_week),
+        opening_time: '08:00',
+        closing_time: '19:00',
+      }))
+    return original(path, options)
+  })
+  try {
+    mount()
+    await screen.findByText('Alice Test')
+    expect(screen.getByLabelText('From date')).toHaveValue('2026-10-06')
+    expect(screen.getByLabelText('Through date')).toHaveValue('2026-10-06')
+    const path = vi.mocked(apiRequest).mock.calls.find(([p]) => p.startsWith('/appointments?'))![0]
+    const params = new URLSearchParams(path.split('?')[1])
+    expect(params.get('from')).toBe('2026-10-05T22:00:00.000Z')
+    expect(params.get('to')).toBe('2026-10-06T22:00:00.000Z')
+    fireEvent.change(screen.getByLabelText('From date'), { target: { value: '2026-10-03' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Next open day' }))
+    expect(screen.getByLabelText('From date')).toHaveValue('2026-10-06')
+    fireEvent.change(screen.getByLabelText('From date'), { target: { value: '2026-10-03' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Reset filters' }))
+    expect(screen.getByLabelText('From date')).toHaveValue('2026-10-06')
+  } finally {
+    vi.useRealTimers()
+  }
+})
 test('Today list shows timezone, Unassigned and Owner create', async () => {
   mount()
   await screen.findByText('Alice Test')

@@ -2,7 +2,7 @@ import { useRef, useState, type FormEvent } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '@/auth/auth-provider'
 import { LoginForm } from '@/components/login-form'
-import { hero } from '@/public/content'
+import { publicBrand } from '@/public/content'
 import { ProtectedRoute } from '@/auth/protected-route'
 
 export function LoginPage() {
@@ -38,7 +38,7 @@ export function LoginPage() {
           >
             M
           </span>
-          <span>Minati Parrucchieri</span>
+          <span>{publicBrand.title}</span>
         </Link>
         <div className="flex flex-1 items-center justify-center py-10">
           <div className="w-full max-w-xs">
@@ -75,18 +75,17 @@ export function LoginPage() {
       </div>
       <div className="relative hidden overflow-hidden bg-muted lg:block">
         <img
-          src={hero.src}
-          srcSet={hero.srcSet}
+          src="/images/login-geometric.svg"
           sizes="50vw"
           alt=""
-          width={hero.width}
-          height={hero.height}
-          className="absolute inset-0 h-full w-full object-cover object-[50%_70%]"
+          width={900}
+          height={1200}
+          className="absolute inset-0 h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/10" />
         <div className="absolute inset-x-0 bottom-0 p-10 text-white">
           <p className="text-xs font-medium uppercase tracking-[0.2em]">Grigno · Trentino</p>
-          <p className="mt-3 text-3xl font-semibold tracking-tight">Minati Parrucchieri</p>
+          <p className="mt-3 text-3xl font-semibold tracking-tight">{publicBrand.title}</p>
         </div>
       </div>
     </div>

@@ -25,6 +25,64 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 const page = { items: [], total: 0, limit: 25, offset: 0 }
+const closedDays = [0, 6].map((day_of_week) => ({
+  day_of_week,
+  is_closed: true,
+  opening_time: null,
+  closing_time: null,
+}))
+test('closed Sunday and Monday advance to Tuesday in salon local time', () => {
+  const range = dayRange(new Date('2026-10-03T22:30:00Z'), 'Europe/Rome', closedDays)
+  expect(range.date).toBe('2026-10-06')
+  expect(range.start).toBe('2026-10-05T22:00:00.000Z')
+  expect(range.end).toBe('2026-10-06T22:00:00.000Z')
+  expect(dayRange(new Date('2026-10-06T08:00:00Z'), 'Europe/Rome', closedDays).date).toBe(
+    '2026-10-06',
+  )
+  expect(() =>
+    dayRange(
+      new Date(),
+      'Europe/Rome',
+      Array.from({ length: 7 }, (_, day_of_week) => ({
+        day_of_week,
+        is_closed: true,
+        opening_time: null,
+        closing_time: null,
+      })),
+    ),
+  ).toThrow('No open business day')
+})
+test('both appointment panels request the next open day on a closed day', async () => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-04T10:00:00Z'))
+  const next = {
+    ...appointment('Tuesday'),
+    scheduled_start: '2026-10-06T06:00:00Z',
+    scheduled_end: '2026-10-06T06:30:00Z',
+  }
+  vi.mocked(apiRequest).mockImplementation(async (path) => {
+    if (path === '/appointments/context') return { timezone: 'Europe/Rome', currency: 'EUR' }
+    if (path === '/business-hours') return closedDays
+    if (path.startsWith('/appointments?') && !path.includes('status=CONFIRMED'))
+      return { ...page, items: [next], total: 1 }
+    return page
+  })
+  mount()
+  await screen.findByRole('heading', { name: 'Next open day’s appointments' })
+  await screen.findAllByText('Ada Tuesday')
+  expect(
+    screen.getByText('Today is closed. Showing 2026-10-06, the next open day.'),
+  ).toBeInTheDocument()
+  const calls = vi
+    .mocked(apiRequest)
+    .mock.calls.filter(([path]) => path.startsWith('/appointments?'))
+  expect(calls).toHaveLength(3)
+  for (const [path] of calls) {
+    const params = new URLSearchParams(path.split('?')[1])
+    expect(params.get('from')).toBe('2026-10-05T22:00:00.000Z')
+    expect(params.get('to')).toBe('2026-10-06T22:00:00.000Z')
+  }
+})
 function appointment(id: string, status = 'SCHEDULED', minutes = 10) {
   return {
     id,
@@ -45,11 +103,13 @@ beforeEach(() => {
   }
   vi.mocked(apiRequest).mockReset()
   vi.mocked(apiRequest).mockImplementation(async (path) =>
-    path === '/appointments/context'
-      ? { timezone: 'Europe/Rome', currency: 'EUR' }
-      : path.startsWith('/services')
-        ? []
-        : page,
+    path === '/business-hours'
+      ? []
+      : path === '/appointments/context'
+        ? { timezone: 'Europe/Rome', currency: 'EUR' }
+        : path.startsWith('/services')
+          ? []
+          : page,
   )
 })
 afterEach(() => vi.useRealTimers())
@@ -99,15 +159,17 @@ test('dashboard follows hierarchy, independent empty states and Owner shortcuts'
 })
 test('next chooses earliest active server-filtered candidate beyond a terminal list page', async () => {
   vi.mocked(apiRequest).mockImplementation(async (path) =>
-    path === '/appointments/context'
-      ? { timezone: 'UTC', currency: 'EUR' }
-      : path.includes('status=SCHEDULED')
-        ? { ...page, items: [appointment('later', 'SCHEDULED', 20)] }
-        : path.includes('status=CONFIRMED')
-          ? { ...page, items: [appointment('earlier', 'CONFIRMED', 10)] }
-          : path.startsWith('/appointments?')
-            ? { ...page, items: [appointment('done', 'COMPLETED', -50)], total: 40 }
-            : page,
+    path === '/business-hours'
+      ? []
+      : path === '/appointments/context'
+        ? { timezone: 'UTC', currency: 'EUR' }
+        : path.includes('status=SCHEDULED')
+          ? { ...page, items: [appointment('later', 'SCHEDULED', 20)] }
+          : path.includes('status=CONFIRMED')
+            ? { ...page, items: [appointment('earlier', 'CONFIRMED', 10)] }
+            : path.startsWith('/appointments?')
+              ? { ...page, items: [appointment('done', 'COMPLETED', -50)], total: 40 }
+              : page,
   )
   mount()
   await screen.findByText('Ada earlier')
@@ -120,13 +182,15 @@ test('next chooses earliest active server-filtered candidate beyond a terminal l
 })
 test('ongoing appointments say in progress; alerts accurately describe the visible page', async () => {
   vi.mocked(apiRequest).mockImplementation(async (path) =>
-    path === '/appointments/context'
-      ? { timezone: 'UTC', currency: 'EUR' }
-      : path.includes('status=CONFIRMED')
-        ? page
-        : path.startsWith('/appointments?')
-          ? { ...page, items: [appointment('ongoing', 'SCHEDULED', -5)], total: 30 }
-          : page,
+    path === '/business-hours'
+      ? []
+      : path === '/appointments/context'
+        ? { timezone: 'UTC', currency: 'EUR' }
+        : path.includes('status=CONFIRMED')
+          ? page
+          : path.startsWith('/appointments?')
+            ? { ...page, items: [appointment('ongoing', 'SCHEDULED', -5)], total: 30 }
+            : page,
   )
   mount()
   await screen.findAllByText(/In progress/)
@@ -137,17 +201,19 @@ test('ongoing appointments say in progress; alerts accurately describe the visib
 test('Staff sees operational summaries without mutations or private fields', async () => {
   state.actor.role = 'STAFF'
   vi.mocked(apiRequest).mockImplementation(async (path) =>
-    path === '/appointments/context'
-      ? { timezone: 'UTC', currency: 'EUR' }
-      : path.startsWith('/products?')
-        ? {
-            ...page,
-            items: [{ id: 'p', name: 'Pomade', current_stock: '2.000', minimum_stock: '5.000' }],
-            total: 8,
-          }
-        : path.startsWith('/feedback?')
-          ? { ...page, total: 12 }
-          : page,
+    path === '/business-hours'
+      ? []
+      : path === '/appointments/context'
+        ? { timezone: 'UTC', currency: 'EUR' }
+        : path.startsWith('/products?')
+          ? {
+              ...page,
+              items: [{ id: 'p', name: 'Pomade', current_stock: '2.000', minimum_stock: '5.000' }],
+              total: 8,
+            }
+          : path.startsWith('/feedback?')
+            ? { ...page, total: 12 }
+            : page,
   )
   mount()
   await screen.findByText('8 active low-stock products')
@@ -158,6 +224,7 @@ test('Staff sees operational summaries without mutations or private fields', asy
 })
 test('failed timezone does not block stock or feedback; next partial failure is an error', async () => {
   vi.mocked(apiRequest).mockImplementation(async (path) => {
+    if (path === '/business-hours') return []
     if (path === '/appointments/context') throw Error('database secret')
     return page
   })
@@ -168,6 +235,7 @@ test('failed timezone does not block stock or feedback; next partial failure is 
 })
 test('one failed next status does not claim an empty or complete next appointment', async () => {
   vi.mocked(apiRequest).mockImplementation(async (path) => {
+    if (path === '/business-hours') return []
     if (path === '/appointments/context') return { timezone: 'UTC', currency: 'EUR' }
     if (path.includes('status=CONFIRMED')) throw Error('offline')
     return page
@@ -234,17 +302,24 @@ test('actor-scoped context cache survives child route navigation', async () => {
 })
 test('changed actor does not retain the prior dashboard cache or Owner controls', async () => {
   vi.mocked(apiRequest).mockImplementation(async (path) =>
-    path === '/appointments/context'
-      ? { timezone: 'UTC', currency: 'EUR' }
-      : path.startsWith('/products?')
-        ? {
-            ...page,
-            items: [
-              { id: 'old', name: 'Previous actor product', current_stock: '1', minimum_stock: '2' },
-            ],
-            total: 1,
-          }
-        : page,
+    path === '/business-hours'
+      ? []
+      : path === '/appointments/context'
+        ? { timezone: 'UTC', currency: 'EUR' }
+        : path.startsWith('/products?')
+          ? {
+              ...page,
+              items: [
+                {
+                  id: 'old',
+                  name: 'Previous actor product',
+                  current_stock: '1',
+                  minimum_stock: '2',
+                },
+              ],
+              total: 1,
+            }
+          : page,
   )
   const view = mount('/admin')
   await screen.findByText('Previous actor product')
@@ -255,7 +330,11 @@ test('changed actor does not retain the prior dashboard cache or Owner controls'
     role: 'STAFF',
   }
   vi.mocked(apiRequest).mockImplementation(async (path) =>
-    path === '/appointments/context' ? { timezone: 'UTC', currency: 'EUR' } : page,
+    path === '/business-hours'
+      ? []
+      : path === '/appointments/context'
+        ? { timezone: 'UTC', currency: 'EUR' }
+        : page,
   )
   view.rerender(
     <MemoryRouter initialEntries={['/admin']}>
@@ -289,7 +368,11 @@ test('returning to a visible tab updates the date without background clock reque
 })
 test('invalid date context fails safely without requests using guessed dates', async () => {
   vi.mocked(apiRequest).mockImplementation(async (path) =>
-    path === '/appointments/context' ? { timezone: 'not/a-zone', currency: 'EUR' } : page,
+    path === '/business-hours'
+      ? []
+      : path === '/appointments/context'
+        ? { timezone: 'not/a-zone', currency: 'EUR' }
+        : page,
   )
   mount()
   await screen.findByText(
@@ -299,23 +382,73 @@ test('invalid date context fails safely without requests using guessed dates', a
   expect(vi.mocked(apiRequest).mock.calls.some(([p]) => p.startsWith('/appointments?'))).toBe(false)
 })
 
-test('featured appointment provides a direct detail action without leaking client contacts',async()=>{
-  vi.mocked(apiRequest).mockImplementation(async path=>path==='/appointments/context'?{timezone:'UTC',currency:'EUR'}:path.includes('status=SCHEDULED')?{...page,items:[{...appointment('next'),client:{first_name:'Ada',last_name:'Next',email:'secret@example.com',phone:'private phone'}}]}:page)
-  mount();await screen.findByText('Ada Next')
-  expect(screen.getByRole('link',{name:'Open appointment'})).toHaveAttribute('href','/admin/appointments/next')
+test('featured appointment provides a direct detail action without leaking client contacts', async () => {
+  vi.mocked(apiRequest).mockImplementation(async (path) =>
+    path === '/business-hours'
+      ? []
+      : path === '/appointments/context'
+        ? { timezone: 'UTC', currency: 'EUR' }
+        : path.includes('status=SCHEDULED')
+          ? {
+              ...page,
+              items: [
+                {
+                  ...appointment('next'),
+                  client: {
+                    first_name: 'Ada',
+                    last_name: 'Next',
+                    email: 'secret@example.com',
+                    phone: 'private phone',
+                  },
+                },
+              ],
+            }
+          : page,
+  )
+  mount()
+  await screen.findByText('Ada Next')
+  expect(screen.getByRole('link', { name: 'Open appointment' })).toHaveAttribute(
+    'href',
+    '/admin/appointments/next',
+  )
   expect(screen.queryByText('secret@example.com')).not.toBeInTheDocument()
   expect(screen.queryByText('private phone')).not.toBeInTheDocument()
 })
-test('low stock preview distinguishes the loaded subset from the full total',async()=>{
-  vi.mocked(apiRequest).mockImplementation(async path=>path==='/appointments/context'?{timezone:'UTC',currency:'EUR'}:path.startsWith('/products?')?{...page,total:8,items:[{id:'p',name:'Pomade',current_stock:'1.000',minimum_stock:'3.000'}]}:page)
-  mount();await screen.findByText('Showing 1 of 8 low-stock products.')
-  expect(screen.getByRole('link',{name:'Update stock'})).toHaveAttribute('href','/admin/products/p')
+test('low stock preview distinguishes the loaded subset from the full total', async () => {
+  vi.mocked(apiRequest).mockImplementation(async (path) =>
+    path === '/business-hours'
+      ? []
+      : path === '/appointments/context'
+        ? { timezone: 'UTC', currency: 'EUR' }
+        : path.startsWith('/products?')
+          ? {
+              ...page,
+              total: 8,
+              items: [{ id: 'p', name: 'Pomade', current_stock: '1.000', minimum_stock: '3.000' }],
+            }
+          : page,
+  )
+  mount()
+  await screen.findByText('Showing 1 of 8 low-stock products.')
+  expect(screen.getByRole('link', { name: 'Update stock' })).toHaveAttribute(
+    'href',
+    '/admin/products/p',
+  )
 })
-test('failed summary refresh retains data but does not assert clear stock or feedback',async()=>{
-  mount();await screen.findByText('Stock levels look good.');await screen.findByText('No pending feedback.')
-  vi.mocked(apiRequest).mockImplementation(async path=>{if(path.startsWith('/products?')||path.startsWith('/feedback?'))throw Error('offline');return path==='/appointments/context'?{timezone:'UTC',currency:'EUR'}:page})
-  fireEvent.click(screen.getByRole('button',{name:'Refresh dashboard'}))
-  await screen.findByText('Could not load inventory status.',{},{timeout:3000})
+test('failed summary refresh retains data but does not assert clear stock or feedback', async () => {
+  mount()
+  await screen.findByText('Stock levels look good.')
+  await screen.findByText('No pending feedback.')
+  vi.mocked(apiRequest).mockImplementation(async (path) => {
+    if (path.startsWith('/products?') || path.startsWith('/feedback?')) throw Error('offline')
+    return path === '/business-hours'
+      ? []
+      : path === '/appointments/context'
+        ? { timezone: 'UTC', currency: 'EUR' }
+        : page
+  })
+  fireEvent.click(screen.getByRole('button', { name: 'Refresh dashboard' }))
+  await screen.findByText('Could not load inventory status.', {}, { timeout: 3000 })
   expect(screen.getAllByText('Showing the last loaded data.').length).toBeGreaterThan(0)
   expect(screen.queryByText('Stock levels look good.')).not.toBeInTheDocument()
   expect(screen.queryByText('No pending feedback.')).not.toBeInTheDocument()

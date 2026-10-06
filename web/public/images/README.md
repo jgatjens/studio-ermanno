@@ -1,5 +1,14 @@
 # Website photographs
 
+### Family history
+
+`history-storefront-*`, `history-portrait-*`, and `history-team-*` are the three
+archival photographs supplied by the user on 6 October 2026 for the approved
+family-history section. Originals remain in Downloads and were not modified.
+Responsive WebP variants at 480px and 960px preserve the full photographs,
+apply EXIF orientation, use quality 82, and omit metadata. Alt text describes
+visible scenes without assigning identities or dates to individual photographs.
+
 Three photographs were supplied by the user through the mobile app during Phase 10 implementation, in response to the request for approved website photography. Their supplied use is treated as authorization for this website; ownership/licensing has not been independently verified. Confirm publication rights before deployment.
 
 - `village-street-*`: Photo 1, street and mountainside.
@@ -18,7 +27,12 @@ Street-address clarification: the user supplied Via Vittorio Emanuele 114, posta
 
 `salon-tools-960.jpg`: AI-generated decorative scissors/comb photograph based on the user's contact-strip reference on 5 October 2026. Used only in the availability contact section; it does not depict the actual salon. Generated through the built-in imagegen tool and resized for the website.
 
-`salon-chair-600.jpg` and `salon-chair-1200.jpg`: responsive versions of an AI-generated decorative black-leather salon-chair image based on the user's original full-page availability reference, 5 October 2026. Used only in the availability hero, not the Home hero or business gallery. Not a photograph of the actual business.
+`salon-chair-600.jpg` and `salon-chair-1200.jpg`: responsive versions of the salon
+interior image supplied by the user on 6 October 2026, replacing the previous
+decorative chair image. Used in the availability hero and homepage Studio section.
+Resized to 600×450 and 1200×900, preserving the full composition, and encoded as
+optimized progressive JPEG quality 85 without source metadata. The original
+remains in the chat attachment; no claim about the depicted location is inferred.
 
 ### Homepage hero
 
@@ -26,3 +40,10 @@ Street-address clarification: the user supplied Via Vittorio Emanuele 114, posta
 AI-generated decorative haircut scene inspired by the homepage reference supplied
 in chat. This is illustrative imagery, not a photograph of the actual salon or its
 customers. The Studio introduction reuses the existing decorative salon-chair asset.
+
+`home-styling-1600.jpg` and `home-styling-800.jpg` are an alternative homepage hero
+supplied by the user on 6 October 2026. The current haircut hero remains active.
+The alternative is registered as `homeStylingHero` in `web/src/public/content.ts`
+for a future switch. Both variants preserve the full composition and aspect ratio,
+use progressive JPEG quality 85 with optimized encoding, and omit source metadata.
+The original remains in the chat attachment.
