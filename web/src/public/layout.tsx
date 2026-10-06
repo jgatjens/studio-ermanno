@@ -156,7 +156,7 @@ export function PublicLayout() {
       <main
         id="public-main"
         tabIndex={-1}
-        className={`public-main${pathname === '/availability' ? ' public-main-availability' : pathname === '/' ? ' public-main-home' : pathname === '/history' ? ' public-main-history' : ''}`}
+        className={`public-main${pathname === '/availability' ? ' public-main-availability' : pathname === '/' ? ' public-main-home' : pathname === '/history' ? ' public-main-history' : pathname === '/feedback' ? ' max-w-none! px-[max(1rem,calc((100%-1160px)/2))]!' : ''}`}
       >
         <Outlet />
       </main>

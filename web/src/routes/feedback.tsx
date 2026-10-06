@@ -3,6 +3,7 @@ import { apiRequest, ApiError } from '@/lib/api'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
+import { cn } from '@/lib/utils'
 type Review = { name: string | null; rating: number; comment: string | null; created_at: string }
 type Page = { items: Review[]; total: number }
 const field =
@@ -227,7 +228,10 @@ export function PublicFeedbackPage() {
               />
             </label>
             <button
-              className={`${button} mt-3 flex w-full items-center justify-between border-[#242620]! bg-[#242620]! text-[#faf8f3]! min-[801px]:col-span-full min-[801px]:mt-0 min-[801px]:w-auto min-[801px]:justify-self-start min-[801px]:gap-10`}
+              className={cn(
+                button,
+                'mt-3 flex w-full items-center justify-between border-black! bg-black! text-white! hover:bg-neutral-800! min-[801px]:col-span-full min-[801px]:mt-0 min-[801px]:w-auto min-[801px]:justify-self-start min-[801px]:gap-10',
+              )}
             >
               {busy ? 'Invio in corso…' : 'Invia recensione'}
               <span aria-hidden="true"> →</span>
