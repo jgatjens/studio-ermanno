@@ -86,6 +86,7 @@ No disk, Docker, provider SDK or provider-specific application logic is needed. 
 | `DATABASE_POOL_SIZE`    | `2` initially                                                           |
 | `DATABASE_MAX_OVERFLOW` | `1` initially                                                           |
 | `FRONTEND_ORIGIN`       | Exact frontend HTTPS origin, e.g. the allocated Pages production origin |
+| `FRONTEND_ORIGINS`      | Additional allowed origins as a JSON array; e.g. `["https://studio-ermanno.pages.dev","https://iminatiparrucchieri.com"]`. Redeploy the API after changing it. |
 | `SUPABASE_URL`          | Production Supabase project HTTPS origin                                |
 | `SUPABASE_JWT_AUDIENCE` | `authenticated`                                                         |
 | `PUBLIC_BUSINESS_ID`    | Existing real Business UUID                                             |

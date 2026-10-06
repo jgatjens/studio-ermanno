@@ -21,7 +21,7 @@ app = FastAPI(title="Project foundation")
 app.add_middleware(SafeRequestLogging, sanitize_errors=settings.app_env == "production")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[str(settings.frontend_origin).rstrip("/")],
+    allow_origins=settings.cors_origins,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["Content-Type", "Authorization"],
     allow_credentials=False,

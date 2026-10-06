@@ -17,6 +17,30 @@ class Settings(BaseSettings):
     seed_timezone: str = "Europe/Rome"
     database_url: Optional[SecretStr] = None
     frontend_origin: AnyHttpUrl = "http://localhost:5173"
+    frontend_origins: list[AnyHttpUrl] = Field(default_factory=list)
+
+    @property
+    def cors_origins(self) -> list[str]:
+        return list(
+            dict.fromkeys(
+                str(url).rstrip("/") for url in [self.frontend_origin, *self.frontend_origins]
+            )
+        )
+
+    @field_validator("frontend_origins")
+    @classmethod
+    def validate_frontend_origins(cls, values):
+        for url in values:
+            if (
+                url.path not in (None, "/")
+                or url.query
+                or url.fragment
+                or url.username
+                or url.password
+            ):
+                raise ValueError("FRONTEND_ORIGINS must contain HTTP origins without paths")
+        return values
+
     database_pool_size: int = Field(default=2, ge=1, le=10)
     database_max_overflow: int = Field(default=1, ge=0, le=10)
 
@@ -28,7 +52,7 @@ class Settings(BaseSettings):
             raise ValueError(
                 "Production requires DATABASE_URL, SUPABASE_URL and PUBLIC_BUSINESS_ID"
             )
-        for origin in (self.frontend_origin, self.supabase_url):
+        for origin in (self.frontend_origin, *self.frontend_origins, self.supabase_url):
             if origin.scheme != "https" or origin.host in ("localhost", "127.0.0.1", "::1"):
                 raise ValueError("Production origins must use public HTTPS URLs")
         url = make_url(self.database_url.get_secret_value())
