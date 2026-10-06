@@ -10,7 +10,18 @@ import { Textarea } from '@/components/ui/textarea'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Plus, Search, Scissors, Clock, Pencil, X } from 'lucide-react'
+import {
+  Plus,
+  Search,
+  Scissors,
+  Clock,
+  Pencil,
+  X,
+  UserPlus,
+  UserRound,
+  UserRoundCheck,
+  UserRoundX,
+} from 'lucide-react'
 
 export type CatalogRecord = {
   id: string
@@ -31,12 +42,10 @@ const blank: Draft = { name: '', is_active: true, description: '', duration: '30
 
 export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) {
   const services = resource === 'services'
-  const primaryButton = services
-    ? 'bg-black! text-white! border-black! hover:bg-neutral-800! hover:border-neutral-800!'
-    : undefined
-  const secondaryButton = services
-    ? 'bg-transparent! text-neutral-900! border-neutral-300! hover:bg-neutral-100! hover:border-neutral-400!'
-    : undefined
+  const primaryButton =
+    'bg-black! text-white! border-black! hover:bg-neutral-800! hover:border-neutral-800!'
+  const secondaryButton =
+    'bg-transparent! text-neutral-900! border-neutral-300! hover:bg-neutral-100! hover:border-neutral-400!'
   const title = services ? 'Services' : 'Hairdressers'
   const plural = services ? 'services' : 'hairdressers'
   const singular = services ? 'service' : 'hairdresser'
@@ -142,7 +151,11 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
               disabled={mutation.isPending}
               onClick={() => openEditor()}
             >
-              <Plus size={18} aria-hidden="true" />
+              {services ? (
+                <Plus size={18} aria-hidden="true" />
+              ) : (
+                <UserPlus size={18} aria-hidden="true" />
+              )}
               Create {singular}
             </Button>
           )}
@@ -270,6 +283,12 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                                 })
                               }}
                             >
+                              {!services &&
+                                (record.is_active ? (
+                                  <UserRoundX size={16} aria-hidden="true" />
+                                ) : (
+                                  <UserRoundCheck size={16} aria-hidden="true" />
+                                ))}
                               {record.is_active ? 'Deactivate' : 'Activate'}
                             </Button>
                           </div>
@@ -282,7 +301,11 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
             ) : (
               <Card>
                 <CardContent className="service-empty">
-                  <Scissors size={30} aria-hidden="true" />
+                  {services ? (
+                    <Scissors size={30} aria-hidden="true" />
+                  ) : (
+                    <UserRound size={30} aria-hidden="true" />
+                  )}
                   <h2>
                     {query.data.length === 0 ? `No ${plural} yet.` : `No matching ${plural}.`}
                   </h2>

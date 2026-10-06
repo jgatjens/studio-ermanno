@@ -36,6 +36,12 @@ remains in the chat attachment; no claim about the depicted location is inferred
 
 ### Homepage hero
 
+The active hero uses `home-styling-corrected-800.jpg` (800×314) and
+`home-styling-corrected-1600.jpg` (1600×628). The built-in image tool corrected
+the stylist’s hands at the user’s request on 6 October 2026. Both assets use
+progressive JPEG quality 85, optimized encoding and no source metadata.
+The previous `home-styling-*` files remain available as originals.
+
 `home-haircut-1600.jpg` and `home-haircut-800.jpg` are responsive versions of an
 AI-generated decorative haircut scene inspired by the homepage reference supplied
 in chat. This is illustrative imagery, not a photograph of the actual salon or its
