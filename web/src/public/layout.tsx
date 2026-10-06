@@ -18,8 +18,8 @@ const metadata: Record<string, [string, string]> = {
     'I Minati Parrucchieri a Grigno, in Trentino. Scopri il salone, i servizi, gli orari e le disponibilità. Contattaci per concordare la tua visita.',
   ],
   '/services': [
-    'Servizi e prezzi',
-    'Scopri i servizi di I Minati Parrucchieri a Grigno, con prezzi e durata. Contatta il salone per scegliere il servizio più adatto a te.',
+    'Servizi',
+    'Scopri i servizi di I Minati Parrucchieri a Grigno. Per conoscere prezzi e durata, chiedi direttamente in salone e scegli il trattamento più adatto a te.',
   ],
   '/products': [
     'Prodotti per capelli',

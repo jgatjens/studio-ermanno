@@ -74,9 +74,9 @@ export const faq = [
       'Consulta le disponibilità indicative, poi contattaci per concordare la tua visita. Il sito non consente di prenotare appuntamenti.',
   },
   {
-    question: 'Dove trovo prezzi e durata dei servizi?',
+    question: 'Dove posso conoscere prezzi e durata dei servizi?',
     answer:
-      'Nella pagina Servizi trovi prezzi e durate pubblicati. Contattaci per un consiglio sul servizio più adatto a te.',
+      'Puoi consultare i servizi disponibili sul sito. Per conoscere prezzi e durata, chiedi direttamente in salone: ti aiuteremo a scegliere il trattamento più adatto alle tue esigenze.',
   },
   {
     question: 'Come vengono pubblicate le recensioni?',
@@ -96,13 +96,13 @@ export const homeHeroPlaceholder: GalleryImage = {
     'AI-generated decorative haircut photograph inspired by the user-provided homepage reference',
 }
 
-// Prepared alternative; keep homeHero active until the new image is selected.
+// Current homepage hero, with corrected hand anatomy and responsive optimized assets.
 export const homeHero: GalleryImage = {
-  src: '/images/home-styling-1600.jpg',
-  srcSet: '/images/home-styling-800.jpg 800w, /images/home-styling-1600.jpg 1600w',
+  src: '/images/home-styling-corrected-1600.jpg',
+  srcSet: '/images/home-styling-corrected-800.jpg 800w, /images/home-styling-corrected-1600.jpg 1600w',
   alt: 'Un parrucchiere cura capelli lunghi e mossi in un salone dalle luci calde',
   width: 1600,
-  height: 629,
+  height: 628,
   caption: '',
-  source: 'User-supplied homepage hero alternative, authorized in chat on 6 October 2026',
+  source: 'User-supplied homepage hero with AI-retouched hand anatomy, authorized in chat on 6 October 2026',
 }
