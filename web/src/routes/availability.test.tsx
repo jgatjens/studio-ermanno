@@ -242,6 +242,24 @@ test('half-hour spots show available intervals and exclude occupied intervals', 
   expect(screen.getByText('09:30')).toBeInTheDocument()
 })
 
+test('midday closure is excluded even when the availability response contains lunch slots', async () => {
+  const intervals = Array.from({ length: 6 }, (_, index) => ({
+    start: new Date(Date.UTC(2026, 9, 5, 9, 30 + index * 30)).toISOString(),
+    end: new Date(Date.UTC(2026, 9, 5, 9, 60 + index * 30)).toISOString(),
+    state: 'AVAILABLE',
+  }))
+  vi.mocked(apiRequest).mockImplementation(async (path) =>
+    path === '/public/business'
+      ? { ...business, hours: [{ ...business.hours[0], day_of_week: 0 }] }
+      : response(path, [{ ...items[0], intervals }]),
+  )
+  render(<AvailabilityPage />)
+  await screen.findByText('11:30')
+  for (const time of ['12:00', '12:30', '13:00', '13:30'])
+    expect(screen.queryByText(time)).not.toBeInTheDocument()
+  expect(screen.getByText('14:00')).toBeInTheDocument()
+})
+
 test('contact help groups consecutive days with matching hours and keeps different periods separate', async () => {
   const hours = [0, 6].map((day_of_week) => ({
     day_of_week,
