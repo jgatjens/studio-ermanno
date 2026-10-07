@@ -1,3 +1,4 @@
+import { t, useAdminLanguage } from '@/admin/i18n'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -13,6 +14,8 @@ const field = 'block w-full min-w-0 rounded border p-3'
 const button = 'rounded border px-3 py-2'
 
 export function AppointmentCompletePage() {
+  useAdminLanguage()
+
   const owner = useAuth().actor?.role === 'OWNER'
   const { appointmentId } = useParams()
   const key = useAdminKey('appointments')
@@ -26,7 +29,7 @@ export function AppointmentCompletePage() {
     enabled: owner,
     queryFn: ({ signal }) => apiRequest<Context>('/appointments/context', { signal }),
   })
-  if (!owner) return <p role="alert">Access denied.</p>
+  if (!owner) return <p role="alert">{t('Access denied.')}</p>
   if ((query.isError && !query.data) || (context.isError && !context.data))
     return (
       <div role="alert">
@@ -38,29 +41,36 @@ export function AppointmentCompletePage() {
             void context.refetch()
           }}
         >
-          Retry
+          {t("Retry ")}
         </button>
       </div>
     )
-  if (query.isPending || context.isPending) return <p role="status">Loading completion…</p>
+  if (query.isPending || context.isPending) return <p role="status">{t('Loading completion…')}</p>
   return <CompletionView key={appointmentId} appointment={query.data!} context={context.data!} />
 }
 
 function CompletionView({ appointment, context }: { appointment: Appointment; context: Context }) {
+  useAdminLanguage()
+
   // Preserve the reviewed snapshot and draft across background refetches, including
   // an uncertain transport outcome that already committed on the server.
   const [reviewed] = useState(appointment)
   if (!['SCHEDULED', 'CONFIRMED'].includes(reviewed.status))
     return (
       <section>
-        <p>This appointment is {reviewed.status} and is read only.</p>
-        <Link to={`/admin/appointments/${reviewed.id}`}>View appointment</Link>
+        <p>
+          {t('This appointment is ')}
+          {t(reviewed.status)} {t(' and is read only.')}
+        </p>
+        <Link to={`/admin/appointments/${reviewed.id}`}>{t('View appointment')}</Link>
       </section>
     )
   return <CompletionForm appointment={reviewed} context={context} />
 }
 
 function CompletionForm({ appointment, context }: { appointment: Appointment; context: Context }) {
+  useAdminLanguage()
+
   const key = useAdminKey('appointments')
   const productsKey = useAdminKey('products')
   const inventoryKey = useAdminKey('inventory')
@@ -116,11 +126,11 @@ function CompletionForm({ appointment, context }: { appointment: Appointment; co
   }
   function add(product: Product) {
     if (selected.length >= 50) {
-      setNotice('Record at most 50 product entries.')
+      setNotice(t('Record at most 50 product entries.'))
       return
     }
     if (selected.some((row) => row.product.id === product.id && row.usage_type === 'USED')) {
-      setNotice('This product is already selected as USED. Change its usage or quantity below.')
+      setNotice(t('This product is already selected as USED. Change its usage or quantity below.'))
       return
     }
     edited()
@@ -129,7 +139,7 @@ function CompletionForm({ appointment, context }: { appointment: Appointment; co
   function prepare() {
     const pairs = selected.map((row) => `${row.product.id}:${row.usage_type}`)
     if (new Set(pairs).size !== pairs.length) {
-      setNotice('Combine duplicate product and usage selections.')
+      setNotice(t('Combine duplicate product and usage selections.'))
       return
     }
     if (
@@ -140,7 +150,7 @@ function CompletionForm({ appointment, context }: { appointment: Appointment; co
           Number(row.quantity) > 999999999.999,
       )
     ) {
-      setNotice('Quantities must be positive with at most three decimal places.')
+      setNotice(t('Quantities must be positive with at most three decimal places.'))
       return
     }
     setNotice('')
@@ -161,48 +171,52 @@ function CompletionForm({ appointment, context }: { appointment: Appointment; co
   }
   return (
     <section className="appointment-complete-workspace break-words">
-      <Link to={`/admin/appointments/${appointment.id}`}>Back to appointment</Link>
+      <Link to={`/admin/appointments/${appointment.id}`}>{t('Back to appointment')}</Link>
       <div className="appointment-complete-heading">
         <div>
-          <h1>Complete appointment</h1>
+          <h1>{t('Complete appointment')}</h1>
           <p className="appointment-complete-subtitle">
             {appointment.client.first_name} {appointment.client.last_name} ·{' '}
             {displayTime(appointment.scheduled_start, context.timezone)} ({context.timezone})
           </p>
         </div>
-        <span className="appointment-complete-badge">Completion</span>
+        <span className="appointment-complete-badge">{t('Completion')}</span>
       </div>
       <section className="appointment-complete-card">
-        <h2>Confirm services and totals</h2>
+        <h2>{t('Confirm services and totals')}</h2>
         <ul className="appointment-complete-services">
           {appointment.services.map((service) => (
             <li key={service.service_id}>
-              {service.name} · {service.duration_minutes} minutes · {service.price}
+              {service.name} · {service.duration_minutes} {t(' minutes · ')}
+              {service.price}
             </li>
           ))}
         </ul>
         <p className="appointment-complete-total">
-          Final: {appointment.final_duration_minutes} minutes · {appointment.final_price}{' '}
-          {context.currency}
+          {t("Final: ")}
+          {appointment.final_duration_minutes} {t(' minutes · ')}
+          {appointment.final_price} {context.currency}
         </p>
         <p className="appointment-complete-help">
-          Completion preserves these snapshots and totals. Correct services or totals before
-          entering completion details.
+          {t(
+            'Completion preserves these snapshots and totals. Correct services or totals before entering completion details.',
+          )}
         </p>
         <Link
           className="appointment-complete-edit"
           to={`/admin/appointments/${appointment.id}/edit`}
         >
-          Edit services or totals first
+          {t('Edit services or totals first')}
         </Link>
         <p className="appointment-complete-stock-note">
-          Completing this appointment deducts all USED and SOLD quantities from stock atomically.
-          Insufficient stock keeps your draft available for correction.
+          {t(
+            'Completing this appointment deducts all USED and SOLD quantities from stock atomically. Insufficient stock keeps your draft available for correction.',
+          )}
         </p>
         <fieldset className="space-y-3" disabled={mutation.isPending}>
-          <legend>Products used or sold</legend>
+          <legend>{t('Products used or sold')}</legend>
           <label>
-            Search products
+            {t('Search products')}
             <input
               className={field}
               maxLength={200}
@@ -211,12 +225,12 @@ function CompletionForm({ appointment, context }: { appointment: Appointment; co
             />
           </label>
           {products.isPending || search.trim() !== q ? (
-            <p role="status">Loading products…</p>
+            <p role="status">{t('Loading products…')}</p>
           ) : products.isError ? (
             <div role="alert">
-              <p>{products.error.message}</p>
+              <p>{t(products.error.message)}</p>
               <button type="button" className={button} onClick={() => void products.refetch()}>
-                Retry products
+                {t('Retry products')}
               </button>
             </div>
           ) : (
@@ -225,13 +239,14 @@ function CompletionForm({ appointment, context }: { appointment: Appointment; co
                 {products.data.items.map((product) => (
                   <li key={product.id}>
                     <button type="button" className={button} onClick={() => add(product)}>
-                      Add {product.name}
+                      {t("Add ")}
+                      {product.name}
                       {product.brand ? ` (${product.brand})` : ''}
                     </button>
                   </li>
                 ))}
               </ul>
-              {!products.data.total && <p>No matching active products.</p>}
+              {!products.data.total && <p>{t('No matching active products.')}</p>}
               <div className="flex flex-wrap gap-3">
                 <button
                   type="button"
@@ -239,7 +254,7 @@ function CompletionForm({ appointment, context }: { appointment: Appointment; co
                   disabled={!offset}
                   onClick={() => setOffset(Math.max(0, offset - 25))}
                 >
-                  Previous products
+                  {t('Previous products')}
                 </button>
                 <button
                   type="button"
@@ -247,17 +262,18 @@ function CompletionForm({ appointment, context }: { appointment: Appointment; co
                   disabled={offset + 25 >= products.data.total}
                   onClick={() => setOffset(offset + 25)}
                 >
-                  Next products
+                  {t('Next products')}
                 </button>
               </div>
             </>
           )}
-          {selected.length === 0 && <p>No products recorded.</p>}
+          {selected.length === 0 && <p>{t('No products recorded.')}</p>}
           {selected.map((row, index) => (
             <div className="space-y-2 rounded border p-3" key={index}>
               <p>{row.product.name}</p>
               <label>
-                Usage for {row.product.name} {index + 1}
+                {t("Usage for ")}
+                {row.product.name} {index + 1}
                 <select
                   className={field}
                   value={row.usage_type}
@@ -272,12 +288,13 @@ function CompletionForm({ appointment, context }: { appointment: Appointment; co
                     )
                   }}
                 >
-                  <option>USED</option>
-                  <option>SOLD</option>
+                  <option value="USED">{t('USED')}</option>
+                  <option value="SOLD">{t('SOLD')}</option>
                 </select>
               </label>
               <label>
-                Quantity for {row.product.name} {index + 1}
+                {t("Quantity for ")}
+                {row.product.name} {index + 1}
                 <input
                   className={field}
                   inputMode="decimal"
@@ -300,12 +317,13 @@ function CompletionForm({ appointment, context }: { appointment: Appointment; co
                   setSelected(selected.filter((_, i) => i !== index))
                 }}
               >
-                Remove {row.product.name} {index + 1}
+                {t("Remove ")}
+                {row.product.name} {index + 1}
               </button>
             </div>
           ))}
           <label>
-            Visit notes
+            {t('Visit notes')}
             <textarea
               className={field}
               maxLength={10000}
@@ -317,39 +335,44 @@ function CompletionForm({ appointment, context }: { appointment: Appointment; co
             />
           </label>
           <button type="button" className={button} onClick={prepare}>
-            Review completion
+            {t('Review completion')}
           </button>
         </fieldset>
       </section>
       {review && (
-        <div role="group" aria-label="Review completion" className="appointment-complete-review">
-          <p>Complete this appointment with the services and totals shown above?</p>
+        <div
+          role="group"
+          aria-label={t('Review completion')}
+          className="appointment-complete-review"
+        >
+          <p>{t('Complete this appointment with the services and totals shown above?')}</p>
           <ul>
             {selected.map((row, index) => (
               <li key={index}>
-                {row.product.name} · {row.usage_type} · {row.quantity}
+                {row.product.name} · {t(row.usage_type)} · {row.quantity}
               </li>
             ))}
           </ul>
-          <p className="whitespace-pre-wrap">{notes || 'No visit notes.'}</p>
-          <p>Completed visits cannot be edited or reopened.</p>
+          <p className="whitespace-pre-wrap">{notes || t('No visit notes.')}</p>
+          <p>{t('Completed visits cannot be edited or reopened.')}</p>
           <button type="button" className={button} disabled={mutation.isPending} onClick={submit}>
-            Confirm completion
+            {t('Confirm completion')}
           </button>
         </div>
       )}
       {notice && (
         <p className="appointment-complete-alert" role="alert">
-          {notice}
+          {t(notice)}
         </p>
       )}
-      {mutation.isPending && <p role="status">Completing appointment…</p>}
+      {mutation.isPending && <p role="status">{t('Completing appointment…')}</p>}
       {mutation.isError && (
         <div className="appointment-complete-alert" role="alert">
-          <p>{mutation.error.message}</p>
+          <p>{t(mutation.error.message)}</p>
           <p>
-            Your draft is retained. If the request failed after saving, retrying the same details is
-            safe. If the appointment changed, reload and review before submitting different details.
+            {t(
+              'Your draft is retained. If the request failed after saving, retrying the same details is safe. If the appointment changed, reload and review before submitting different details.',
+            )}
           </p>
           {attempt && (
             <button
@@ -357,7 +380,7 @@ function CompletionForm({ appointment, context }: { appointment: Appointment; co
               disabled={mutation.isPending}
               onClick={() => mutation.mutate(attempt)}
             >
-              Retry same completion
+              {t('Retry same completion')}
             </button>
           )}
         </div>

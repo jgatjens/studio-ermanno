@@ -1,3 +1,4 @@
+import { t, useAdminLanguage } from '@/admin/i18n'
 import { useRef, useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/api'
@@ -41,6 +42,8 @@ type Draft = {
 const blank: Draft = { name: '', is_active: true, description: '', duration: '30', price: '0.00' }
 
 export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) {
+  useAdminLanguage()
+
   const services = resource === 'services'
   const primaryButton =
     'bg-black! text-white! border-black! hover:bg-neutral-800! hover:border-neutral-800!'
@@ -134,15 +137,15 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
       >
         <div className="services-heading">
           <div>
-            <h1>{title}</h1>
+            <h1>{t(title)}</h1>
             <p className="text-sm text-muted-foreground">
               {services
                 ? owner
-                  ? 'Manage your service catalog, durations and prices.'
-                  : 'View services, durations and prices. Read-only access.'
+                  ? t('Manage your service catalog, durations and prices.')
+                  : t('View services, durations and prices. Read-only access.')
                 : owner
-                  ? 'Manage your team and appointment assignments.'
-                  : 'View the team. Read-only access.'}
+                  ? t('Manage your team and appointment assignments.')
+                  : t('View the team. Read-only access.')}
             </p>
           </div>
           {owner && (
@@ -156,14 +159,18 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
               ) : (
                 <UserPlus size={18} aria-hidden="true" />
               )}
-              Create {singular}
+              {t("Create ")}
+              {singular}
             </Button>
           )}
         </div>
         <Card>
           <CardContent>
             <Field>
-              <FieldLabel htmlFor="services-search">Search {plural}</FieldLabel>
+              <FieldLabel htmlFor="services-search">
+                {t('Search ')}
+                {plural}
+              </FieldLabel>
               <div className="relative">
                 <Search
                   size={18}
@@ -174,7 +181,7 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                   id="services-search"
                   type="search"
                   className="pl-10 pr-12"
-                  placeholder={services ? 'Name or description…' : 'Hairdresser name…'}
+                  placeholder={services ? t('Name or description…') : t('Hairdresser name…')}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -182,7 +189,7 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                   <Button
                     variant="outline"
                     className={`absolute right-0 top-0 ${secondaryButton ?? ''}`}
-                    aria-label="Clear search"
+                    aria-label={t('Clear search')}
                     onClick={() => setSearch('')}
                   >
                     <X size={16} />
@@ -194,7 +201,10 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
         </Card>
         {query.isPending && (
           <div role="status" className="services-grid">
-            <span className="sr-only">Loading {plural}…</span>
+            <span className="sr-only">
+              {t('Loading ')}
+              {plural}…
+            </span>
             {[1, 2, 3].map((n) => (
               <Skeleton key={n} className="h-48 rounded-xl" />
             ))}
@@ -202,20 +212,21 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
         )}
         {query.isError && (
           <div role="alert">
-            <p>{query.error.message}</p>
+            <p>{t(query.error.message)}</p>
             <Button
               className={secondaryButton}
               variant="outline"
               onClick={() => void query.refetch()}
             >
-              Retry
+              {t("Retry ")}
             </Button>
           </div>
         )}
         {query.data && (
           <>
             <p className="text-sm text-muted-foreground">
-              {matches?.length} matching {plural}
+              {matches?.length} {t(' matching ')}
+              {plural}
             </p>
             {matches?.length ? (
               <ul className="services-grid">
@@ -239,7 +250,7 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                             <h2>{record.name}</h2>
                           </div>
                           <Badge variant="outline">
-                            {record.is_active ? 'Active' : 'Inactive'}
+                            {record.is_active ? t('Active') : t('Inactive')}
                           </Badge>
                         </div>
                       </CardHeader>
@@ -248,7 +259,7 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                           <div className="service-facts">
                             <span>
                               <Clock size={16} aria-hidden="true" />
-                              {record.duration_minutes} minutes
+                              {record.duration_minutes} {t(" minutes")}
                             </span>
                             <span className="font-semibold">{record.price}</span>
                           </div>
@@ -264,17 +275,17 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                               className={primaryButton}
                               variant="outline"
                               disabled={mutation.isPending}
-                              aria-label={`Edit ${record.name}`}
+                              aria-label={t('Edit {name}', { name: record.name })}
                               onClick={() => openEditor(record)}
                             >
                               <Pencil size={16} aria-hidden="true" />
-                              Edit
+                              {t('Edit')}
                             </Button>
                             <Button
                               className={secondaryButton}
                               variant="outline"
                               disabled={mutation.isPending}
-                              aria-label={`${record.is_active ? 'Deactivate' : 'Activate'} ${record.name}`}
+                              aria-label={`${record.is_active ? t('Deactivate') : t('Activate')} ${record.name}`}
                               onClick={() => {
                                 setNotice('')
                                 mutation.mutate({
@@ -289,7 +300,7 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                                 ) : (
                                   <UserRoundCheck size={16} aria-hidden="true" />
                                 ))}
-                              {record.is_active ? 'Deactivate' : 'Activate'}
+                              {record.is_active ? t('Deactivate') : t('Activate')}
                             </Button>
                           </div>
                         )}
@@ -307,14 +318,18 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                     <UserRound size={30} aria-hidden="true" />
                   )}
                   <h2>
-                    {query.data.length === 0 ? `No ${plural} yet.` : `No matching ${plural}.`}
+                    {query.data.length === 0
+                      ? t('No {items} yet.', { items: t(plural) })
+                      : t('No matching {items}.', { items: t(plural) })}
                   </h2>
                   <p className="text-sm text-muted-foreground">
                     {search
-                      ? 'Try another search or clear the filter.'
+                      ? t('Try another search or clear the filter.')
                       : owner
-                        ? `Use the form below to add your first ${singular}.`
-                        : `${title} added by the Owner will appear here.`}
+                        ? t('Use the form below to add your first {item}.', { item: t(singular) })
+                        : t('{items} added by the Owner will appear here.', {
+                            items: t(title).toLowerCase(),
+                          })}
                   </p>
                   {search && (
                     <Button
@@ -322,7 +337,7 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                       variant="outline"
                       onClick={() => setSearch('')}
                     >
-                      Clear search
+                      {t('Clear search')}
                     </Button>
                   )}
                 </CardContent>
@@ -334,19 +349,19 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
           <Card className="service-editor">
             <CardHeader>
               <h2 ref={editor} tabIndex={-1}>
-                {editing ? 'Edit' : 'Create'} {singular}
+                {editing ? t('Edit') : t('Create')} {singular}
               </h2>
               <p className="text-sm text-muted-foreground">
                 {services
-                  ? 'Set the name, appointment duration and price.'
-                  : 'Enter the name used for appointment assignments.'}
+                  ? t('Set the name, appointment duration and price.')
+                  : t('Enter the name used for appointment assignments.')}
               </p>
             </CardHeader>
             <CardContent>
               <form className="space-y-5" onSubmit={submit}>
                 <fieldset disabled={mutation.isPending} className="space-y-5">
                   <Field>
-                    <FieldLabel htmlFor="service-name">Name</FieldLabel>
+                    <FieldLabel htmlFor="service-name">{t('Name')}</FieldLabel>
                     <Input
                       id="service-name"
                       required
@@ -358,7 +373,7 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                   {services && (
                     <>
                       <Field>
-                        <FieldLabel htmlFor="service-description">Description</FieldLabel>
+                        <FieldLabel htmlFor="service-description">{t('Description')}</FieldLabel>
                         <Textarea
                           id="service-description"
                           rows={4}
@@ -368,7 +383,9 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                       </Field>
                       <div className="service-form-pair">
                         <Field>
-                          <FieldLabel htmlFor="service-duration">Duration (minutes)</FieldLabel>
+                          <FieldLabel htmlFor="service-duration">
+                            {t('Duration (minutes)')}
+                          </FieldLabel>
                           <Input
                             id="service-duration"
                             type="number"
@@ -380,7 +397,7 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                           />
                         </Field>
                         <Field>
-                          <FieldLabel htmlFor="service-price">Price</FieldLabel>
+                          <FieldLabel htmlFor="service-price">{t('Price')}</FieldLabel>
                           <Input
                             id="service-price"
                             type="number"
@@ -400,11 +417,11 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                       checked={draft.is_active}
                       onChange={(e) => setDraft({ ...draft, is_active: e.target.checked })}
                     />
-                    Active
+                    {t('Active')}
                   </label>
                   <div className="service-actions">
                     <Button className={primaryButton} type="submit" disabled={mutation.isPending}>
-                      {mutation.isPending ? 'Saving…' : 'Save'}
+                      {mutation.isPending ? t('Saving…') : t('Save')}
                     </Button>
                     {editing && (
                       <Button
@@ -414,7 +431,7 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
                         disabled={mutation.isPending}
                         onClick={() => openEditor()}
                       >
-                        Cancel
+                        {t('Cancel')}
                       </Button>
                     )}
                   </div>
@@ -423,8 +440,8 @@ export function CatalogPage({ resource }: { resource: 'services' | 'barbers' }) 
             </CardContent>
           </Card>
         )}
-        {mutation.isError && <p role="alert">{mutation.error.message}</p>}
-        {notice && <p role="status">{notice}</p>}
+        {mutation.isError && <p role="alert">{t(mutation.error.message)}</p>}
+        {notice && <p role="status">{t(notice)}</p>}
       </section>
     )
   }

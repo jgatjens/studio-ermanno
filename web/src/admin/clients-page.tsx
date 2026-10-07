@@ -1,3 +1,4 @@
+import { t, useAdminLanguage, adminLocale } from '@/admin/i18n'
 import { FormError } from './form-error'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useLocation, useSearchParams } from 'react-router-dom'
@@ -61,12 +62,14 @@ type Client = {
 type Page<T> = { items: T[]; total: number; limit: number; offset: number }
 const inputClass = 'block w-full rounded border p-2'
 function Failure({ error, retry }: { error: Error; retry: () => void }) {
+  useAdminLanguage()
+
   return (
     <div role="alert">
       <p>
-        {error instanceof ApiError && error.status === 404 ? 'Client not found.' : error.message}
+        {error instanceof ApiError && error.status === 404 ? t('Client not found.') : error.message}
       </p>
-      <button onClick={retry}>Retry</button>
+      <button onClick={retry}>{t("Retry ")}</button>
     </div>
   )
 }
@@ -79,23 +82,27 @@ function Pager({
   total: number
   onChange: (n: number) => void
 }) {
+  useAdminLanguage()
+
   return (
     <div className="client-pagination">
-      <p className="text-sm text-muted-foreground">{total} results</p>
+      <p className="text-sm text-muted-foreground">
+        {total} {t(' results')}
+      </p>
       <div className="flex items-center gap-2">
         <Button
           variant="outline"
           disabled={offset === 0}
           onClick={() => onChange(Math.max(0, offset - 25))}
         >
-          Previous
+          {t('Previous')}
         </Button>
         <Button
           variant="outline"
           disabled={offset + 25 >= total}
           onClick={() => onChange(offset + 25)}
         >
-          Next
+          {t('Next')}
         </Button>
       </div>
     </div>
@@ -103,6 +110,8 @@ function Pager({
 }
 
 export function ClientsPage() {
+  useAdminLanguage()
+
   const location = useLocation()
   const { actor } = useAuth()
   const owner = actor?.role === 'OWNER'
@@ -137,21 +146,21 @@ export function ClientsPage() {
     <section className="clients-workspace space-y-6">
       {location.state?.clientArchived && (
         <p role="status" className="client-success">
-          Client archived.
+          {t('Client archived.')}
         </p>
       )}
       <div className="client-page-heading">
         <div>
-          <h1>Clients</h1>
+          <h1>{t('Clients')}</h1>
           <p className="text-sm text-muted-foreground">
-            Find a client and review their visit history.
+            {t('Find a client and review their visit history.')}
           </p>
         </div>
         {owner && (
           <Button asChild>
             <Link to="/admin/clients/new">
               <Plus size={18} aria-hidden="true" />
-              Add client
+              {t('Add client')}
             </Link>
           </Button>
         )}
@@ -160,7 +169,7 @@ export function ClientsPage() {
         <CardContent>
           <Field>
             <FieldLabel htmlFor="client-search">
-              {owner ? 'Search name, email or phone' : 'Search client name'}
+              {owner ? t('Search name, email or phone') : t('Search client name')}
             </FieldLabel>
             <div className="relative">
               <Search
@@ -173,7 +182,7 @@ export function ClientsPage() {
                 className="h-11 pl-10 pr-12"
                 type="search"
                 autoComplete="off"
-                placeholder={owner ? 'Name, email or phone…' : 'Client name…'}
+                placeholder={owner ? t('Name, email or phone…') : t('Client name…')}
                 value={search}
                 maxLength={200}
                 onChange={(e) => setSearch(e.target.value)}
@@ -182,7 +191,7 @@ export function ClientsPage() {
                 <Button
                   className="absolute right-0 top-0 min-h-11"
                   variant="outline"
-                  aria-label="Clear search"
+                  aria-label={t('Clear search')}
                   onClick={() => setSearch('')}
                 >
                   <X size={16} aria-hidden="true" />
@@ -191,8 +200,8 @@ export function ClientsPage() {
             </div>
             <FieldDescription>
               {owner
-                ? 'Select a client to view contact details and previous visits.'
-                : 'Read-only access. Contact details and private notes are hidden.'}
+                ? t('Select a client to view contact details and previous visits.')
+                : t('Read-only access. Contact details and private notes are hidden.')}
             </FieldDescription>
             {owner && (
               <label className="client-archive-filter">
@@ -204,7 +213,7 @@ export function ClientsPage() {
                     setOffset(0)
                   }}
                 />
-                Show archived clients
+                {t('Show archived clients')}
               </label>
             )}
           </Field>
@@ -212,7 +221,7 @@ export function ClientsPage() {
       </Card>
       {loading ? (
         <div role="status">
-          <span className="sr-only">Loading clients…</span>
+          <span className="sr-only">{t('Loading clients…')}</span>
           <div aria-hidden="true" className="client-grid">
             {Array.from({ length: 6 }, (_, i) => (
               <Skeleton key={i} className="h-36 rounded-xl" />
@@ -244,10 +253,10 @@ export function ClientsPage() {
                             {client.first_name} {client.last_name}
                           </h2>
                           <span className="text-xs text-muted-foreground">
-                            View profile and history
+                            {t('View profile and history')}
                           </span>
                           {client.is_archived && (
-                            <span className="client-archived-badge">Archived</span>
+                            <span className="client-archived-badge">{t('Archived')}</span>
                           )}
                         </div>
                         <ArrowRight
@@ -271,7 +280,7 @@ export function ClientsPage() {
                             </p>
                           )}
                           {!client.email && !client.phone && (
-                            <p className="text-muted-foreground">No contact details added</p>
+                            <p className="text-muted-foreground">{t('No contact details added')}</p>
                           )}
                         </div>
                       )}
@@ -284,23 +293,23 @@ export function ClientsPage() {
             <Card>
               <CardContent className="client-empty">
                 <Users size={32} className="text-muted-foreground" aria-hidden="true" />
-                <h2>{q ? 'No matching clients.' : 'No clients yet.'}</h2>
+                <h2>{q ? t('No matching clients.') : t('No clients yet.')}</h2>
                 <p className="text-sm text-muted-foreground">
                   {q
-                    ? 'Try a different name or clear your search.'
+                    ? t('Try a different name or clear your search.')
                     : owner
-                      ? 'Add your first client with just their first and last name.'
-                      : 'Clients added by the Owner will appear here.'}
+                      ? t('Add your first client with just their first and last name.')
+                      : t('Clients added by the Owner will appear here.')}
                 </p>
                 {q ? (
                   <Button variant="outline" onClick={() => setSearch('')}>
-                    Clear search
+                    {t('Clear search')}
                   </Button>
                 ) : owner ? (
                   <Button asChild>
                     <Link to="/admin/clients/new">
                       <Plus size={18} aria-hidden="true" />
-                      Add client
+                      {t('Add client')}
                     </Link>
                   </Button>
                 ) : null}
@@ -314,19 +323,24 @@ export function ClientsPage() {
   )
 }
 function VisitCard({ visit, owner }: { visit: Visit; owner: boolean }) {
+  useAdminLanguage()
+
   return (
     <Card className="client-visit-card">
       <CardHeader>
         <CardTitle>
           <span className="flex items-center gap-2">
             <CalendarDays size={18} aria-hidden="true" />
-            {new Date(visit.scheduled_start).toLocaleString()}
+            {new Date(visit.scheduled_start).toLocaleString(adminLocale(), {
+              timeZone: 'Europe/Rome',
+            })}
           </span>
         </CardTitle>
         <CardDescription>
           <span className="flex items-center gap-2">
             <Clock size={16} aria-hidden="true" />
-            {visit.final_duration_minutes} minutes · {visit.final_price}
+            {visit.final_duration_minutes} {t(' minutes · ')}
+            {visit.final_price}
           </span>
         </CardDescription>
       </CardHeader>
@@ -334,53 +348,59 @@ function VisitCard({ visit, owner }: { visit: Visit; owner: boolean }) {
         <div>
           <h3 className="client-section-label">
             <Scissors size={16} aria-hidden="true" />
-            Services
+            {t('Services')}
           </h3>
           <ul className="client-snapshot-list">
             {visit.services.map((service, i) => (
               <li key={i}>
                 <span>{service.name}</span>
                 <span className="text-muted-foreground">
-                  {service.duration_minutes} minutes · {service.price}
+                  {service.duration_minutes} {t(' minutes · ')}
+                  {service.price}
                 </span>
               </li>
             ))}
           </ul>
           {visit.services.length === 0 && (
-            <p className="text-sm text-muted-foreground">No services recorded.</p>
+            <p className="text-sm text-muted-foreground">{t('No services recorded.')}</p>
           )}
         </div>
         <div>
           <h3 className="client-section-label">
             <Package size={16} aria-hidden="true" />
-            Products {owner ? 'used or sold' : 'used'}
+            {t("Products ")}
+            {owner ? t('used or sold') : 'used'}
           </h3>
           <ul className="client-snapshot-list">
             {visit.products.map((product, i) => (
               <li key={i}>
                 <span>{product.name}</span>
                 <span className="text-muted-foreground">
-                  {product.quantity} · {product.usage_type === 'SOLD' ? 'Sold' : 'Used'}
+                  {product.quantity} · {product.usage_type === 'SOLD' ? t('Sold') : t('Used')}
                 </span>
               </li>
             ))}
           </ul>
           {visit.products.length === 0 && (
-            <p className="text-sm text-muted-foreground">No products recorded.</p>
+            <p className="text-sm text-muted-foreground">{t('No products recorded.')}</p>
           )}
         </div>
         {visit.appointment_notes && (
           <div className="client-note-block">
-            <h3 className="client-section-label">Appointment notes</h3>
+            <h3 className="client-section-label">{t('Appointment notes')}</h3>
             <p className="whitespace-pre-wrap break-words">
-              Appointment notes: {visit.appointment_notes}
+              {t("Appointment notes: ")}
+              {visit.appointment_notes}
             </p>
           </div>
         )}
         {owner && visit.visit_notes && (
           <div className="client-note-block">
-            <h3 className="client-section-label">Visit notes</h3>
-            <p className="whitespace-pre-wrap break-words">Visit notes: {visit.visit_notes}</p>
+            <h3 className="client-section-label">{t('Visit notes')}</h3>
+            <p className="whitespace-pre-wrap break-words">
+              {t('Visit notes: ')}
+              {visit.visit_notes}
+            </p>
           </div>
         )}
       </CardContent>
@@ -388,6 +408,8 @@ function VisitCard({ visit, owner }: { visit: Visit; owner: boolean }) {
   )
 }
 export function ClientProfilePage() {
+  useAdminLanguage()
+
   const location = useLocation()
   const navigate = useNavigate()
   const { clientId } = useParams()
@@ -427,7 +449,7 @@ export function ClientProfilePage() {
   if (profile.isPending)
     return (
       <div role="status">
-        <span className="sr-only">Loading profile…</span>
+        <span className="sr-only">{t('Loading profile…')}</span>
         <Skeleton className="h-40 rounded-xl" aria-hidden="true" />
       </div>
     )
@@ -435,16 +457,18 @@ export function ClientProfilePage() {
   const client = profile.data
   const deleteError = remove.isError
     ? remove.error instanceof ApiError && remove.error.status === 409
-      ? 'This client has linked appointments or feedback and cannot be deleted. Their business history must be preserved.'
+      ? t(
+          'This client has linked appointments or feedback and cannot be deleted. Their business history must be preserved.',
+        )
       : remove.error instanceof ApiError && remove.error.status === 404
-        ? 'This client no longer exists. Return to the client list.'
+        ? t('This client no longer exists. Return to the client list.')
         : remove.error.message
     : ''
   return (
     <section className="clients-workspace client-profile space-y-6">
       <Link to={listTo} className="client-back-link">
         <ArrowLeft size={16} aria-hidden="true" />
-        Back to clients
+        {t('Back to clients')}
       </Link>
       <div className="client-page-heading">
         <div className="flex items-center gap-4">
@@ -457,7 +481,8 @@ export function ClientProfilePage() {
               {client.first_name} {client.last_name}
             </h1>
             <p className="text-sm text-muted-foreground">
-              Client profile · {owner ? 'Owner access' : 'Read-only access'}
+              {t("Client profile · ")}
+              {owner ? t('Owner access') : t('Read-only access')}
             </p>
           </div>
         </div>
@@ -465,14 +490,14 @@ export function ClientProfilePage() {
           <Button variant="outline" asChild>
             <Link to={`/admin/clients/${clientId}/edit`}>
               <Pencil size={16} aria-hidden="true" />
-              Edit client
+              {t('Edit client')}
             </Link>
           </Button>
         )}
       </div>
       {location.state?.saved && (
         <p role="status" className="client-success">
-          Client saved.
+          {t('Client saved.')}
         </p>
       )}
       <div className="client-profile-grid">
@@ -482,57 +507,57 @@ export function ClientProfilePage() {
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    <h2>Contact information</h2>
+                    <h2>{t('Contact information')}</h2>
                   </CardTitle>
-                  <CardDescription>Visible to Owners only.</CardDescription>
+                  <CardDescription>{t('Visible to Owners only.')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="client-contact-row">
                     <Mail size={18} aria-hidden="true" />
-                    <span className="break-words">{client.email || 'No email'}</span>
+                    <span className="break-words">{client.email || t('No email')}</span>
                   </p>
                   <p className="client-contact-row">
                     <Phone size={18} aria-hidden="true" />
-                    <span className="break-words">{client.phone || 'No phone'}</span>
+                    <span className="break-words">{client.phone || t('No phone')}</span>
                   </p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    <h2>General notes/preferences</h2>
+                    <h2>{t('General notes/preferences')}</h2>
                   </CardTitle>
-                  <CardDescription>Private client information.</CardDescription>
+                  <CardDescription>{t('Private client information.')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p className="whitespace-pre-wrap break-words">
-                    {client.private_notes || 'No general notes.'}
+                    {client.private_notes || t('No general notes.')}
                   </p>
                 </CardContent>
               </Card>
             </>
           )}
           <section>
-            <h2>Last completed visit</h2>
+            <h2>{t('Last completed visit')}</h2>
             {client.last_completed_visit ? (
               <VisitCard visit={client.last_completed_visit} owner={owner} />
             ) : (
               <Card>
                 <CardContent className="client-empty">
                   <CalendarDays size={28} aria-hidden="true" />
-                  <p>No completed visits yet.</p>
+                  <p>{t('No completed visits yet.')}</p>
                 </CardContent>
               </Card>
             )}
           </section>
         </div>
         <section className="space-y-4">
-          <h2>Visit history</h2>
+          <h2>{t('Visit history')}</h2>
           <p className="text-sm text-muted-foreground">
-            Completed appointments, most recent first.
+            {t('Completed appointments, most recent first.')}
           </p>
           {history.isPending ? (
-            <p role="status">Loading history…</p>
+            <p role="status">{t('Loading history…')}</p>
           ) : history.isError ? (
             <Failure error={history.error} retry={() => void history.refetch()} />
           ) : (
@@ -544,7 +569,7 @@ export function ClientProfilePage() {
                 <Card>
                   <CardContent className="client-empty">
                     <CalendarDays size={28} aria-hidden="true" />
-                    <p>No visit history.</p>
+                    <p>{t('No visit history.')}</p>
                   </CardContent>
                 </Card>
               )}
@@ -557,11 +582,12 @@ export function ClientProfilePage() {
         <Card className="client-danger-zone">
           <CardHeader>
             <CardTitle>
-              <h2>Archive client</h2>
+              <h2>{t('Archive client')}</h2>
             </CardTitle>
             <CardDescription>
-              Archive this client to preserve their profile and history while removing them from the
-              active list.
+              {t(
+                'Archive this client to preserve their profile and history while removing them from the active list.',
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -574,7 +600,7 @@ export function ClientProfilePage() {
               }}
             >
               <Trash2 size={16} aria-hidden="true" />
-              Archive client
+              {t('Archive client')}
             </Button>
           </CardContent>
         </Card>
@@ -589,11 +615,13 @@ export function ClientProfilePage() {
           <AlertDialogContent className="client-delete-dialog">
             <AlertDialogHeader>
               <AlertDialogTitle>
-                Archive {client.first_name} {client.last_name}?
+                {t("Archive ")}
+                {client.first_name} {client.last_name}?
               </AlertDialogTitle>
               <AlertDialogDescription>
-                This keeps the client’s profile, contact details and history, but hides them from
-                the active client list. You can show archived clients from the client list.
+                {t(
+                  'This keeps the client’s profile, contact details and history, but hides them from the active client list. You can show archived clients from the client list.',
+                )}
               </AlertDialogDescription>
             </AlertDialogHeader>
             {deleteError && (
@@ -601,9 +629,9 @@ export function ClientProfilePage() {
                 {deleteError}
               </p>
             )}
-            {remove.isPending && <p role="status">Archiving client…</p>}
+            {remove.isPending && <p role="status">{t('Archiving client…')}</p>}
             <AlertDialogFooter>
-              <AlertDialogCancel disabled={remove.isPending}>Cancel</AlertDialogCancel>
+              <AlertDialogCancel disabled={remove.isPending}>{t('Cancel')}</AlertDialogCancel>
               <AlertDialogAction
                 className="client-delete-button"
                 disabled={remove.isPending}
@@ -618,7 +646,7 @@ export function ClientProfilePage() {
                   })
                 }}
               >
-                {remove.isPending ? 'Archiving…' : 'Archive client'}
+                {remove.isPending ? t('Archiving…') : t('Archive client')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -630,6 +658,8 @@ export function ClientProfilePage() {
 
 const blank = { first_name: '', last_name: '', email: '', phone: '', private_notes: '' }
 export function ClientFormPage() {
+  useAdminLanguage()
+
   const { actor } = useAuth()
   const { clientId } = useParams()
   const key = useAdminKey('clients')
@@ -638,13 +668,15 @@ export function ClientFormPage() {
     enabled: actor?.role === 'OWNER' && !!clientId,
     queryFn: ({ signal }) => apiRequest<Client>(`/clients/${clientId}`, { signal }),
   })
-  if (actor?.role !== 'OWNER') return <p role="alert">Access denied.</p>
-  if (clientId && query.isPending) return <p role="status">Loading client…</p>
+  if (actor?.role !== 'OWNER') return <p role="alert">{t('Access denied.')}</p>
+  if (clientId && query.isPending) return <p role="status">{t('Loading client…')}</p>
   if (clientId && query.isError)
     return <Failure error={query.error} retry={() => void query.refetch()} />
   return <ClientForm key={clientId || 'new'} client={query.data} clientId={clientId} />
 }
 function ClientForm({ client, clientId }: { client?: Client; clientId?: string }) {
+  useAdminLanguage()
+
   const [draft, setDraft] = useState(
     () =>
       ({
@@ -676,18 +708,18 @@ function ClientForm({ client, clientId }: { client?: Client; clientId?: string }
   const busy = mutation.isPending
   const cancelTo = clientId ? `/admin/clients/${clientId}` : '/admin/clients'
   const labels = {
-    first_name: 'First name',
-    last_name: 'Last name',
+    first_name: t('First name'),
+    last_name: t('Last name'),
     email: 'Email',
     phone: 'Phone',
-    private_notes: 'General notes/preferences',
+    private_notes: t('General notes/preferences'),
   }
   function field(field: keyof typeof blank) {
     const required = field === 'first_name' || field === 'last_name'
     const invalid = !!notice && required && !draft[field].trim()
     return (
       <Field key={field}>
-        <FieldLabel htmlFor={`client-${field}`}>{labels[field]}</FieldLabel>
+        <FieldLabel htmlFor={`client-${field}`}>{t(labels[field])}</FieldLabel>
         {field === 'private_notes' ? (
           <Textarea
             id={`client-${field}`}
@@ -727,14 +759,15 @@ function ClientForm({ client, clientId }: { client?: Client; clientId?: string }
     <section className="clients-workspace client-form-page space-y-6">
       <Link to={cancelTo} className="client-back-link">
         <ArrowLeft size={16} aria-hidden="true" />
-        Back to {clientId ? 'profile' : 'clients'}
+        {t("Back to ")}
+        {clientId ? 'profile' : 'clients'}
       </Link>
       <div>
-        <h1>{clientId ? 'Edit client' : 'Add client'}</h1>
+        <h1>{clientId ? t('Edit client') : t('Add client')}</h1>
         <p className="text-sm text-muted-foreground">
           {clientId
-            ? 'Update contact details and preferences.'
-            : 'Start with a name. You can add the other details later.'}
+            ? t('Update contact details and preferences.')
+            : t('Start with a name. You can add the other details later.')}
         </p>
       </div>
       <form
@@ -758,8 +791,8 @@ function ClientForm({ client, clientId }: { client?: Client; clientId?: string }
       >
         <Card>
           <CardHeader>
-            <CardTitle>Client name</CardTitle>
-            <CardDescription>First and last name are required.</CardDescription>
+            <CardTitle>{t('Client name')}</CardTitle>
+            <CardDescription>{t('First and last name are required.')}</CardDescription>
           </CardHeader>
           <CardContent>
             <FieldGroup className="client-name-fields">
@@ -771,10 +804,10 @@ function ClientForm({ client, clientId }: { client?: Client; clientId?: string }
         <Card>
           <CardHeader>
             <CardTitle>
-              Contact details{' '}
-              <span className="text-xs font-normal text-muted-foreground">Optional</span>
+              {t('Contact details')}{' '}
+              <span className="text-xs font-normal text-muted-foreground">{t('Optional')}</span>
             </CardTitle>
-            <CardDescription>Visible to Owners only.</CardDescription>
+            <CardDescription>{t('Visible to Owners only.')}</CardDescription>
           </CardHeader>
           <CardContent>
             <FieldGroup className="client-name-fields">
@@ -786,10 +819,10 @@ function ClientForm({ client, clientId }: { client?: Client; clientId?: string }
         <Card>
           <CardHeader>
             <CardTitle>
-              Preferences and notes{' '}
-              <span className="text-xs font-normal text-muted-foreground">Optional</span>
+              {t('Preferences and notes')}{' '}
+              <span className="text-xs font-normal text-muted-foreground">{t('Optional')}</span>
             </CardTitle>
-            <CardDescription>Private client notes. Visible to Owners only.</CardDescription>
+            <CardDescription>{t('Private client notes. Visible to Owners only.')}</CardDescription>
           </CardHeader>
           <CardContent>{field('private_notes')}</CardContent>
         </Card>
@@ -805,11 +838,11 @@ function ClientForm({ client, clientId }: { client?: Client; clientId?: string }
         )}
         <div className="client-form-actions">
           <Button type="submit" disabled={busy}>
-            {busy ? 'Saving…' : 'Save client'}
+            {busy ? t('Saving…') : t('Save client')}
           </Button>
           {!busy && (
             <Button variant="outline" asChild>
-              <Link to={cancelTo}>Cancel</Link>
+              <Link to={cancelTo}>{t('Cancel')}</Link>
             </Button>
           )}
         </div>

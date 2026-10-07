@@ -1,7 +1,9 @@
+import { t, useAdminLanguage } from '@/admin/i18n'
 import type { DayHours } from '@/lib/business-hours'
 import { useState } from 'react'
 import { CalendarDays } from 'lucide-react'
 import { Calendar } from '@/components/ui/calendar'
+import { it, enUS } from 'react-day-picker/locale'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { NativeSelect } from '@/components/ui/native-select'
@@ -23,6 +25,8 @@ export function SchedulePicker({
   invalid: boolean
   errorId?: string
 }) {
+  const language = useAdminLanguage()
+
   const [open, setOpen] = useState(false)
   const [date = '', time = ''] = value.split('T')
   const selected = date ? new Date(`${date}T12:00:00`) : undefined
@@ -59,7 +63,7 @@ export function SchedulePicker({
   return (
     <div className="schedule-picker">
       <div>
-        <label htmlFor="appointment-time">Time</label>
+        <label htmlFor="appointment-time">{t('Time')}</label>
         <NativeSelect
           id="appointment-time"
           className="w-full"
@@ -70,10 +74,10 @@ export function SchedulePicker({
           aria-describedby={errorId}
           onChange={(event) => onChange(`${date}T${event.target.value}`)}
         >
-          <option value="">Choose time</option>
+          <option value="">{t('Choose time')}</option>
           {time && !slots.includes(time) && (
             <option value={time} disabled>
-              {time} (outside current opening hours; choose another time)
+              {time} {t(" (outside current opening hours; choose another time)")}
             </option>
           )}
           {periods.map((period) => (
@@ -93,16 +97,16 @@ export function SchedulePicker({
         </NativeSelect>
         <p className="schedule-hours-hint">
           {loading
-            ? 'Loading business hours…'
+            ? t('Loading business hours…')
             : periods.length
-              ? periods.map((period) => `${period.start} - ${period.end}`).join(' and ')
+              ? periods.map((period) => `${period.start} - ${period.end}`).join(t(' and '))
               : date
-                ? 'Closed on this date.'
-                : 'No opening hours configured.'}
+                ? t('Closed on this date.')
+                : t('No opening hours configured.')}
         </p>
       </div>{' '}
       <div>
-        <label htmlFor="appointment-date">Date</label>
+        <label htmlFor="appointment-date">{t('Date')}</label>
         <div className="schedule-date-control">
           <Input
             id="appointment-date"
@@ -115,15 +119,27 @@ export function SchedulePicker({
           />
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-              <Button type="button" variant="outline" aria-label="Open date calendar">
+              <Button type="button" variant="outline" aria-label={t('Open date calendar')}>
                 <CalendarDays size={18} aria-hidden="true" />
               </Button>
             </PopoverTrigger>
             <PopoverContent
               className="schedule-calendar-popover"
-              aria-label="Choose appointment date"
+              aria-label={t('Choose appointment date')}
             >
               <Calendar
+                locale={language === 'it' ? it : enUS}
+                labels={
+                  language === 'it'
+                    ? {
+                        labelNext: () => 'Mese successivo',
+                        labelPrevious: () => 'Mese precedente',
+                        labelNav: () => 'Navigazione calendario',
+                        labelDayButton: (date, modifiers) =>
+                          `${new Intl.DateTimeFormat('it-IT', { dateStyle: 'full' }).format(date)}${modifiers.today ? ', oggi' : ''}${modifiers.selected ? ', selezionato' : ''}`,
+                      }
+                    : undefined
+                }
                 mode="single"
                 selected={selected}
                 defaultMonth={selected}

@@ -1,3 +1,4 @@
+import { t, useAdminLanguage, adminLocale } from '@/admin/i18n'
 import type { DayHours } from '@/lib/business-hours'
 import { SchedulePicker } from './schedule-picker'
 import { dayRange } from './business-day'
@@ -21,15 +22,17 @@ import { Skeleton } from '@/components/ui/skeleton'
 const field = 'block w-full min-w-0 rounded border p-3'
 const action = 'rounded border px-3 py-2'
 function ErrorView({ error, retry }: { error: Error; retry: () => void }) {
+  useAdminLanguage()
+
   return (
     <div role="alert">
       <p>
         {error instanceof ApiError && error.status === 404
-          ? 'Appointment not found.'
+          ? t('Appointment not found.')
           : error.message}
       </p>
       <button type="button" className={action} onClick={retry}>
-        Retry
+        {t("Retry ")}
       </button>
     </div>
   )
@@ -43,23 +46,27 @@ function Pagination({
   total: number
   setOffset: (n: number) => void
 }) {
+  useAdminLanguage()
+
   return (
     <div className="appointment-pagination">
-      <p className="text-sm text-muted-foreground">{total} appointments</p>
+      <p className="text-sm text-muted-foreground">
+        {total} {t(' appointments')}
+      </p>
       <div className="flex gap-2">
         <Button
           variant="outline"
           disabled={!offset}
           onClick={() => setOffset(Math.max(0, offset - 25))}
         >
-          Previous
+          {t('Previous')}
         </Button>
         <Button
           variant="outline"
           disabled={offset + 25 >= total}
           onClick={() => setOffset(offset + 25)}
         >
-          Next
+          {t('Next')}
         </Button>
       </div>
     </div>
@@ -73,7 +80,7 @@ const statusNames: Record<string, string> = {
   NO_SHOW: 'No-show',
 }
 function appointmentTime(instant: string, timezone: string) {
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat(adminLocale(), {
     timeZone: timezone,
     hour: '2-digit',
     minute: '2-digit',
@@ -81,7 +88,7 @@ function appointmentTime(instant: string, timezone: string) {
   }).format(new Date(instant))
 }
 function appointmentDate(day: string) {
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat(adminLocale(), {
     timeZone: 'UTC',
     weekday: 'long',
     day: 'numeric',
@@ -90,6 +97,8 @@ function appointmentDate(day: string) {
   }).format(new Date(day + 'T12:00:00Z'))
 }
 function AppointmentCards({ items, context }: { items: Appointment[]; context: Context }) {
+  useAdminLanguage()
+
   const groups = new Map<string, Appointment[]>()
   for (const item of items) {
     const day = localStamp(item.scheduled_start, context.timezone).slice(0, 10)
@@ -111,10 +120,13 @@ function AppointmentCards({ items, context }: { items: Appointment[]; context: C
                   >
                     <div className="appointment-time">
                       <strong>{appointmentTime(item.scheduled_start, context.timezone)}</strong>
-                      <span>to {appointmentTime(item.scheduled_end, context.timezone)}</span>
+                      <span>
+                        {t('to ')}
+                        {appointmentTime(item.scheduled_end, context.timezone)}
+                      </span>
                       <span className="appointment-duration">
                         <Clock size={14} aria-hidden="true" />
-                        {item.final_duration_minutes} min
+                        {item.final_duration_minutes} {t(" min")}
                       </span>
                     </div>
                     <div className="appointment-card-body">
@@ -127,17 +139,17 @@ function AppointmentCards({ items, context }: { items: Appointment[]; context: C
                           className="appointment-status"
                           data-status={item.status}
                         >
-                          {statusNames[item.status] || item.status}
+                          {t(statusNames[item.status] || item.status)}
                         </Badge>
                       </div>
                       <p className="appointment-service">
                         <Scissors size={16} aria-hidden="true" />
-                        <span>{item.main_service?.name || 'No service recorded'}</span>
+                        <span>{item.main_service?.name || t('No service recorded')}</span>
                       </p>
                       <div className="appointment-meta">
                         <span className={item.barber ? '' : 'appointment-unassigned'}>
                           <UserRound size={16} aria-hidden="true" />
-                          {item.barber?.name || 'Unassigned'}
+                          {item.barber?.name || t('Unassigned')}
                         </span>
                         <span>
                           {item.final_price} {context.currency}
@@ -163,19 +175,23 @@ function useContext() {
   })
 }
 export function AppointmentsPage() {
+  useAdminLanguage()
+
   const context = useContext()
   const hours = useQuery({
     queryKey: useAdminKey('business-hours'),
     queryFn: ({ signal }) => apiRequest<DayHours[]>('/business-hours', { signal }),
   })
-  if (context.isPending) return <p role="status">Loading business timezone…</p>
+  if (context.isPending) return <p role="status">{t('Loading business timezone…')}</p>
   if (context.isError)
     return <ErrorView error={context.error} retry={() => void context.refetch()} />
-  if (hours.isPending) return <p role="status">Loading business hours…</p>
+  if (hours.isPending) return <p role="status">{t('Loading business hours…')}</p>
   if (hours.isError) return <ErrorView error={hours.error} retry={() => void hours.refetch()} />
   return <AppointmentList context={context.data} hours={hours.data} />
 }
 function AppointmentList({ context, hours }: { context: Context; hours: DayHours[] }) {
+  useAdminLanguage()
+
   const owner = useAuth().actor?.role === 'OWNER'
   const key = useAdminKey('appointments')
   const today = localStamp(new Date(), context.timezone).slice(0, 10)
@@ -193,7 +209,7 @@ function AppointmentList({ context, hours }: { context: Context; hours: DayHours
   let dateError = ''
   let params = new URLSearchParams({ limit: '25', offset: String(offset) })
   try {
-    if (from > to) throw new Error('End date must follow start date.')
+    if (from > to) throw new Error(t('End date must follow start date.'))
     params.set(
       'from',
       timeChoices(from + 'T00:00', context.timezone)[0]?.instant ||
@@ -223,33 +239,37 @@ function AppointmentList({ context, hours }: { context: Context; hours: DayHours
     <section className="appointments-workspace space-y-6">
       <div className="appointment-page-heading">
         <div>
-          <h1>Appointments</h1>
+          <h1>{t('Appointments')}</h1>
           <p className="text-sm text-muted-foreground">
-            Review the schedule and open an appointment for details.
+            {t('Review the schedule and open an appointment for details.')}
           </p>
         </div>
         {owner && (
           <Button asChild>
             <Link to="/admin/appointments/new">
               <Plus size={18} aria-hidden="true" />
-              Create appointment
+              {t('Create appointment')}
             </Link>
           </Button>
         )}
       </div>
-      {hoursError && <p role="alert">{hoursError}</p>}
+      {hoursError && <p role="alert">{t(hoursError)}</p>}
       {defaultDate !== today && (
         <p className="text-sm text-muted-foreground">
-          Today is closed. The default schedule is {appointmentDate(defaultDate)}, the next open
-          day.
+          {t("Today is closed. The default schedule is ")}
+          {appointmentDate(defaultDate)}
+          {t(', the next open day.')}
         </p>
       )}
       <Card>
         <CardContent>
           <div className="appointment-filter-heading">
             <div>
-              <p className="font-medium">Schedule filters</p>
-              <p className="text-sm text-muted-foreground">Business timezone: {context.timezone}</p>
+              <p className="font-medium">{t('Schedule filters')}</p>
+              <p className="text-sm text-muted-foreground">
+                {t('Business timezone: ')}
+                {context.timezone}
+              </p>
             </div>
             <Button
               variant="outline"
@@ -260,12 +280,12 @@ function AppointmentList({ context, hours }: { context: Context; hours: DayHours
               }}
             >
               <CalendarDays size={16} aria-hidden="true" />
-              {defaultDate === today ? 'Today' : 'Next open day'}
+              {defaultDate === today ? t('Today') : t('Next open day')}
             </Button>
           </div>
           <div className="appointment-filters">
             <Field>
-              <FieldLabel htmlFor="appointments-from">From date</FieldLabel>
+              <FieldLabel htmlFor="appointments-from">{t('From date')}</FieldLabel>
               <Input
                 className="h-11"
                 id="appointments-from"
@@ -281,7 +301,7 @@ function AppointmentList({ context, hours }: { context: Context; hours: DayHours
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="appointments-to">Through date</FieldLabel>
+              <FieldLabel htmlFor="appointments-to">{t('Through date')}</FieldLabel>
               <Input
                 className="h-11"
                 id="appointments-to"
@@ -297,7 +317,7 @@ function AppointmentList({ context, hours }: { context: Context; hours: DayHours
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="appointments-status">Status</FieldLabel>
+              <FieldLabel htmlFor="appointments-status">{t('Status')}</FieldLabel>
               <NativeSelect
                 className="h-11"
                 id="appointments-status"
@@ -307,10 +327,10 @@ function AppointmentList({ context, hours }: { context: Context; hours: DayHours
                   setOffset(0)
                 }}
               >
-                <NativeSelectOption value="">All statuses</NativeSelectOption>
+                <NativeSelectOption value="">{t('All statuses')}</NativeSelectOption>
                 {Object.entries(statusNames).map(([value, label]) => (
                   <NativeSelectOption key={value} value={value}>
-                    {label}
+                    {t(label)}
                   </NativeSelectOption>
                 ))}
               </NativeSelect>
@@ -318,22 +338,22 @@ function AppointmentList({ context, hours }: { context: Context; hours: DayHours
           </div>
           <div className="appointment-filter-footer">
             <p className="text-xs text-muted-foreground">
-              Dates and times follow the business timezone.
+              {t('Dates and times follow the business timezone.')}
             </p>
             <Button variant="outline" onClick={resetFilters}>
-              Reset filters
+              {t('Reset filters')}
             </Button>
           </div>
           {dateError && (
             <p role="alert" id="appointments-date-error">
-              {dateError}
+              {t(dateError)}
             </p>
           )}
         </CardContent>
       </Card>
       {dateError || hoursError ? null : query.isPending ? (
         <div role="status">
-          <span className="sr-only">Loading appointments…</span>
+          <span className="sr-only">{t('Loading appointments…')}</span>
           <div className="space-y-3" aria-hidden="true">
             {Array.from({ length: 3 }, (_, i) => (
               <Skeleton key={i} className="h-32 rounded-xl" />
@@ -350,17 +370,17 @@ function AppointmentList({ context, hours }: { context: Context; hours: DayHours
             <Card>
               <CardContent className="appointment-empty">
                 <CalendarDays size={32} aria-hidden="true" />
-                <h2>No appointments in this range.</h2>
+                <h2>{t('No appointments in this range.')}</h2>
                 <p className="text-sm text-muted-foreground">
                   {status
-                    ? 'Try a different status or reset your filters.'
-                    : 'Choose another date range to explore the schedule.'}
+                    ? t('Try a different status or reset your filters.')
+                    : t('Choose another date range to explore the schedule.')}
                 </p>
                 {owner && (
                   <Button asChild>
                     <Link to="/admin/appointments/new">
                       <Plus size={16} aria-hidden="true" />
-                      Create appointment
+                      {t('Create appointment')}
                     </Link>
                   </Button>
                 )}
@@ -374,6 +394,8 @@ function AppointmentList({ context, hours }: { context: Context; hours: DayHours
   )
 }
 export function AppointmentDetailPage() {
+  useAdminLanguage()
+
   const { appointmentId } = useParams()
   const owner = useAuth().actor?.role === 'OWNER'
   const key = useAdminKey('appointments')
@@ -411,23 +433,23 @@ export function AppointmentDetailPage() {
         }}
       />
     )
-  if (query.isPending || context.isPending) return <p role="status">Loading appointment…</p>
+  if (query.isPending || context.isPending) return <p role="status">{t('Loading appointment…')}</p>
   const item = query.data
   const active = ['SCHEDULED', 'CONFIRMED'].includes(item.status)
   return (
     <section className="appointment-detail-workspace break-words">
-      <Link to="/admin/appointments">Back to appointments</Link>
+      <Link to="/admin/appointments">{t('Back to appointments')}</Link>
       <div className="appointment-detail-heading">
-        <h1>Appointment</h1>
-        <Badge variant="outline">{item.status}</Badge>
+        <h1>{t('Appointment')}</h1>
+        <Badge variant="outline">{t(item.status)}</Badge>
       </div>
-      {location.state?.saved && <p role="status">Appointment saved.</p>}
-      {location.state?.completed && <p role="status">Appointment completed.</p>}
+      {location.state?.saved && <p role="status">{t('Appointment saved.')}</p>}
+      {location.state?.completed && <p role="status">{t('Appointment completed.')}</p>}
       <div className="appointment-detail-grid">
         <section className="appointment-detail-card">
           <h2>
             <UserRound size={20} aria-hidden="true" />
-            Client
+            {t('Client')}
           </h2>
           <Link to={`/admin/clients/${item.client.id}`}>
             {item.client.first_name} {item.client.last_name}
@@ -441,58 +463,71 @@ export function AppointmentDetailPage() {
         <section className="appointment-detail-card">
           <h2>
             <CalendarDays size={20} aria-hidden="true" />
-            Schedule
+            {t('Schedule')}
           </h2>
           <p>
             {displayTime(item.scheduled_start, context.data.timezone)} –{' '}
             {displayTime(item.scheduled_end, context.data.timezone)} ({context.data.timezone})
           </p>
           <p>
-            {item.status} · {item.barber?.name || 'Unassigned'}
+            {t(item.status)} · {item.barber?.name || t('Unassigned')}
           </p>
         </section>
         <section className="appointment-detail-card">
           <h2>
             <Clock size={20} aria-hidden="true" />
-            Totals
+            {t('Totals')}
           </h2>
           <p>
-            Final: {item.final_duration_minutes} minutes · {item.final_price}{' '}
-            {context.data.currency}
+            {t("Final: ")}
+            {item.final_duration_minutes} {t(' minutes · ')}
+            {item.final_price} {context.data.currency}
           </p>
           <p>
-            Calculated: {item.calculated_duration_minutes} minutes · {item.calculated_price}{' '}
-            {context.data.currency}
+            {t("Calculated: ")}
+            {item.calculated_duration_minutes} {t(' minutes · ')}
+            {item.calculated_price} {context.data.currency}
           </p>
         </section>
         <section className="appointment-detail-card">
           <h2>
             <Scissors size={20} aria-hidden="true" />
-            Services
+            {t('Services')}
           </h2>
           <ul>
             {item.services.map((s) => (
               <li key={s.service_id}>
-                {s.name} · {s.duration_minutes} minutes · {s.price}
+                {s.name} · {s.duration_minutes} {t(' minutes · ')}
+                {s.price}
               </li>
             ))}
           </ul>
         </section>
         <section className="appointment-detail-card appointment-detail-notes">
-          <h2>Notes and products</h2>
+          <h2>{t('Notes and products')}</h2>
           {!item.appointment_notes &&
             !(owner && item.visit_notes) &&
             !item.products.some((p) => owner || p.usage_type === 'USED') && (
-              <p className="text-muted-foreground">No notes or products recorded.</p>
+              <p className="text-muted-foreground">{t('No notes or products recorded.')}</p>
             )}
-          {item.appointment_notes && <p>Appointment notes: {item.appointment_notes}</p>}
-          {owner && item.visit_notes && <p>Visit notes: {item.visit_notes}</p>}
+          {item.appointment_notes && (
+            <p>
+              {t('Appointment notes: ')}
+              {item.appointment_notes}
+            </p>
+          )}
+          {owner && item.visit_notes && (
+            <p>
+              {t('Visit notes: ')}
+              {item.visit_notes}
+            </p>
+          )}
           <ul>
             {item.products
               .filter((p) => owner || p.usage_type === 'USED')
               .map((p, i) => (
                 <li key={i}>
-                  {p.name} · {p.quantity} · {p.usage_type}
+                  {p.name} · {p.quantity} · {t(p.usage_type)}
                 </li>
               ))}
           </ul>
@@ -500,50 +535,54 @@ export function AppointmentDetailPage() {
       </div>
       {owner && active && (
         <div className="appointment-detail-actions">
-          <Link to={`/admin/appointments/${item.id}/edit`}>Edit appointment</Link>
-          <Link to={`/admin/appointments/${item.id}/complete`}>Complete appointment</Link>
+          <Link to={`/admin/appointments/${item.id}/edit`}>{t('Edit appointment')}</Link>
+          <Link to={`/admin/appointments/${item.id}/complete`}>{t('Complete appointment')}</Link>
           {item.status === 'SCHEDULED' && (
             <button
               className={action}
               disabled={mutation.isPending}
               onClick={() => mutation.mutate('CONFIRMED')}
             >
-              Confirm appointment
+              {t('Confirm appointment')}
             </button>
           )}
           <button className={`${action} admin-danger`} onClick={() => setConfirm('CANCELLED')}>
-            Cancel appointment
+            {t('Cancel appointment')}
           </button>
           <button className={`${action} admin-danger`} onClick={() => setConfirm('NO_SHOW')}>
-            Mark no-show
+            {t('Mark no-show')}
           </button>
         </div>
       )}
       {confirm && (
-        <div role="group" aria-label="Confirm status change">
+        <div role="group" aria-label={t('Confirm status change')}>
           <p>
-            Change the appointment for {item.client.first_name} {item.client.last_name} to {confirm}
-            ? This removes it from active scheduling.
+            {t("Change the appointment for ")}
+            {item.client.first_name} {item.client.last_name} {t(' to ')}
+            {confirm}
+            {t('? This removes it from active scheduling.')}
           </p>
           <button
             className={action}
             disabled={mutation.isPending}
             onClick={() => mutation.mutate(confirm)}
           >
-            Yes, change status
+            {t('Yes, change status')}
           </button>
           <button className={action} onClick={() => setConfirm('')}>
-            Keep appointment
+            {t('Keep appointment')}
           </button>
         </div>
       )}
-      {mutation.isPending && <p role="status">Saving status…</p>}
-      {mutation.isSuccess && <p role="status">Status saved.</p>}
+      {mutation.isPending && <p role="status">{t('Saving status…')}</p>}
+      {mutation.isSuccess && <p role="status">{t('Status saved.')}</p>}
       {mutation.isError && <FormError message={mutation.error.message} />}
     </section>
   )
 }
 export function AppointmentFormPage() {
+  useAdminLanguage()
+
   const owner = useAuth().actor?.role === 'OWNER'
   const { appointmentId } = useParams()
   const key = useAdminKey('appointments')
@@ -553,7 +592,7 @@ export function AppointmentFormPage() {
     enabled: owner && !!appointmentId,
     queryFn: ({ signal }) => apiRequest<Appointment>(`/appointments/${appointmentId}`, { signal }),
   })
-  if (!owner) return <p role="alert">Access denied.</p>
+  if (!owner) return <p role="alert">{t('Access denied.')}</p>
   if (context.isError || query.isError)
     return (
       <ErrorView
@@ -565,14 +604,16 @@ export function AppointmentFormPage() {
       />
     )
   if (context.isPending || (appointmentId && query.isPending))
-    return <p role="status">Loading appointment form…</p>
+    return <p role="status">{t('Loading appointment form…')}</p>
   if (query.data && !['SCHEDULED', 'CONFIRMED'].includes(query.data.status))
-    return <p role="alert">This appointment is read only.</p>
+    return <p role="alert">{t('This appointment is read only.')}</p>
   return (
     <AppointmentForm key={appointmentId || 'new'} context={context.data} existing={query.data} />
   )
 }
 function AppointmentForm({ context, existing }: { context: Context; existing?: Appointment }) {
+  useAdminLanguage()
+
   const hours = useQuery({
     queryKey: useAdminKey('business-hours'),
     queryFn: ({ signal }) => apiRequest<DayHours[]>('/business-hours', { signal }),
@@ -686,12 +727,17 @@ function AppointmentForm({ context, existing }: { context: Context; existing?: A
       })
   return (
     <section className="appointment-form-workspace">
-      <Link to={existing ? `/admin/appointments/${existing.id}` : '/admin/appointments'}>Back</Link>
-      <h1>{existing ? 'Edit appointment' : 'Create appointment'}</h1>
+      <Link to={existing ? `/admin/appointments/${existing.id}` : '/admin/appointments'}>
+        {t('Back')}
+      </Link>
+      <h1>{existing ? t('Edit appointment') : t('Create appointment')}</h1>
       <p className="appointment-form-intro">
-        Choose a client, services and a time, then review the appointment before saving.
+        {t('Choose a client, services and a time, then review the appointment before saving.')}
       </p>
-      <p className="appointment-form-timezone">Business timezone: {context.timezone}</p>
+      <p className="appointment-form-timezone">
+        {t('Business timezone: ')}
+        {context.timezone}
+      </p>
       <form
         className="appointment-editor"
         onSubmit={(event) => {
@@ -709,10 +755,10 @@ function AppointmentForm({ context, existing }: { context: Context; existing?: A
         <section className="appointment-form-card appointment-client-picker">
           <h2>
             <UserRound size={20} aria-hidden="true" />
-            Client
+            {t('Client')}
           </h2>
           <label>
-            Search existing client
+            {t('Search existing client')}
             <input
               className={field}
               maxLength={200}
@@ -730,32 +776,33 @@ function AppointmentForm({ context, existing }: { context: Context; existing?: A
               }
             }}
           >
-            Create client first
+            {t('Create client first')}
           </Link>
           {leaving && (
-            <div role="group" aria-label="Leave appointment draft">
+            <div role="group" aria-label={t('Leave appointment draft')}>
               <p>
-                Creating a client leaves this appointment form. Unsaved appointment details will be
-                discarded.
+                {t(
+                  'Creating a client leaves this appointment form. Unsaved appointment details will be discarded.',
+                )}
               </p>
               <button type="button" onClick={() => navigate('/admin/clients/new')}>
-                Leave and create client
+                {t('Leave and create client')}
               </button>
               <button type="button" onClick={() => setLeaving(false)}>
-                Keep editing appointment
+                {t('Keep editing appointment')}
               </button>
             </div>
           )}
           {clients.isPending || search.trim() !== q ? (
-            <p>Loading clients…</p>
+            <p>{t('Loading clients…')}</p>
           ) : clients.isError ? (
             <ErrorView error={clients.error} retry={() => void clients.refetch()} />
           ) : (
             <>
               <p className="text-sm text-muted-foreground">
                 {q
-                  ? 'Search results'
-                  : 'Most recently added clients · Search to find another client'}
+                  ? t('Search results')
+                  : t('Most recently added clients · Search to find another client')}
               </p>
               <ul className="appointment-client-options">
                 {clients.data.items.map((c) => (
@@ -770,26 +817,27 @@ function AppointmentForm({ context, existing }: { context: Context; existing?: A
                       {client?.id === c.id && (
                         <span className="appointment-client-selected">
                           <Check size={16} aria-hidden="true" />
-                          Selected
+                          {t('Selected')}
                         </span>
                       )}
                     </button>
                   </li>
                 ))}
-                {!clients.data.total && <li>No matching clients.</li>}
+                {!clients.data.total && <li>{t('No matching clients.')}</li>}
               </ul>
             </>
           )}
           {client && (
             <p className="appointment-selected-summary" role="status">
-              Selected client: {client.first_name} {client.last_name}
+              {t("Selected client: ")}
+              {client.first_name} {client.last_name}
             </p>
           )}
         </section>
         <section className="appointment-form-card">
           <h2>
             <CalendarDays size={20} aria-hidden="true" />
-            Schedule
+            {t('Schedule')}
           </h2>
           {hours.isError && <ErrorView error={hours.error} retry={() => void hours.refetch()} />}
           <SchedulePicker
@@ -805,9 +853,9 @@ function AppointmentForm({ context, existing }: { context: Context; existing?: A
           />
           {choices.length > 1 && (
             <label>
-              UTC offset
+              {t('UTC offset')}
               <select className={field} value={offset} onChange={(e) => setOffset(e.target.value)}>
-                <option value="">Choose offset</option>
+                <option value="">{t('Choose offset')}</option>
                 {choices.map((c) => (
                   <option key={c.offset}>{c.offset}</option>
                 ))}
@@ -816,13 +864,13 @@ function AppointmentForm({ context, existing }: { context: Context; existing?: A
           )}
           {timeError && (
             <p role="alert" id="appointment-time-error">
-              {timeError}
+              {t(timeError)}
             </p>
           )}
           <label>
-            Hairdresser
+            {t('Hairdresser')}
             <select className={field} value={barber} onChange={(e) => setBarber(e.target.value)}>
-              <option value="">Unassigned</option>
+              <option value="">{t('Unassigned')}</option>
               {barbers.data?.map((b) => (
                 <option key={b.id} value={b.id}>
                   {b.name}
@@ -830,7 +878,7 @@ function AppointmentForm({ context, existing }: { context: Context; existing?: A
               ))}
               {existing?.barber && !barbers.data?.some((b) => b.id === existing.barber?.id) && (
                 <option value={existing.barber.id}>
-                  {existing.barber.name} (inactive; reassign to reschedule)
+                  {existing.barber.name} {t(" (inactive; reassign to reschedule)")}
                 </option>
               )}
             </select>
@@ -842,12 +890,12 @@ function AppointmentForm({ context, existing }: { context: Context; existing?: A
         <section className="appointment-form-card">
           <h2>
             <Scissors size={20} aria-hidden="true" />
-            Services
+            {t('Services')}
           </h2>
           <fieldset className="space-y-2">
-            <legend className="sr-only">Services</legend>
+            <legend className="sr-only">{t('Services')}</legend>
             {services.isPending ? (
-              <p>Loading services…</p>
+              <p>{t('Loading services…')}</p>
             ) : services.isError ? (
               <ErrorView error={services.error} retry={() => void services.refetch()} />
             ) : (
@@ -865,13 +913,13 @@ function AppointmentForm({ context, existing }: { context: Context; existing?: A
                     }
                   />
                   {s.name}
-                  {!s.is_active ? ' (retained inactive service)' : ''}
+                  {!s.is_active ? t(' (retained inactive service)') : ''}
                 </label>
               ))
             )}
           </fieldset>
           <label>
-            Appointment notes
+            {t('Appointment notes')}
             <textarea
               className={field}
               maxLength={10000}
@@ -883,26 +931,31 @@ function AppointmentForm({ context, existing }: { context: Context; existing?: A
         <section className="appointment-form-card appointment-review">
           <h2>
             <Clock size={20} aria-hidden="true" />
-            Review and totals
+            {t('Review and totals')}
           </h2>
-          {preview.isFetching && <p role="status">Calculating preview…</p>}
-          {preview.isError && <p role="alert">{preview.error.message}</p>}
+          {preview.isFetching && <p role="status">{t('Calculating preview…')}</p>}
+          {preview.isError && <p role="alert">{t(preview.error.message)}</p>}
           {preview.data && !!instant && (
-            <div aria-label="Appointment preview">
+            <div aria-label={t('Appointment preview')}>
               <p>
-                Calculated: {preview.data.calculated_duration_minutes} minutes ·{' '}
+                {t("Calculated: ")}
+                {preview.data.calculated_duration_minutes} {t(' minutes ·')}{' '}
                 {preview.data.calculated_price} {context.currency}
               </p>
               <p>
-                Final: {preview.data.final_duration_minutes} minutes · {preview.data.final_price}{' '}
-                {context.currency}
+                {t("Final: ")}
+                {preview.data.final_duration_minutes} {t(' minutes · ')}
+                {preview.data.final_price} {context.currency}
               </p>
-              <p>Ends: {displayTime(preview.data.scheduled_end, context.timezone)}</p>
-              <p>Capacity is checked again when saving.</p>
+              <p>
+                {t('Ends: ')}
+                {displayTime(preview.data.scheduled_end, context.timezone)}
+              </p>
+              <p>{t('Capacity is checked again when saving.')}</p>
             </div>
           )}
           <label>
-            Duration override (minutes)
+            {t('Duration override (minutes)')}
             <input
               className={field}
               type="number"
@@ -914,7 +967,7 @@ function AppointmentForm({ context, existing }: { context: Context; existing?: A
             />
           </label>
           <label>
-            Price override
+            {t('Price override')}
             <input
               className={field}
               type="number"
@@ -925,8 +978,9 @@ function AppointmentForm({ context, existing }: { context: Context; existing?: A
             />
           </label>
           <p>
-            Leave overrides blank to use calculated totals. An override equal to its calculated
-            value is not separately remembered.
+            {t(
+              'Leave overrides blank to use calculated totals. An override equal to its calculated value is not separately remembered.',
+            )}
           </p>
         </section>
         <div className="appointment-form-actions">
@@ -937,10 +991,10 @@ function AppointmentForm({ context, existing }: { context: Context; existing?: A
             className="appointment-save"
             disabled={mutation.isPending || preview.isFetching || !preview.data}
           >
-            {mutation.isPending ? 'Saving…' : 'Save appointment'}
+            {mutation.isPending ? t('Saving…') : t('Save appointment')}
           </button>
           <Link to={existing ? `/admin/appointments/${existing.id}` : '/admin/appointments'}>
-            Cancel
+            {t('Cancel')}
           </Link>
         </div>
       </form>
