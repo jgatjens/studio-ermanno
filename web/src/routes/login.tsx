@@ -1,11 +1,15 @@
+import { t, useAdminLanguage, LanguageSelector } from '@/admin/i18n'
 import { useRef, useState, type FormEvent } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '@/auth/auth-provider'
 import { LoginForm } from '@/components/login-form'
 import { publicBrand } from '@/public/content'
 import { ProtectedRoute } from '@/auth/protected-route'
+import { AuthLoading } from '@/auth/auth-loading'
 
 export function LoginPage() {
+  const language = useAdminLanguage()
+
   const auth = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -22,14 +26,14 @@ export function LoginPage() {
     try {
       await auth.login(email, password)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Unable to sign in.')
+      setError(cause instanceof Error ? cause.message : t('Unable to sign in.'))
     } finally {
       submitting.current = false
       setBusy(false)
     }
   }
   return (
-    <div className="grid min-h-svh lg:grid-cols-2">
+    <div className="grid min-h-svh lg:grid-cols-2" lang={language}>
       <div className="flex flex-col gap-8 p-6 md:p-10">
         <Link to="/" className="flex min-h-11 w-fit items-center gap-3 text-sm font-semibold">
           <span
@@ -40,10 +44,11 @@ export function LoginPage() {
           </span>
           <span>{publicBrand.title}</span>
         </Link>
+        <LanguageSelector />
         <div className="flex flex-1 items-center justify-center py-10">
           <div className="w-full max-w-xs">
             {auth.status === 'initializing' ? (
-              <p role="status">Loading authentication…</p>
+              <AuthLoading />
             ) : auth.status === 'denied' || auth.status === 'error' ? (
               <ProtectedRoute>
                 <Navigate to="/admin" replace />
@@ -55,7 +60,7 @@ export function LoginPage() {
                 onEmailChange={setEmail}
                 onPasswordChange={setPassword}
                 busy={busy}
-                error={error}
+                error={t(error)}
                 onSubmit={(event) => void submit(event)}
               />
             )}
@@ -66,10 +71,10 @@ export function LoginPage() {
             to="/"
             className="inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-sm font-medium underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <span aria-hidden="true">←</span> Back to website
+            <span aria-hidden="true">←</span> {t(' Back to website')}
           </Link>
           <p className="text-center text-xs leading-relaxed text-muted-foreground">
-            Reserved for authorized Owners and Staff.
+            {t('Reserved for authorized Owners and Staff.')}
           </p>
         </div>
       </div>

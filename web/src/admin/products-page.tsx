@@ -1,3 +1,4 @@
+import { t, useAdminLanguage, adminLocale } from '@/admin/i18n'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -68,6 +69,8 @@ function stockQuantity(value: string) {
 }
 
 export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
+  useAdminLanguage()
+
   const owner = useAuth().actor?.role === 'OWNER'
   const [q, setQ] = useState('')
   const [inactive, setInactive] = useState(false)
@@ -87,18 +90,18 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
     <section className="inventory-workspace space-y-6">
       <div className="inventory-page-heading">
         <div>
-          <h1>{inventory ? 'Inventory' : 'Products'}</h1>
+          <h1>{inventory ? t('Inventory') : t('Products')}</h1>
           <p className="text-sm text-muted-foreground">
             {inventory
-              ? 'Check stock levels and find products that need attention.'
-              : 'Browse your catalog and manage product information.'}
+              ? t('Check stock levels and find products that need attention.')
+              : t('Browse your catalog and manage product information.')}
           </p>
         </div>
         {owner && (
           <Button asChild>
             <Link to="/admin/products/new">
               <Plus size={18} aria-hidden="true" />
-              Create product
+              {t('Create product')}
             </Link>
           </Button>
         )}
@@ -106,7 +109,7 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
       <Card>
         <CardContent>
           <Field>
-            <FieldLabel htmlFor="inventory-search">Search products</FieldLabel>
+            <FieldLabel htmlFor="inventory-search">{t('Search products')}</FieldLabel>
             <div className="relative">
               <Search
                 size={18}
@@ -119,7 +122,7 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
                 type="search"
                 autoComplete="off"
                 maxLength={200}
-                placeholder="Name, brand, category or SKU…"
+                placeholder={t('Name, brand, category or SKU…')}
                 value={q}
                 onChange={(e) => {
                   setQ(e.target.value)
@@ -130,7 +133,7 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
                 <Button
                   variant="outline"
                   className="absolute right-0 top-0 min-h-11"
-                  aria-label="Clear search"
+                  aria-label={t('Clear search')}
                   onClick={() => {
                     setQ('')
                     setOffset(0)
@@ -143,9 +146,9 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
             <FieldDescription>
               {owner
                 ? inventory
-                  ? 'Open a product to record stock changes and review its history.'
-                  : 'Open a product for details or edit its catalog information.'
-                : 'Read-only access. Open a product to view permitted movement history.'}
+                  ? t('Open a product to record stock changes and review its history.')
+                  : t('Open a product for details or edit its catalog information.')
+                : t('Read-only access. Open a product to view permitted movement history.')}
             </FieldDescription>
           </Field>
           <div className="inventory-filter-row">
@@ -159,7 +162,7 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
                     setOffset(0)
                   }}
                 />
-                Low stock only
+                {t('Low stock only')}
               </label>
               <label htmlFor="inventory-inactive" className="inventory-filter-pill">
                 <Checkbox
@@ -170,7 +173,7 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
                     setOffset(0)
                   }}
                 />
-                Include inactive
+                {t('Include inactive')}
               </label>
             </div>
             {(q || low || inactive) && (
@@ -183,7 +186,7 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
                   setOffset(0)
                 }}
               >
-                Reset filters
+                {t('Reset filters')}
               </Button>
             )}
           </div>
@@ -191,7 +194,7 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
       </Card>
       {query.isPending ? (
         <div role="status">
-          <span className="sr-only">Loading products…</span>
+          <span className="sr-only">{t('Loading products…')}</span>
           <div className="inventory-grid" aria-hidden="true">
             {Array.from({ length: 6 }, (_, i) => (
               <Skeleton key={i} className="h-60 rounded-xl" />
@@ -200,14 +203,16 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
         </div>
       ) : query.isError ? (
         <div role="alert">
-          <p>{query.error.message}</p>
+          <p>{t(query.error.message)}</p>
           <Button variant="outline" onClick={() => void query.refetch()}>
-            Retry
+            {t("Retry ")}
           </Button>
         </div>
       ) : (
         <>
-          <p className="text-sm text-muted-foreground">{query.data.total} matching products</p>
+          <p className="text-sm text-muted-foreground">
+            {query.data.total} {t(' matching products')}
+          </p>
           {query.data.items.length > 0 ? (
             <ul className="inventory-grid">
               {query.data.items.map((row) => (
@@ -223,26 +228,30 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
                         </Link>
                         <div className="inventory-badges">
                           {(!inventory || !row.is_active) && (
-                            <Badge variant="outline">{row.is_active ? 'Active' : 'Inactive'}</Badge>
+                            <Badge variant="outline">
+                              {row.is_active ? t('Active') : t('Inactive')}
+                            </Badge>
                           )}
                           {!inventory && owner && (
-                            <Badge variant="outline">{row.is_public ? 'Public' : 'Private'}</Badge>
+                            <Badge variant="outline">
+                              {row.is_public ? t('Public') : t('Private')}
+                            </Badge>
                           )}
                           {row.low_stock ? (
                             <Badge variant="outline" className="inventory-low-badge">
                               <AlertTriangle size={13} aria-hidden="true" />
-                              Low stock
+                              {t('Low stock')}
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="inventory-stock-badge">
-                              In stock
+                              {t('In stock')}
                             </Badge>
                           )}
                         </div>
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {[row.brand, row.category].filter(Boolean).join(' · ') ||
-                          'No brand or category'}
+                          t('No brand or category')}
                       </p>
                       {row.sku && (
                         <p className="text-xs text-muted-foreground break-words">SKU: {row.sku}</p>
@@ -256,19 +265,19 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
                       )}
                       {!inventory && owner && (
                         <div className="product-catalog-price">
-                          <span>Retail price</span>
+                          <span>{t('Retail price')}</span>
                           <strong>{row.retail_price}</strong>
                         </div>
                       )}
                       <div className="inventory-balance">
                         <div>
-                          <p className="inventory-stock-label">Current stock</p>
+                          <p className="inventory-stock-label">{t('Current stock')}</p>
                           <p className="inventory-stock-number">
                             {stockQuantity(row.current_stock)}
                           </p>
                         </div>
                         <div>
-                          <p className="inventory-stock-label">Minimum stock</p>
+                          <p className="inventory-stock-label">{t('Minimum stock')}</p>
                           <p className="inventory-stock-minimum">
                             {stockQuantity(row.minimum_stock)}
                           </p>
@@ -284,7 +293,7 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
                                   to={`/admin/products/${row.id}/edit`}
                                 >
                                   <Pencil size={16} aria-hidden="true" />
-                                  Edit product
+                                  {t('Edit product')}
                                 </Link>
                               </Button>
                             )}
@@ -294,14 +303,14 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
                                 to={`/admin/products/${row.id}`}
                               >
                                 <Package size={16} aria-hidden="true" />
-                                Manage stock
+                                {t('Manage stock')}
                               </Link>
                             </Button>
                             {inventory && (
                               <Button variant="outline" asChild>
                                 <Link to={`/admin/products/${row.id}/edit`}>
                                   <Pencil size={16} aria-hidden="true" />
-                                  Edit product
+                                  {t('Edit product')}
                                 </Link>
                               </Button>
                             )}
@@ -309,7 +318,7 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
                         ) : (
                           <Button variant="outline" asChild>
                             <Link to={`/admin/products/${row.id}`}>
-                              View history
+                              {t('View history')}
                               <ArrowRight size={16} aria-hidden="true" />
                             </Link>
                           </Button>
@@ -324,13 +333,13 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
             <Card>
               <CardContent className="inventory-empty">
                 <Package size={32} aria-hidden="true" />
-                <h2>No matching products.</h2>
+                <h2>{t('No matching products.')}</h2>
                 <p className="text-sm text-muted-foreground">
                   {q || low || inactive
-                    ? 'Try another search or reset your filters.'
+                    ? t('Try another search or reset your filters.')
                     : owner
-                      ? 'Create a product to start tracking its stock.'
-                      : 'Products added by the Owner will appear here.'}
+                      ? t('Create a product to start tracking its stock.')
+                      : t('Products added by the Owner will appear here.')}
                 </p>
                 {q || low || inactive ? (
                   <Button
@@ -342,13 +351,13 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
                       setOffset(0)
                     }}
                   >
-                    Show active products
+                    {t('Show active products')}
                   </Button>
                 ) : owner ? (
                   <Button asChild>
                     <Link to="/admin/products/new">
                       <Plus size={16} aria-hidden="true" />
-                      Create product
+                      {t('Create product')}
                     </Link>
                   </Button>
                 ) : null}
@@ -357,8 +366,10 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
           )}
           <div className="inventory-pagination">
             <p className="text-sm text-muted-foreground">
-              Showing {query.data.items.length ? offset + 1 : 0}–
-              {query.data.items.length ? offset + query.data.items.length : 0} of {query.data.total}
+              {t("Showing ")}
+              {query.data.items.length ? offset + 1 : 0}–
+              {query.data.items.length ? offset + query.data.items.length : 0} {t(' of ')}
+              {query.data.total}
             </p>
             <div className="flex gap-2">
               <Button
@@ -366,14 +377,14 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
                 disabled={!offset}
                 onClick={() => setOffset(Math.max(0, offset - 25))}
               >
-                Previous
+                {t('Previous')}
               </Button>
               <Button
                 variant="outline"
                 disabled={offset + 25 >= query.data.total}
                 onClick={() => setOffset(offset + 25)}
               >
-                Next
+                {t('Next')}
               </Button>
             </div>
           </div>
@@ -384,6 +395,8 @@ export function ProductsPage({ inventory = false }: { inventory?: boolean }) {
 }
 
 export function ProductFormPage() {
+  useAdminLanguage()
+
   const owner = useAuth().actor?.role === 'OWNER'
   const { productId } = useParams()
   const key = useAdminKey('products')
@@ -392,20 +405,22 @@ export function ProductFormPage() {
     enabled: owner && !!productId,
     queryFn: ({ signal }) => apiRequest<Product>(`/products/${productId}`, { signal }),
   })
-  if (!owner) return <p role="alert">Access denied.</p>
-  if (productId && query.isPending) return <p role="status">Loading product…</p>
+  if (!owner) return <p role="alert">{t('Access denied.')}</p>
+  if (productId && query.isPending) return <p role="status">{t('Loading product…')}</p>
   if (productId && query.isError)
     return (
       <div role="alert">
-        {query.error.message}
+        {t(query.error.message)}
         <button className={button} onClick={() => void query.refetch()}>
-          Retry
+          {t("Retry ")}
         </button>
       </div>
     )
   return <ProductForm key={productId || 'new'} product={query.data} />
 }
 function ProductForm({ product }: { product?: Product }) {
+  useAdminLanguage()
+
   const [draft, setDraft] = useState(() =>
     product
       ? ({
@@ -449,7 +464,7 @@ function ProductForm({ product }: { product?: Product }) {
   ) {
     return (
       <Field>
-        <FieldLabel htmlFor={`product-${key}`}>{label}</FieldLabel>
+        <FieldLabel htmlFor={`product-${key}`}>{t(label)}</FieldLabel>
         <Input
           id={`product-${key}`}
           required={['name', 'cost_price', 'retail_price', 'minimum_stock'].includes(key)}
@@ -467,14 +482,17 @@ function ProductForm({ product }: { product?: Product }) {
   return (
     <section className="product-editor space-y-6">
       <Button variant="outline" asChild>
-        <Link to={back}>Back to {product ? 'product' : 'products'}</Link>
+        <Link to={back}>
+          {t('Back to ')}
+          {product ? 'product' : 'products'}
+        </Link>
       </Button>
       <div>
-        <h1>{product ? 'Edit product' : 'Create product'}</h1>
+        <h1>{product ? t('Edit product') : t('Create product')}</h1>
         <p className="text-sm text-muted-foreground">
           {product
-            ? `Update ${product.name} and its catalog settings.`
-            : 'Add a product to your catalog and set its opening stock.'}
+            ? t('Update {name} and its catalog settings.', { name: product.name })
+            : t('Add a product to your catalog and set its opening stock.')}
         </p>
       </div>
       <form
@@ -488,20 +506,20 @@ function ProductForm({ product }: { product?: Product }) {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <h2>Product information</h2>
+                <h2>{t('Product information')}</h2>
                 <p className="text-sm text-muted-foreground">
-                  Name is required. Other details help you find and identify the product.
+                  {t('Name is required. Other details help you find and identify the product.')}
                 </p>
               </CardHeader>
               <CardContent className="space-y-5">
-                {input('name', 'Name')}
+                {input('name', t('Name'))}
                 <div className="product-editor-pair">
-                  {input('brand', 'Brand')}
-                  {input('category', 'Category')}
+                  {input('brand', t('Brand'))}
+                  {input('category', t('Category'))}
                 </div>
                 {input('sku', 'SKU')}
                 <Field>
-                  <FieldLabel htmlFor="product-description">Description</FieldLabel>
+                  <FieldLabel htmlFor="product-description">{t('Description')}</FieldLabel>
                   <Textarea
                     id="product-description"
                     rows={5}
@@ -517,44 +535,44 @@ function ProductForm({ product }: { product?: Product }) {
             </Card>
             <Card>
               <CardHeader>
-                <h2>Pricing</h2>
+                <h2>{t('Pricing')}</h2>
                 <p className="text-sm text-muted-foreground">
-                  Enter non-negative amounts using a decimal point.
+                  {t('Enter non-negative amounts using a decimal point.')}
                 </p>
               </CardHeader>
               <CardContent className="product-editor-pair">
-                {input('cost_price', 'Cost price')}
-                {input('retail_price', 'Retail price')}
+                {input('cost_price', t('Cost price'))}
+                {input('retail_price', t('Retail price'))}
               </CardContent>
             </Card>
           </div>
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <h2>Stock settings</h2>
+                <h2>{t('Stock settings')}</h2>
               </CardHeader>
               <CardContent className="space-y-5">
                 {product && (
                   <div className="inventory-balance">
                     <div>
-                      <p className="inventory-stock-label">Current stock</p>
+                      <p className="inventory-stock-label">{t('Current stock')}</p>
                       <p className="inventory-stock-number">
                         {stockQuantity(product.current_stock)}
                       </p>
                     </div>
                   </div>
                 )}
-                {input('minimum_stock', 'Minimum stock')}
+                {input('minimum_stock', t('Minimum stock'))}
                 <p className="text-sm text-muted-foreground">
-                  The threshold used to flag low stock.
+                  {t('The threshold used to flag low stock.')}
                 </p>
                 {product ? (
                   <p className="text-sm text-muted-foreground">
-                    To change the balance, use Manage stock on the product page.
+                    {t('To change the balance, use Manage stock on the product page.')}
                   </p>
                 ) : (
                   <Field>
-                    <FieldLabel htmlFor="product-opening">Opening quantity</FieldLabel>
+                    <FieldLabel htmlFor="product-opening">{t('Opening quantity')}</FieldLabel>
                     <Input
                       id="product-opening"
                       inputMode="decimal"
@@ -570,7 +588,7 @@ function ProductForm({ product }: { product?: Product }) {
             </Card>
             <Card>
               <CardHeader>
-                <h2>Status and visibility</h2>
+                <h2>{t('Status and visibility')}</h2>
               </CardHeader>
               <CardContent className="space-y-5">
                 <div>
@@ -584,10 +602,10 @@ function ProductForm({ product }: { product?: Product }) {
                         setAttempt(null)
                       }}
                     />
-                    Active
+                    {t('Active')}
                   </label>
                   <p className="text-sm text-muted-foreground">
-                    Available for use in new appointments.
+                    {t('Available for use in new appointments.')}
                   </p>
                 </div>
                 <div>
@@ -601,21 +619,21 @@ function ProductForm({ product }: { product?: Product }) {
                         setAttempt(null)
                       }}
                     />
-                    Public visibility
+                    {t('Public visibility')}
                   </label>
                   <p className="text-sm text-muted-foreground">
-                    Allow this product to appear in the public catalog when active.
+                    {t('Allow this product to appear in the public catalog when active.')}
                   </p>
                 </div>
               </CardContent>
             </Card>
           </div>
         </fieldset>
-        {mutation.isPending && <p role="status">Saving product…</p>}
+        {mutation.isPending && <p role="status">{t('Saving product…')}</p>}
         {mutation.isError && (
           <div role="alert" className="rounded-lg border border-destructive p-4 space-y-3">
-            <p>{mutation.error.message}</p>
-            <p>Your draft is retained.</p>
+            <p>{t(mutation.error.message)}</p>
+            <p>{t('Your draft is retained.')}</p>
             {attempt && (
               <Button
                 type="button"
@@ -623,14 +641,14 @@ function ProductForm({ product }: { product?: Product }) {
                 disabled={mutation.isPending}
                 onClick={() => mutation.mutate(attempt)}
               >
-                Retry same save
+                {t('Retry same save')}
               </Button>
             )}
           </div>
         )}
         <div className="product-editor-actions">
           <Button type="submit" disabled={mutation.isPending}>
-            {mutation.isPending ? 'Saving…' : 'Save product'}
+            {mutation.isPending ? t('Saving…') : t('Save product')}
           </Button>
           <Button
             type="button"
@@ -638,7 +656,7 @@ function ProductForm({ product }: { product?: Product }) {
             disabled={mutation.isPending}
             onClick={() => navigate(back)}
           >
-            Cancel
+            {t('Cancel')}
           </Button>
         </div>
       </form>
@@ -647,6 +665,8 @@ function ProductForm({ product }: { product?: Product }) {
 }
 
 export function ProductDetailPage() {
+  useAdminLanguage()
+
   const { productId } = useParams()
   const owner = useAuth().actor?.role === 'OWNER'
   const key = useAdminKey('products')
@@ -664,79 +684,206 @@ export function ProductDetailPage() {
         { signal },
       ),
   })
-  if (product.isPending) return <p role="status">Loading product…</p>
+  if (product.isPending) return <p role="status">{t('Loading product…')}</p>
   if (product.isError)
     return (
       <div role="alert">
-        {product.error.message}
-          <Button variant="outline" onClick={() => void product.refetch()}>
-          Retry
+        {t(product.error.message)}
+        <Button variant="outline" onClick={() => void product.refetch()}>
+          {t("Retry ")}
         </Button>
       </div>
     )
   const row = product.data
   return (
     <section className="product-detail-page space-y-6 break-words">
-      <Button variant="outline" asChild><Link to="/admin/products">All products</Link></Button>
+      <Button variant="outline" asChild>
+        <Link to="/admin/products">{t('All products')}</Link>
+      </Button>
       <header className="product-detail-heading">
-        <div><p className="text-sm text-muted-foreground">Product catalog</p><h1>{row.name}</h1><p className="text-muted-foreground">{[row.brand, row.category].filter(Boolean).join(' · ') || 'No brand or category'} · SKU: {row.sku || 'None'}</p></div>
-        <div className="product-detail-badges"><Badge variant="outline">{row.is_active ? 'Active' : 'Inactive'}</Badge><Badge variant="outline">{row.is_public ? 'Public' : 'Private'}</Badge>{row.low_stock && <Badge variant="outline" className="inventory-low-badge"><AlertTriangle size={13} aria-hidden="true" />Low stock</Badge>}</div>
+        <div>
+          <p className="text-sm text-muted-foreground">{t('Product catalog')}</p>
+          <h1>{row.name}</h1>
+          <p className="text-muted-foreground">
+            {[row.brand, row.category].filter(Boolean).join(' · ') || t('No brand or category')} ·
+            SKU: {row.sku || t('None')}
+          </p>
+        </div>
+        <div className="product-detail-badges">
+          <Badge variant="outline">{row.is_active ? t('Active') : t('Inactive')}</Badge>
+          <Badge variant="outline">{row.is_public ? t('Public') : t('Private')}</Badge>
+          {row.low_stock && (
+            <Badge variant="outline" className="inventory-low-badge">
+              <AlertTriangle size={13} aria-hidden="true" />
+              {t('Low stock')}
+            </Badge>
+          )}
+        </div>
       </header>
       <div className="product-detail-grid">
         <div className="space-y-6">
-          <Card><CardHeader><h2>Product information</h2></CardHeader><CardContent className="space-y-4"><p className="product-detail-description">{row.description || 'No description provided.'}</p><dl className="product-detail-stats"><div><dt>Retail price</dt><dd>{row.retail_price}</dd></div><div><dt>Cost price</dt><dd>{row.cost_price}</dd></div><div><dt>Minimum stock</dt><dd>{row.minimum_stock}</dd></div></dl></CardContent></Card>
-          <Card><CardHeader><h2>Stock overview</h2></CardHeader><CardContent><div className="product-stock-hero"><strong>{stockQuantity(row.current_stock)}</strong><span>units currently in stock</span></div>{row.low_stock && <p className="product-low-stock-note"><AlertTriangle size={16} aria-hidden="true" />Below the minimum stock level of {stockQuantity(row.minimum_stock)}.</p>}</CardContent></Card>
-        </div>
-        {owner ? <Card><CardContent className="space-y-4"><div className="product-detail-owner-heading"><div><p className="text-sm text-muted-foreground">Owner controls</p><h2>Manage stock</h2></div><Button variant="outline" asChild><Link to={`/admin/products/${row.id}/edit`}><Pencil size={16} aria-hidden="true" />Edit product</Link></Button></div><StockForm product={row} /></CardContent></Card> : <Card><CardContent><p>Staff access is read only.</p><p className="text-sm text-muted-foreground mt-2">Product prices and stock controls are restricted to Owners.</p></CardContent></Card>}
-      </div>
-      <Card><CardHeader><div className="product-history-heading"><div><h2>Movement history</h2><p className="text-sm text-muted-foreground">{owner ? 'Review every stock movement for this product.' : 'Staff history omits sold products and private notes.'}</p></div><Field><FieldLabel htmlFor="movement-type">Movement type</FieldLabel>
-        <select id="movement-type" className={field} value={type} onChange={(e) => { setType(e.target.value); setOffset(0) }}><option value="">All movements</option>{['STOCK_IN', 'ADJUSTMENT', 'DAMAGED', 'USED', ...(owner ? ['SOLD'] : [])].map((value) => <option key={value}>{value}</option>)}</select>
-      </Field></div></CardHeader><CardContent>
-      {!owner && (
-        <p className="product-history-note">This filtered history cannot reconcile the full balance.</p>
-      )}
-      {history.isPending ? (
-        <p role="status">Loading movements…</p>
-      ) : history.isError ? (
-        <div role="alert">
-          {history.error.message}
-          <Button variant="outline" onClick={() => void history.refetch()}>
-            Retry history
-          </Button>
-        </div>
-      ) : (
-        <>
-          {!history.data.total && <p>No movements.</p>}
-          {history.data.items.map((m) => (
-            <article className="product-movement-row" key={m.id}>
-              <p>
-                {m.movement_type} · {m.quantity} · {new Date(m.created_at).toLocaleString()}
+          <Card>
+            <CardHeader>
+              <h2>{t('Product information')}</h2>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="product-detail-description">
+                {row.description || t('No description provided.')}
               </p>
-              {owner && m.notes && <p className="whitespace-pre-wrap">{m.notes}</p>}
-              {m.appointment_id && (
-                <Link to={`/admin/appointments/${m.appointment_id}`}>View appointment</Link>
+              <dl className="product-detail-stats">
+                <div>
+                  <dt>{t('Retail price')}</dt>
+                  <dd>{row.retail_price}</dd>
+                </div>
+                <div>
+                  <dt>{t('Cost price')}</dt>
+                  <dd>{row.cost_price}</dd>
+                </div>
+                <div>
+                  <dt>{t('Minimum stock')}</dt>
+                  <dd>{row.minimum_stock}</dd>
+                </div>
+              </dl>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <h2>{t('Stock overview')}</h2>
+            </CardHeader>
+            <CardContent>
+              <div className="product-stock-hero">
+                <strong>{stockQuantity(row.current_stock)}</strong>
+                <span>{t('units currently in stock')}</span>
+              </div>
+              {row.low_stock && (
+                <p className="product-low-stock-note">
+                  <AlertTriangle size={16} aria-hidden="true" />
+                  {t('Below the minimum stock level of ')}
+                  {stockQuantity(row.minimum_stock)}.
+                </p>
               )}
-            </article>
-          ))}
-          <div className="flex gap-3 mt-5">
-            <Button variant="outline" disabled={!offset} onClick={() => setOffset(offset - 25)}>
-              Previous movements
-            </Button>
-            <Button
-              variant="outline"
-              disabled={offset + 25 >= history.data.total}
-              onClick={() => setOffset(offset + 25)}
-            >
-              Next movements
-            </Button>
+            </CardContent>
+          </Card>
+        </div>
+        {owner ? (
+          <Card>
+            <CardContent className="space-y-4">
+              <div className="product-detail-owner-heading">
+                <div>
+                  <p className="text-sm text-muted-foreground">{t('Owner controls')}</p>
+                  <h2>{t('Manage stock')}</h2>
+                </div>
+                <Button variant="outline" asChild>
+                  <Link to={`/admin/products/${row.id}/edit`}>
+                    <Pencil size={16} aria-hidden="true" />
+                    {t('Edit product')}
+                  </Link>
+                </Button>
+              </div>
+              <StockForm product={row} />
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardContent>
+              <p>{t('Staff access is read only.')}</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                {t('Product prices and stock controls are restricted to Owners.')}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+      <Card>
+        <CardHeader>
+          <div className="product-history-heading">
+            <div>
+              <h2>{t('Movement history')}</h2>
+              <p className="text-sm text-muted-foreground">
+                {owner
+                  ? t('Review every stock movement for this product.')
+                  : t('Staff history omits sold products and private notes.')}
+              </p>
+            </div>
+            <Field>
+              <FieldLabel htmlFor="movement-type">{t('Movement type')}</FieldLabel>
+              <select
+                id="movement-type"
+                className={field}
+                value={type}
+                onChange={(e) => {
+                  setType(e.target.value)
+                  setOffset(0)
+                }}
+              >
+                <option value="">{t('All movements')}</option>
+                {['STOCK_IN', 'ADJUSTMENT', 'DAMAGED', 'USED', ...(owner ? ['SOLD'] : [])].map(
+                  (value) => (
+                    <option key={value} value={value}>
+                      {t(value)}
+                    </option>
+                  ),
+                )}
+              </select>
+            </Field>
           </div>
-        </>
-      )}
-      </CardContent></Card>
+        </CardHeader>
+        <CardContent>
+          {!owner && (
+            <p className="product-history-note">
+              {t('This filtered history cannot reconcile the full balance.')}
+            </p>
+          )}
+          {history.isPending ? (
+            <p role="status">{t('Loading movements…')}</p>
+          ) : history.isError ? (
+            <div role="alert">
+              {t(history.error.message)}
+              <Button variant="outline" onClick={() => void history.refetch()}>
+                {t('Retry history')}
+              </Button>
+            </div>
+          ) : (
+            <>
+              {!history.data.total && <p>{t('No movements.')}</p>}
+              {history.data.items.map((m) => (
+                <article className="product-movement-row" key={m.id}>
+                  <p>
+                    {t(m.movement_type)} · {m.quantity} ·{' '}
+                    {new Date(m.created_at).toLocaleString(adminLocale(), {
+                      timeZone: 'Europe/Rome',
+                    })}
+                  </p>
+                  {owner && m.notes && <p className="whitespace-pre-wrap">{m.notes}</p>}
+                  {m.appointment_id && (
+                    <Link to={`/admin/appointments/${m.appointment_id}`}>
+                      {t('View appointment')}
+                    </Link>
+                  )}
+                </article>
+              ))}
+              <div className="flex gap-3 mt-5">
+                <Button variant="outline" disabled={!offset} onClick={() => setOffset(offset - 25)}>
+                  {t('Previous movements')}
+                </Button>
+                <Button
+                  variant="outline"
+                  disabled={offset + 25 >= history.data.total}
+                  onClick={() => setOffset(offset + 25)}
+                >
+                  {t('Next movements')}
+                </Button>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </section>
   )
 }
 function StockForm({ product }: { product: Product }) {
+  useAdminLanguage()
+
   const [type, setType] = useState('STOCK_IN')
   const [quantity, setQuantity] = useState('1')
   const [notes, setNotes] = useState('')
@@ -778,10 +925,10 @@ function StockForm({ product }: { product: Product }) {
         setReview(true)
       }}
     >
-      <h2>Change stock</h2>
+      <h2>{t('Change stock')}</h2>
       <fieldset disabled={mutation.isPending} className="space-y-3">
         <label>
-          Stock action
+          {t('Stock action')}
           <select
             className={field}
             value={type}
@@ -790,17 +937,17 @@ function StockForm({ product }: { product: Product }) {
               setType(e.target.value)
             }}
           >
-            <option>STOCK_IN</option>
-            <option>ADJUSTMENT</option>
-            <option>DAMAGED</option>
+            <option value="STOCK_IN">{t('STOCK_IN')}</option>
+            <option value="ADJUSTMENT">{t('ADJUSTMENT')}</option>
+            <option value="DAMAGED">{t('DAMAGED')}</option>
           </select>
         </label>
         <label>
           {type === 'ADJUSTMENT'
-            ? 'Change stock by +/− quantity'
+            ? t('Change stock by +/− quantity')
             : type === 'DAMAGED'
-              ? 'Positive damaged quantity'
-              : 'Stock-in quantity'}
+              ? t('Positive damaged quantity')
+              : t('Stock-in quantity')}
           <input
             className={field}
             inputMode="decimal"
@@ -812,7 +959,7 @@ function StockForm({ product }: { product: Product }) {
           />
         </label>
         <label>
-          Movement notes
+          {t('Movement notes')}
           <textarea
             className={field}
             maxLength={10000}
@@ -824,16 +971,18 @@ function StockForm({ product }: { product: Product }) {
           />
         </label>
         <p>
-          Current balance: {product.current_stock} · Delta: {valid ? delta : 'Invalid'} · Expected
-          result: {valid ? (Number(product.current_stock) + delta).toFixed(3) : 'Invalid'}
+          {t("Current balance: ")}
+          {product.current_stock} {t(' · Delta: ')}
+          {valid ? delta : t('Invalid')} {t(" · Expected result: ")}
+          {valid ? (Number(product.current_stock) + delta).toFixed(3) : t('Invalid')}
         </p>
-        <p>The server verifies the final balance.</p>
+        <p>{t('The server verifies the final balance.')}</p>
         <Button type="submit" disabled={!valid}>
-          Review stock change
+          {t('Review stock change')}
         </Button>
         {review && (
-          <div role="group" aria-label="Confirm stock change">
-            <p>Confirm this stock change?</p>
+          <div role="group" aria-label={t('Confirm stock change')}>
+            <p>{t('Confirm this stock change?')}</p>
             <Button
               type="button"
               onClick={() => {
@@ -847,21 +996,21 @@ function StockForm({ product }: { product: Product }) {
                 mutation.mutate(body)
               }}
             >
-              Confirm stock change
+              {t('Confirm stock change')}
             </Button>
           </div>
         )}
       </fieldset>
-      {mutation.isPending && <p role="status">Saving stock…</p>}
-      {mutation.isSuccess && <p role="status">Stock saved.</p>}
+      {mutation.isPending && <p role="status">{t('Saving stock…')}</p>}
+      {mutation.isSuccess && <p role="status">{t('Stock saved.')}</p>}
       {mutation.isError && (
         <div role="alert">
-          <p>{mutation.error.message}</p>
-          <p>Your command and draft are retained; retrying the same command is safe.</p>
+          <p>{t(mutation.error.message)}</p>
+          <p>{t('Your command and draft are retained; retrying the same command is safe.')}</p>
           {attempt && (
             <Button type="button" variant="outline" onClick={() => mutation.mutate(attempt)}>
-              Retry same stock change
-              </Button>
+              {t('Retry same stock change')}
+            </Button>
           )}
         </div>
       )}

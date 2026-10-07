@@ -155,23 +155,40 @@ test('detail missing shows error and retry', async () => {
   expect(screen.getByText('Retry')).toBeInTheDocument()
 })
 
-test('feedback status changes and Show pending reset pagination',async()=>{
-  vi.mocked(apiRequest).mockResolvedValue({items:[row],total:50});mount();await screen.findByText('Visitor')
-  fireEvent.click(screen.getByRole('button',{name:'Next feedback'}))
-  await waitFor(()=>expect(apiRequest).toHaveBeenCalledWith('/feedback?limit=25&offset=25&status=PENDING',expect.anything()))
-  fireEvent.change(screen.getByLabelText('Status'),{target:{value:'APPROVED'}})
-  await waitFor(()=>expect(apiRequest).toHaveBeenCalledWith('/feedback?limit=25&offset=0&status=APPROVED',expect.anything()))
-  fireEvent.click(screen.getByRole('button',{name:'Show pending'}))
+test('feedback status changes and Show pending reset pagination', async () => {
+  vi.mocked(apiRequest).mockResolvedValue({ items: [row], total: 50 })
+  mount()
+  await screen.findByText('Visitor')
+  fireEvent.click(screen.getByRole('button', { name: 'Next feedback' }))
+  await waitFor(() =>
+    expect(apiRequest).toHaveBeenCalledWith(
+      '/feedback?limit=25&offset=25&status=PENDING',
+      expect.anything(),
+    ),
+  )
+  fireEvent.change(screen.getByLabelText('Status'), { target: { value: 'APPROVED' } })
+  await waitFor(() =>
+    expect(apiRequest).toHaveBeenCalledWith(
+      '/feedback?limit=25&offset=0&status=APPROVED',
+      expect.anything(),
+    ),
+  )
+  fireEvent.click(screen.getByRole('button', { name: 'Show pending' }))
   expect(screen.getByLabelText('Status')).toHaveValue('PENDING')
 })
-test('Staff feedback cards link to reads without private contact or moderation controls',async()=>{
-  state.actor.role='STAFF';mount();await screen.findByText('Visitor')
-  expect(screen.getByRole('link',{name:'View feedback'})).toHaveAttribute('href','/admin/feedback/one')
+test('Staff feedback cards link to reads without private contact or moderation controls', async () => {
+  state.actor.role = 'STAFF'
+  mount()
+  await screen.findByText('Visitor')
+  expect(screen.getByRole('link', { name: 'View feedback' })).toHaveAttribute(
+    'href',
+    '/admin/feedback/one',
+  )
   expect(screen.queryByText('private@example.com')).not.toBeInTheDocument()
-  expect(screen.queryByRole('link',{name:'Review feedback'})).not.toBeInTheDocument()
+  expect(screen.queryByRole('link', { name: 'Review feedback' })).not.toBeInTheDocument()
 })
 
- test('cancel review retains the draft without sending a moderation request', async () => {
+test('cancel review retains the draft without sending a moderation request', async () => {
   mount('/admin/feedback/one')
   await screen.findByText('Moderate feedback')
   fireEvent.change(screen.getByLabelText('Moderation status'), { target: { value: 'APPROVED' } })
@@ -180,5 +197,7 @@ test('Staff feedback cards link to reads without private contact or moderation c
   fireEvent.click(screen.getByRole('button', { name: 'Cancel review' }))
   expect(screen.queryByRole('group', { name: 'Confirm moderation' })).not.toBeInTheDocument()
   expect(screen.getByLabelText('Moderation status')).toHaveValue('APPROVED')
-  expect(vi.mocked(apiRequest).mock.calls.some(([, options]) => options?.method === 'PUT')).toBe(false)
+  expect(vi.mocked(apiRequest).mock.calls.some(([, options]) => options?.method === 'PUT')).toBe(
+    false,
+  )
 })
